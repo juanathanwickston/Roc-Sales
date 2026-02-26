@@ -47,6 +47,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/progress', require('./routes/progressRoutes'));
 app.use('/api/scores', require('./routes/scoreRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/cms', require('./routes/cmsRoutes'));
 
 // Profile nickname update
 const requireAuth = require('./middleware/requireAuth');

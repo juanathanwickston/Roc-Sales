@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/server.js",
     "setup": "node setup.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "seed-content": "node seed_content.js"
   },
   "engines": {
     "node": ">=18"
