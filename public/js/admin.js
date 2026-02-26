@@ -24,6 +24,7 @@ const Admin = {
     h += '<div style="flex:1"></div>';
     h += '<button class="admin-tab" onclick="Admin.exportCSV(\'leaderboard\')" title="Download leaderboard CSV">📊 Export</button>';
     h += '<button class="admin-tab" onclick="Admin.exportCSV(\'progress\')" title="Download progress CSV">📋 Progress</button>';
+    h += '<button class="admin-tab" onclick="Admin.resetScores()" title="Reset all scores and progress" style="color:#ff4466">🔄 Reset</button>';
     h += '</div>';
     h += '<div id="adminContent"></div>';
     container.innerHTML = h;
@@ -60,6 +61,23 @@ const Admin = {
       URL.revokeObjectURL(url);
     } catch (err) {
       alert('Export failed: ' + err.message);
+    }
+  },
+
+  async resetScores() {
+    if (!confirm('⚠️ This will permanently delete ALL scores, progress, and checklist data for ALL users. Are you sure?')) return;
+    if (!confirm('This action cannot be undone. Type OK to confirm.')) return;
+    try {
+      const res = await fetch('/api/admin/reset-scores', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      alert('✅ ' + data.message);
+      location.reload();
+    } catch (err) {
+      alert('Reset failed: ' + err.message);
     }
   },
 

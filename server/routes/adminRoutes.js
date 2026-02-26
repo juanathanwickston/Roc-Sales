@@ -453,4 +453,23 @@ router.put('/manager-teams', requireRole('superuser'), async (req, res) => {
   }
 });
 
+// ─── RESET SCORES / PROGRESS (superuser only) ───
+
+/**
+ * POST /api/admin/reset-scores
+ * Truncates scores, progress, and checklist_items tables.
+ * Superuser only. Audit-logged.
+ */
+router.post('/reset-scores', requireRole('superuser'), async (req, res) => {
+  try {
+    await db.query('TRUNCATE scores, progress, checklist_items');
+    await logAudit(req.user.id, 'scores_reset', null, { action: 'full_reset' });
+    console.log('[ADMIN] Scores/progress/checklists reset by user', req.user.id);
+    res.json({ message: 'All scores, progress, and checklists have been reset' });
+  } catch (err) {
+    console.error('[ADMIN] Reset scores error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
