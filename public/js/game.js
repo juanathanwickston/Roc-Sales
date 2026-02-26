@@ -856,17 +856,34 @@ function resizeFFCanvas(){
 
 function beginFactory(){
   document.getElementById('ffStart').style.display='none';
-  resizeFFCanvas();
+
   const c=document.getElementById('ffCanvas');
+  const par=c.parentElement;
+  const ghEl=par.querySelector('.gh');
+  const hudEl=document.getElementById('ffHud');
+  const touchEl=document.getElementById('ffTouch');
+
+  // Measure directly — don't rely on deferred resizeFFCanvas
+  const rect=par.getBoundingClientRect();
+  const ghH=ghEl?ghEl.getBoundingClientRect().height:40;
+  const hudH=hudEl?hudEl.getBoundingClientRect().height:28;
+  const touchH=touchEl?touchEl.getBoundingClientRect().height:50;
+  const w=Math.floor(rect.width)||800;
+  const h=Math.floor(rect.height - ghH - hudH - touchH)||400;
+  c.width=w;
+  c.height=h;
+
+  console.log('[FF] Canvas:', w, 'x', h, '| Container:', rect.width, 'x', rect.height, '| gh:', ghH, 'hud:', hudH, 'touch:', touchH);
+
   const pool=[...FEATURES].sort(()=>Math.random()-.5);
-  const colW=c.width/4;
+  const colW=w/4;
 
   ff={
     canvas:c, ctx:c.getContext('2d'),
-    W:c.width, H:c.height,
+    W:w, H:h,
     colW:colW,
     pool:pool, poolIdx:0,
-    active:null,      // the one piece currently falling
+    active:null,
     bins:[],
     pts:0, streak:0, bestStreak:0,
     lives:5, maxLives:5,
@@ -877,7 +894,7 @@ function beginFactory(){
     sorted:0,
     gameOver:false,
     dropPressed:false,
-    hdrH:0, hudH:0  // cached heights for GSAP popup positioning
+    hdrH:ghH, hudH:hudH
   };
 
   // build bins
@@ -885,9 +902,7 @@ function beginFactory(){
     ff.bins.push({x:i*colW, w:colW, label:PRODUCT_BINS[i].label, icon:PRODUCT_BINS[i].icon, color:PRODUCT_BINS[i].color});
   }
 
-  // cache header/HUD heights for GSAP popup positioning
-  ff.hdrH=document.querySelector('#factory .gh').getBoundingClientRect().height;
-  ff.hudH=document.getElementById('ffHud').getBoundingClientRect().height;
+  console.log('[FF] Bins:', ff.bins.length, '| Pool:', ff.pool.length, '| colW:', colW);
 
   // spawn first piece
   ffSpawnPiece();
@@ -1096,46 +1111,28 @@ function ffDraw(){
   ctx.save();
   ctx.clearRect(0,0,f.W,f.H);
 
-  // Background gradient
-  const bgGrad=ctx.createLinearGradient(0,0,0,f.H);
-  bgGrad.addColorStop(0,'#060a17');
-  bgGrad.addColorStop(0.4,'#0a1224');
-  bgGrad.addColorStop(1,'#0d1830');
-  ctx.fillStyle=bgGrad;
-  ctx.fillRect(0,0,f.W,f.H);
-
-  // Subtle grid lines
-  ctx.strokeStyle='rgba(255,255,255,.02)';
-  ctx.lineWidth=1;
-  for(let y=0;y<f.H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(f.W,y);ctx.stroke();}
-
   // bins
   const binH=60, binY=f.H-binH;
   for(let i=0;i<4;i++){
     const b=f.bins[i];
-    // Gradient fill
-    const binGrad=ctx.createLinearGradient(b.x,binY,b.x,f.H);
-    binGrad.addColorStop(0,b.color+'33');
-    binGrad.addColorStop(1,b.color+'11');
-    ctx.fillStyle=binGrad;
+    ctx.fillStyle=b.color+'22';
     ctx.fillRect(b.x,binY,b.w,binH);
-    // Border
-    ctx.strokeStyle=b.color+'88';
-    ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(b.x,binY);ctx.lineTo(b.x+b.w,binY);ctx.stroke();
-    // Label
+    ctx.strokeStyle=b.color+'66';
+    ctx.lineWidth=1;
+    ctx.strokeRect(b.x,binY,b.w,binH);
+    // label
     ctx.fillStyle=b.color;
-    ctx.font='bold 13px "Segoe UI",system-ui,sans-serif';
+    ctx.font='bold 12px "Segoe UI",system-ui,sans-serif';
     ctx.textAlign='center';
-    ctx.fillText(b.icon+' '+b.label, b.x+b.w/2, binY+24);
-    // Subtle column shading
-    ctx.fillStyle=b.color+'06';
+    ctx.fillText(b.icon+' '+b.label, b.x+b.w/2, binY+22);
+    // subtle column shading
+    ctx.fillStyle=b.color+'08';
     ctx.fillRect(b.x,0,b.w,binY);
   }
 
   // column separators
   for(let i=1;i<4;i++){
-    ctx.strokeStyle='rgba(255,255,255,.08)';
+    ctx.strokeStyle='rgba(255,255,255,.06)';
     ctx.lineWidth=1;
     ctx.beginPath();
     ctx.moveTo(i*f.colW,0);
