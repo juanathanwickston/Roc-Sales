@@ -21,6 +21,9 @@ const Admin = {
     h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
     h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
     h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
+    h += '<div style="flex:1"></div>';
+    h += '<button class="admin-tab" onclick="Admin.exportCSV(\'leaderboard\')" title="Download leaderboard CSV">📊 Export</button>';
+    h += '<button class="admin-tab" onclick="Admin.exportCSV(\'progress\')" title="Download progress CSV">📋 Progress</button>';
     h += '</div>';
     h += '<div id="adminContent"></div>';
     container.innerHTML = h;
@@ -38,6 +41,26 @@ const Admin = {
     this.currentTab = tab;
     const container = document.getElementById('adminBody');
     if (container) await this.render(container);
+  },
+
+  async exportCSV(type) {
+    try {
+      const res = await fetch(`/api/export/${type}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || `roc_${type}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    }
   },
 
   // ─── USERS TAB ───

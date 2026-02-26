@@ -113,6 +113,82 @@ Body: { "managerId": 1, "teamIds": [1, 2] }
 
 ---
 
+## CMS (Manager+)
+
+### GET /api/cms/content
+Returns all CMS content (modules, videos, docs, apply items, quizzes) for the game engine.
+
+### GET /api/cms/content/:moduleId
+Returns full module data including videos, docs, and apply items.
+
+### GET /api/cms/modules/admin
+Returns all modules with related content for the admin CMS editor.
+
+### PUT /api/cms/modules/:id
+```
+Body: { "title", "description", "icon", "phase", "game_id", "game_title", "game_desc", "sort_order" }
+```
+
+### POST /api/cms/modules
+```
+Body: { "id", "title", "description", "icon", "phase", "game_id", "game_title", "game_desc" }
+```
+
+### POST /api/cms/videos
+```
+Body: { "module_id", "title", "url", "description", "icon" }
+```
+
+### PUT /api/cms/videos/:id
+### DELETE /api/cms/videos/:id
+Min-1 guard: cannot delete last video in a module.
+
+### POST /api/cms/doc-sections
+```
+Body: { "module_id", "heading", "body" }
+```
+
+### PUT /api/cms/doc-sections/:id
+### DELETE /api/cms/doc-sections/:id
+Min-1 guard: cannot delete last doc section in a module.
+
+### POST /api/cms/apply-items
+```
+Body: { "module_id", "text", "icon", "url" }
+```
+
+### PUT /api/cms/apply-items/:id
+### DELETE /api/cms/apply-items/:id
+Min-1 guard: cannot delete last apply item in a module.
+
+### GET /api/cms/quizzes/admin
+### POST /api/cms/quizzes
+```
+Body: { "pool", "question", "options": ["A","B","C","D"], "correct_index": 0, "explanation" }
+```
+
+### PUT /api/cms/quizzes/:id
+### DELETE /api/cms/quizzes/:id
+Min-4 guard: quiz pool must have at least 4 questions.
+
+---
+
+## Export (Manager+)
+
+### GET /api/export/leaderboard
+Downloads leaderboard data as CSV. Managers see their teams only; superusers see all.
+```
+Response: CSV file (text/csv) with headers: First Name, Last Name, Username, Email, Team, Total Score, Activities Completed
+```
+
+### GET /api/export/progress
+Downloads detailed progress data as CSV. Same team-scoping as leaderboard.
+```
+Response: CSV file (text/csv) with headers: First Name, Last Name, Username, Team, Module, Activity, Status, Completed At
+```
+
+---
+
 ## Health
 
 ### GET /api/health

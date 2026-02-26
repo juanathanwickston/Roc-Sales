@@ -1,0 +1,16 @@
+{
+  "name": "ROC Academy",
+  "short_name": "ROC",
+  "description": "Payroc Enterprise Sales Training LMS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080E1A",
+  "theme_color": "#00B4FF",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

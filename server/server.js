@@ -15,6 +15,9 @@ const PORT = process.env.PORT || 3000;
 
 // ─── MIDDLEWARE ───
 
+// Trust first proxy (Railway, Render, etc.) — required for express-rate-limit
+app.set('trust proxy', 1);
+
 // Security headers (if helmet is installed)
 if (helmet) {
   app.use(helmet({
@@ -64,6 +67,7 @@ app.use('/api/progress', require('./routes/progressRoutes'));
 app.use('/api/scores', scoreLimiter, require('./routes/scoreRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/cms', cmsLimiter, require('./routes/cmsRoutes'));
+app.use('/api/export', require('./routes/exportRoutes'));
 
 // Health check for Railway monitoring
 app.get('/api/health', async (req, res) => {
