@@ -138,7 +138,8 @@ async function seedCmsContent() {
         const v = m.videos[j];
         await db.query(
           `INSERT INTO cms_videos (module_id, title, url, description, icon, sort_order)
-           SELECT $1,$2,$3,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_videos WHERE module_id=$1 AND title=$2)`,
+           SELECT $1::varchar,$2::varchar,$3::text,$4::text,$5::varchar,$6::int
+           WHERE NOT EXISTS (SELECT 1 FROM cms_videos WHERE module_id=$1 AND title=$2)`,
           [m.id, v.title, v.url || null, v.desc, v.icon, j]
         );
       }
@@ -146,7 +147,8 @@ async function seedCmsContent() {
         const d = m.docs[j];
         await db.query(
           `INSERT INTO cms_doc_sections (module_id, heading, body, sort_order)
-           SELECT $1,$2,$3,$4 WHERE NOT EXISTS (SELECT 1 FROM cms_doc_sections WHERE module_id=$1 AND heading=$2)`,
+           SELECT $1::varchar,$2::varchar,$3::text,$4::int
+           WHERE NOT EXISTS (SELECT 1 FROM cms_doc_sections WHERE module_id=$1 AND heading=$2)`,
           [m.id, d.h, d.body, j]
         );
       }
@@ -158,7 +160,8 @@ async function seedCmsContent() {
         const icon = (typeof a === 'object' && a.icon) ? a.icon : null;
         await db.query(
           `INSERT INTO cms_apply_items (module_id, text, item_type, url, icon, sort_order)
-           SELECT $1,$2,$3,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_apply_items WHERE module_id=$1 AND text=$2)`,
+           SELECT $1::varchar,$2::text,$3::varchar,$4::text,$5::varchar,$6::int
+           WHERE NOT EXISTS (SELECT 1 FROM cms_apply_items WHERE module_id=$1 AND text=$2)`,
           [m.id, text, type, url, icon, j]
         );
       }
@@ -170,7 +173,8 @@ async function seedCmsContent() {
         const q = questions[i];
         await db.query(
           `INSERT INTO cms_quiz_questions (pool, question, options, correct_index, explanation, sort_order)
-           SELECT $1,$2,$3::jsonb,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_quiz_questions WHERE pool=$1 AND question=$2)`,
+           SELECT $1::varchar,$2::text,$3::jsonb,$4::int,$5::text,$6::int
+           WHERE NOT EXISTS (SELECT 1 FROM cms_quiz_questions WHERE pool=$1 AND question=$2)`,
           [pool, q.q, JSON.stringify(q.opts), q.c, q.exp, i]
         );
       }
