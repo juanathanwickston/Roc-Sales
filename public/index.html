@@ -17,7 +17,7 @@
   --green:#00FF88;--gg:rgba(0,255,136,.2);
   --red:#FF4466;--rg:rgba(255,68,102,.2);
   --orange:#FFB800;--og:rgba(255,184,0,.2);
-  --purple:#AA55FF;--pg:rgba(170,85,255,.2);
+  --purple:#BB77FF;--pg:rgba(187,119,255,.2);
   --teal:#00D4AA;--tg:rgba(0,212,170,.2);
   --white:#EDF2FF;--gray:#6B7A99;--dg:#2D3A55;
   --gl:rgba(13,21,38,.75);--gb:rgba(0,180,255,.12);
@@ -556,6 +556,10 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
   .nav-item-icon{font-size:1.2rem}
   .main-content{margin-left:60px}
 }
+/* REDUCED MOTION */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
@@ -696,7 +700,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
     <div class="pw-title">Change Your Password</div>
     <div class="pw-sub">You must set a new password before continuing.</div>
     <input type="password" class="profile-input" id="pwCurrent" placeholder="Current password">
-    <input type="password" class="profile-input" id="pwNew" placeholder="New password (min 8 chars)">
+    <input type="password" class="profile-input" id="pwNew" placeholder="New password (min 8 chars, upper+lower+number)">
     <input type="password" class="profile-input" id="pwConfirm" placeholder="Confirm new password">
     <div id="pwError" class="profile-msg error"></div>
     <button class="profile-btn" style="width:100%" onclick="handlePasswordChange()">Set New Password</button>
