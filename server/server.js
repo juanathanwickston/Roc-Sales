@@ -24,7 +24,9 @@ if (helmet) {
     contentSecurityPolicy: false,        // Allow inline scripts/styles (SPA)
     crossOriginEmbedderPolicy: false,    // Allow YouTube embeds
     crossOriginOpenerPolicy: false,      // Allow cross-origin iframes
-    crossOriginResourcePolicy: false     // Allow cross-origin resources
+    crossOriginResourcePolicy: false,    // Allow cross-origin resources
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }, // YouTube needs referrer for embed validation
+    frameguard: false                    // Allow embedding in other contexts
   }));
 }
 
