@@ -6,6 +6,7 @@
 
 const Admin = {
   currentTab: 'users',
+  _editCache: null, // Stores module data for pre-filling edit forms
 
   /**
    * Render the admin panel.
@@ -285,7 +286,7 @@ const Admin = {
 
   showEditTeam(id, currentName) {
     const body = `
-      <div class="modal-field"><label>Team Name</label><input type="text" id="etName" value="${currentName}"></div>
+      <div class="modal-field"><label>Team Name</label><input type="text" id="etName" value="${esc(currentName)}"></div>
       <div id="etError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.editTeam(${id})">Save</button>`;
     this.showModal('Edit Team', body);
@@ -339,6 +340,7 @@ const Admin = {
   async editModule(moduleId) {
     try {
       const m = await API.getModuleAdmin(moduleId);
+      this._editCache = m; // Cache for pre-filling edit forms
       let body = '';
 
       // Module metadata
@@ -429,12 +431,13 @@ const Admin = {
   },
 
   async editVideo(videoId, moduleId) {
-    // Fetch current data — for now just show edit form with blank (user fills in)
+    // Pre-fill from cached module data
+    const v = this._editCache?.videos?.find(v => v.id === videoId) || {};
     const body = `
-      <div class="modal-field"><label>Title</label><input type="text" id="evTitle"></div>
-      <div class="modal-field"><label>URL</label><input type="text" id="evUrl"></div>
-      <div class="modal-field"><label>Description</label><textarea id="evDesc" rows="2"></textarea></div>
-      <div class="modal-field"><label>Icon</label><input type="text" id="evIcon" style="width:60px"></div>
+      <div class="modal-field"><label>Title</label><input type="text" id="evTitle" value="${esc(v.title || '')}"></div>
+      <div class="modal-field"><label>URL</label><input type="text" id="evUrl" value="${esc(v.url || '')}"></div>
+      <div class="modal-field"><label>Description</label><textarea id="evDesc" rows="2">${esc(v.description || '')}</textarea></div>
+      <div class="modal-field"><label>Icon</label><input type="text" id="evIcon" value="${v.icon || ''}" style="width:60px"></div>
       <div id="evError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.saveEditVideo(${videoId}, '${moduleId}')">Save</button>`;
     this.showModal('Edit Video', body);
@@ -444,6 +447,7 @@ const Admin = {
     try {
       await API.updateVideo(id, { title: document.getElementById('evTitle').value, url: document.getElementById('evUrl').value, description: document.getElementById('evDesc').value, icon: document.getElementById('evIcon').value });
       this.closeModal();
+      toast('Video updated');
       this.editModule(moduleId);
     } catch (err) { document.getElementById('evError').textContent = err.message; document.getElementById('evError').style.display = 'block'; }
   },
@@ -472,9 +476,11 @@ const Admin = {
   },
 
   async editDoc(docId, moduleId) {
+    // Pre-fill from cached module data
+    const d = this._editCache?.docs?.find(d => d.id === docId) || {};
     const body = `
-      <div class="modal-field"><label>Heading</label><input type="text" id="edHead"></div>
-      <div class="modal-field"><label>Body (HTML allowed)</label><textarea id="edBody" rows="6"></textarea></div>
+      <div class="modal-field"><label>Heading</label><input type="text" id="edHead" value="${esc(d.heading || '')}"></div>
+      <div class="modal-field"><label>Body (HTML allowed)</label><textarea id="edBody" rows="6">${esc(d.body || '')}</textarea></div>
       <div id="edError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.saveEditDoc(${docId}, '${moduleId}')">Save</button>`;
     this.showModal('Edit Document Section', body);
@@ -484,6 +490,7 @@ const Admin = {
     try {
       await API.updateDoc(id, { heading: document.getElementById('edHead').value, body: document.getElementById('edBody').value });
       this.closeModal();
+      toast('Document section updated');
       this.editModule(moduleId);
     } catch (err) { document.getElementById('edError').textContent = err.message; document.getElementById('edError').style.display = 'block'; }
   },
@@ -514,11 +521,13 @@ const Admin = {
   },
 
   async editApplyItem(itemId, moduleId) {
+    // Pre-fill from cached module data
+    const a = this._editCache?.apply_items?.find(a => a.id === itemId) || {};
     const body = `
-      <div class="modal-field"><label>Text</label><input type="text" id="eaText"></div>
-      <div class="modal-field"><label>Type</label><select id="eaType"><option value="text">Text</option><option value="link">Link</option><option value="chatbot">Chatbot</option></select></div>
-      <div class="modal-field"><label>URL</label><input type="text" id="eaUrl"></div>
-      <div class="modal-field"><label>Icon</label><input type="text" id="eaIcon" style="width:60px"></div>
+      <div class="modal-field"><label>Text</label><input type="text" id="eaText" value="${esc(a.text || '')}"></div>
+      <div class="modal-field"><label>Type</label><select id="eaType"><option value="text"${a.item_type==='text'?' selected':''}>Text</option><option value="link"${a.item_type==='link'?' selected':''}>Link</option><option value="chatbot"${a.item_type==='chatbot'?' selected':''}>Chatbot</option></select></div>
+      <div class="modal-field"><label>URL</label><input type="text" id="eaUrl" value="${esc(a.url || '')}"></div>
+      <div class="modal-field"><label>Icon</label><input type="text" id="eaIcon" value="${a.icon || ''}" style="width:60px"></div>
       <div id="eaError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.saveEditApplyItem(${itemId}, '${moduleId}')">Save</button>`;
     this.showModal('Edit Checklist Item', body);
