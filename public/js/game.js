@@ -1130,13 +1130,38 @@ function ffEndGame(){
 }
 
 // ─── INIT ───
-// Load progress from server, then render home
+// Load content + progress from server, then render home
 (async function loadAndInit(){
-  try {
-    const data = await API.getProgress();
-    if(data && data.modules) D.modules = data.modules;
-  } catch(e){
-    console.warn('[GAME] Could not load progress from server:', e.message);
+  // Show loading state
+  const homeEl = document.getElementById('home');
+  if (homeEl) {
+    const loader = document.createElement('div');
+    loader.id = 'appLoader';
+    loader.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--text-secondary);font-size:1.1rem;';
+    loader.textContent = 'Loading ROC Academy...';
+    homeEl.prepend(loader);
   }
-  home();
+
+  // Load everything in parallel
+  const [progressData] = await Promise.allSettled([
+    API.getProgress().catch(e => { console.warn('[GAME] Progress load failed:', e.message); return null; }),
+    loadModules(),
+    loadQuizzes()
+  ]);
+
+  // Apply progress data
+  if (progressData.status === 'fulfilled' && progressData.value && progressData.value.modules) {
+    D.modules = progressData.value.modules;
+  }
+
+  // Remove loader
+  const loader = document.getElementById('appLoader');
+  if (loader) loader.remove();
+
+  // Render
+  if (MODULES.length === 0) {
+    if (homeEl) homeEl.innerHTML = '<div style="text-align:center;padding:4rem 1rem;color:var(--text-secondary)"><h2>⚠️ Content Unavailable</h2><p>Could not load training modules. Please try refreshing the page.</p><button onclick="location.reload()" style="margin-top:1rem;padding:.5rem 1.5rem;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer">Refresh</button></div>';
+  } else {
+    home();
+  }
 })();

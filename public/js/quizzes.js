@@ -1,106 +1,26 @@
-// ===== ROC ACADEMY . PRODUCT IQ QUIZ =====
-// Same format as COMP: { q, opts[], c (correct index), exp }
+// ===== ROC ACADEMY — QUIZ POOLS =====
+// PRODUCT, COMP, and CERT now load from CMS API.
+// Game scenario data (FLOOR, BLITZ, TERR, COACH) stays in content.js.
 
-const PRODUCT = [
-{q:"A plumbing company with 4 techs wants to invoice customers on-site and sync everything to QuickBooks. Which ROC product fits?",
- opts:["ROC Terminal+. it's our main POS system with invoicing and accounting integrations built in",
-       "ROC Services. field service management with mobile invoicing, on-site payments, and QuickBooks sync",
-       "ROC Giving. it handles all types of payment collection including invoicing for service businesses",
-       "RewardPay Choice. it reduces their processing costs which is the main concern for field service companies"],c:1,
- exp:"ROC Services is purpose-built for field service businesses. Mobile invoicing, on-site payment collection, scheduling, and QuickBooks sync. Terminal+ is for countertop/retail POS."},
-{q:"A cafe owner wants bill splitting, tip management, Apple Pay, and a dual-screen display. Which product?",
- opts:["ROC Services. it supports all payment types including mobile wallets and has tip management built in",
-       "ROC Giving. it has a customer-facing display option and supports all contactless payment methods",
-       "ROC Terminal+ with X800. dual-screen POS with bill splitting, tips, NFC contactless, and inventory tracking",
-       "ConsumerChoice. it's our restaurant-focused solution with full POS features and cost savings built in"],c:2,
- exp:"ROC Terminal+ with the X800 dual-screen terminal. Built for restaurants and retail: bill splitting, tip management, NFC/Apple Pay, inventory tracking, and a customer-facing display."},
-{q:"A church with 800 members wants to increase digital giving and reduce the 2.9% + 30 cents per donation they pay on Tithe.ly. Best solution?",
- opts:["ROC Terminal+. they can use a POS terminal in the lobby for congregants to tap their cards during services",
-       "ROC Services. they can send digital invoices to members with scheduled recurring payment options",
-       "ConsumerChoice. dual pricing lets donors see the fee impact and choose to cover it themselves automatically",
-       "ROC Giving. Text-to-Give for instant mobile donations plus fee offset so donors cover processing costs"],c:3,
- exp:"ROC Giving solves both problems: Text-to-Give increases participation (no app download needed), and fee offset lets donors cover the processing cost. keeping that money in the ministry budget."},
-{q:"What is the key difference between ConsumerChoice and surcharging?",
- opts:["ConsumerChoice is transparent dual pricing. customers see a cash price and a card price upfront with no surprises",
-       "There is no real difference. ConsumerChoice is just Payroc's branded name for a standard surcharging program",
-       "ConsumerChoice only applies to credit cards while surcharging applies to both credit and debit card transactions",
-       "Surcharging is illegal in most states while ConsumerChoice is compliant everywhere because it uses a different fee structure"],c:0,
- exp:"ConsumerChoice is dual pricing, NOT surcharging. Customers see two prices clearly posted. cash and card. No surprise fees at checkout. 80%+ merchant adoption with near-zero customer complaints."},
-{q:"A contractor has both a field crew AND a small showroom. What's the optimal product combination?",
- opts:["Two ROC Terminal+ units. one mobile unit for the field and one countertop unit for the showroom",
-       "ROC Services for field invoicing + ROC Terminal+ for the showroom. both under one merchant account",
-       "ROC Services covers both. the mobile invoicing works for field AND the showroom can use the same app on a tablet",
-       "ROC Terminal+ for the showroom only. the field crew can use any generic card reader since volume is lower"],c:1,
- exp:"ROC Services for the field (mobile invoicing, on-site payments) + ROC Terminal+ for the showroom (POS, inventory). One merchant account, one relationship, two revenue streams. This is the cross-sell."},
-{q:"What makes RewardPay Choice different from standard interchange-plus pricing for the MERCHANT?",
- opts:["RewardPay Choice has lower monthly fees and no annual contract requirements compared to interchange-plus plans",
-       "RewardPay Choice gives merchants access to premium support and faster funding times than interchange-plus accounts",
-       "RewardPay Choice brings the merchant's effective processing cost to near zero. far better savings than any rate reduction",
-       "RewardPay Choice locks in a fixed rate that never changes while interchange-plus rates fluctuate with card network changes"],c:2,
- exp:"On interchange-plus, the merchant still pays processing fees (just lower ones). With RewardPay Choice, their effective cost drops to near zero. No rate cut can compete with ZERO."},
-{q:"When should you recommend ROC Giving's Text-to-Give feature over their existing online giving portal?",
- opts:["Only when the church doesn't currently have any online giving. Text-to-Give replaces the need for a web portal entirely",
-       "When digital giving adoption is low. Text-to-Give removes friction (no app, no login, 10 seconds) and captures impulse giving moments",
-       "When the church wants to reduce costs. Text-to-Give has lower processing fees than web-based giving portals",
-       "Only for large congregations over 500 members. smaller churches don't have enough volume to justify the feature"],c:1,
- exp:"Text-to-Give shines when adoption is low. The problem isn't the portal. it's the friction. No app download, no login, no account creation. A member can give in 10 seconds from their seat. That's how you capture the giving MOMENT."},
-{q:"A prospect says: 'We just need a simple card reader, nothing fancy.' What should you explore BEFORE recommending a product?",
- opts:["Ask about their processing volume to make sure they qualify for our programs and determine which pricing tier fits best",
-       "Ask how they handle invoicing, scheduling, and bookkeeping. merchants who want 'just a reader' often spend 5-10 hours weekly on admin that ROC automates",
-       "Recommend the BBPOS mobile reader immediately since that's exactly what they asked for. don't overcomplicate the sale",
-       "Show them the full ROC Services demo so they can see all the features they'd be missing with just a basic card reader"],c:1,
- exp:"'Just a reader' merchants are often sitting on hidden pain: manual invoicing, paper scheduling, separate bookkeeping. Discover the admin burden before prescribing. The answer might be ROC Services, not a reader."}
-];
+let PRODUCT = [];
+let COMP = [];
+let CERT = [];
 
-// ===== CERTIFICATION ASSESSMENT =====
-// Mixed questions across all competency areas
-const CERT = [
-{q:"A prospect processes $8K/month on Square and is 'happy enough.' In the 6-stage process, which stage are you in and what's your next move?",
- opts:["Stage 1: Identify. qualify the opportunity by calculating their annual fee waste before reaching out",
-       "Stage 2: Appointment. they're not in pain yet, so create urgency by showing them what 'happy enough' is costing them",
-       "Stage 4: Make the Sale. show them a side-by-side comparison of Square vs. Payroc immediately",
-       "Stage 5: Close. they've admitted they use Square, so present the contract and ask for the switch"],c:0,
- exp:"You're still in Stage 1: Identify. 'Happy enough' means no active pain. yet. Calculate their fee exposure ($8K x 2.6% = $2,500+/year), then use that number to create a reason for Stage 2 (the appointment)."},
-{q:"Your pipeline has $30K in potential deals. Your close rate is 25%. Your monthly target is $10K. What's your real situation?",
- opts:["You're on track. $30K x 25% = $7.5K, plus you'll likely close a few extra deals with extra effort",
-       "You're short. $30K x 25% = $7.5K projected, which is $2.5K under target. You need new pipeline NOW",
-       "You're fine. $30K in pipeline is 3x your target, which gives you plenty of room even with a low close rate",
-       "Impossible to tell. close rates change month to month, so pipeline math isn't a reliable predictor"],c:1,
- exp:"$30K x 25% = $7.5K projected. Target is $10K. You're $2.5K short. You need both new pipeline generation AND deal acceleration on your best opportunities. Never assume you'll over-perform your close rate."},
-{q:"You just closed a deal. The merchant says: 'This is exactly what we needed.' What do you do in the next 60 seconds?",
- opts:["Thank them and say you'll check in next week to make sure onboarding goes smoothly. then update your CRM",
-       "Ask for a Google review. positive online reviews help your personal brand and make future prospecting easier",
-       "Ask directly: 'Who else do you know dealing with the same problem? A warm intro from you would mean the world'",
-       "Send a thank-you email with your referral link and ask them to share it with any business owners they know"],c:2,
- exp:"Stage 6: Ask for Referrals. The emotional high is RIGHT NOW. 'Who else do you know dealing with the same problem?' converts 10x better than 'share my link' or waiting until next week. Strike immediately."},
-{q:"A merchant wants you to drop your rate by 20bp to win the deal. What's the right play?",
- opts:["Match the rate. winning the deal at any margin is better than losing it, and the residual builds over time",
-       "Split the difference. offer 10bp off as a compromise that keeps the deal moving without giving away too much",
-       "Introduce ConsumerChoice. their effective rate drops to near zero, which beats any discount, and you keep full margin",
-       "Walk away. if they're negotiating on price, they'll always be a price-sensitive customer who churns eventually"],c:2,
- exp:"ConsumerChoice: merchant pays near-zero (better than ANY rate cut), you keep full margin. It's the only play where the merchant saves more money AND you make more money. Never compete on basis points."},
-{q:"Your manager says: 'You demoed before you discovered.' What specific mistake were you making?",
- opts:["You showed the product before understanding the prospect's specific problems, so your demo was a generic feature tour",
-       "You didn't build enough rapport before the demo, so the prospect wasn't emotionally invested in the solution",
-       "You should have sent a proposal with pricing before the demo so expectations were set appropriately",
-       "You talked too much during the demo instead of asking questions and letting the prospect drive the conversation"],c:0,
- exp:"Discovery before demo. Always. A demo without discovery is a features tour. A demo AFTER discovery is a prescriptive solution. The prospect should see THEIR problem being solved, not your product being showcased."},
-{q:"You're prepping for a ride-along meeting with a 3-location restaurant group on Toast. What does a proper pre-call plan include?",
- opts:["Loading the demo environment, printing case studies, and having pricing sheets ready in case they want to sign",
-       "Research done, pain hypothesized (Toast proprietary hardware), product matched (Terminal+), cost-savings positioned (ConsumerChoice), clear close ask defined",
-       "Planning to lead with open-ended discovery questions and adapt the pitch based on whatever they tell you",
-       "Reviewing the Toast competitive battle card and preparing detailed feature-by-feature comparison slides"],c:1,
- exp:"A pre-call plan has: research done, pain HYPOTHESIZED (not just 'I'll discover it'), product matched, savings calculated, and a clear ask. Your manager wants to see preparation and intention, not 'I'll wing it.'"},
-{q:"A $3K/month deal on RewardPay Choice vs. a $5K/month deal with a 15bp discount. Which is worth more to YOUR paycheck?",
- opts:["The $5K deal. higher volume always generates higher residuals regardless of how the deal is priced",
-       "They're roughly equal. the volume advantage of the $5K deal offsets the margin advantage of the $3K deal",
-       "The $3K RewardPay deal. cost-savings programs produce higher margin, and your residual is margin-weighted",
-       "Impossible to compare without knowing the exact interchange rates and fee structures on each deal"],c:2,
- exp:"Margin-weighted comp means a $3K full-margin deal can pay you MORE than a $5K discounted deal. RewardPay Choice boosts margin naturally. Discounts destroy it permanently. Sell value, not volume."},
-{q:"Halfway through month, you have 4 closed deals at $6K. Target is $15K. Pipeline is $22K at 30% close rate. Diagnosis?",
- opts:["On pace. you're at 40% of target at the midpoint with strong pipeline coverage behind you",
-       "Projected at $12.6K. $2.4K short. Need 3-4 new qualified opportunities this week while accelerating top pipeline deals",
-       "Focus 100% on closing pipeline deals. at $22K potential, you just need to push your close rate to 40%",
-       "Offer incentive pricing on top pipeline deals to accelerate closes and make up the gap before month end"],c:1,
- exp:"Math: $6K closed + ($22K x 30%) = $12.6K projected. Target: $15K. Gap: $2.4K. You need new pipeline AND acceleration. Never bank on over-performing your close rate, and never discount to hit volume."}
-];
+/**
+ * Load all quiz pools from CMS API. Called once on app init.
+ */
+async function loadQuizzes() {
+  try {
+    const [prod, comp, cert] = await Promise.all([
+      API.getQuizPool('productIQ'),
+      API.getQuizPool('compIQ'),
+      API.getQuizPool('certification')
+    ]);
+    PRODUCT = prod || [];
+    COMP = comp || [];
+    CERT = cert || [];
+    console.log(`[CMS] Loaded quizzes: PRODUCT(${PRODUCT.length}) COMP(${COMP.length}) CERT(${CERT.length})`);
+  } catch (e) {
+    console.error('[CMS] Failed to load quizzes:', e.message);
+  }
+}

@@ -514,6 +514,30 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .modal-error{display:none;margin-top:8px;padding:10px;background:rgba(255,68,102,.06);border:1px solid rgba(255,68,102,.2);border-radius:6px;color:var(--red);font-size:.78rem;text-align:center}
 .modal-submit{width:100%;padding:14px;margin-top:8px;background:linear-gradient(135deg,var(--blue2),var(--blue));border:none;border-radius:8px;color:white;font-family:var(--font);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .25s}
 .modal-submit:hover{box-shadow:0 4px 20px var(--bg)}
+.modal-field textarea{width:100%;padding:10px 14px;background:var(--navy);border:1px solid var(--gb);border-radius:8px;color:var(--white);font-family:var(--font);font-size:.85rem;outline:none;transition:border-color .25s;resize:vertical}
+.modal-field textarea:focus{border-color:rgba(0,180,255,.4)}
+
+/* CMS EDITOR */
+.cms-content{padding:8px 0}
+.cms-modules-list{display:flex;flex-direction:column;gap:2px}
+.cms-module-card{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--n3);border-radius:var(--rs);cursor:pointer;transition:all .25s}
+.cms-module-card:hover{background:var(--n4);transform:translateX(3px)}
+.cms-mod-icon{font-size:1.4rem;width:40px;text-align:center;flex-shrink:0}
+.cms-mod-info{flex:1}
+.cms-mod-info strong{font-size:.88rem;display:block}
+.cms-mod-phase{font-size:.68rem;color:var(--gray)}
+.cms-mod-arrow{color:var(--gray);font-size:1.4rem;font-weight:300}
+.cms-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--gb)}
+.cms-section h3{font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:10px}
+.cms-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--navy);border-radius:6px;margin-bottom:4px;font-size:.82rem}
+.cms-item span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cms-item-actions{display:flex;gap:6px;flex-shrink:0}
+.admin-btn{padding:4px 10px;background:var(--n4);border:1px solid var(--gb);border-radius:6px;color:var(--gray);font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .2s}
+.admin-btn:hover{border-color:var(--blue);color:var(--white)}
+.admin-btn.danger{color:var(--red)}
+.admin-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(255,68,102,.06)}
+.admin-btn.add{width:100%;padding:8px;margin-top:6px;border-style:dashed;text-align:center;color:var(--gray)}
+.admin-btn.add:hover{color:var(--blue);border-color:var(--blue)}
 
 /* PASSWORD CHANGE MODAL */
 .pw-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center}

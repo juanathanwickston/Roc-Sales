@@ -158,6 +158,86 @@ const API = {
     return this.request('PUT', '/admin/manager-teams', { managerId, teamIds });
   },
 
+  // ─── CMS (Content Management) ───
+
+  async getModules() {
+    return this.request('GET', '/cms/modules');
+  },
+
+  async getQuizPool(pool) {
+    const param = pool ? `?pool=${pool}` : '';
+    return this.request('GET', `/cms/quizzes${param}`);
+  },
+
+  // CMS Admin
+  async getModuleAdmin(id) {
+    return this.request('GET', `/cms/modules/${id}`);
+  },
+
+  async updateModule(id, data) {
+    return this.request('PUT', `/cms/modules/${id}`, data);
+  },
+
+  async createModule(data) {
+    return this.request('POST', '/cms/modules', data);
+  },
+
+  async createVideo(data) {
+    return this.request('POST', '/cms/videos', data);
+  },
+
+  async updateVideo(id, data) {
+    return this.request('PUT', `/cms/videos/${id}`, data);
+  },
+
+  async deleteVideo(id) {
+    return this.request('DELETE', `/cms/videos/${id}`);
+  },
+
+  async createDoc(data) {
+    return this.request('POST', '/cms/docs', data);
+  },
+
+  async updateDoc(id, data) {
+    return this.request('PUT', `/cms/docs/${id}`, data);
+  },
+
+  async deleteDoc(id) {
+    return this.request('DELETE', `/cms/docs/${id}`);
+  },
+
+  async createApplyItem(data) {
+    return this.request('POST', '/cms/apply-items', data);
+  },
+
+  async updateApplyItem(id, data) {
+    return this.request('PUT', `/cms/apply-items/${id}`, data);
+  },
+
+  async deleteApplyItem(id) {
+    return this.request('DELETE', `/cms/apply-items/${id}`);
+  },
+
+  async getQuizzesAdmin() {
+    return this.request('GET', '/cms/quizzes/admin');
+  },
+
+  async createQuizQuestion(data) {
+    return this.request('POST', '/cms/quizzes', data);
+  },
+
+  async updateQuizQuestion(id, data) {
+    return this.request('PUT', `/cms/quizzes/${id}`, data);
+  },
+
+  async deleteQuizQuestion(id) {
+    return this.request('DELETE', `/cms/quizzes/${id}`);
+  },
+
+  async reorderContent(type, items) {
+    return this.request('PUT', `/cms/reorder/${type}`, { items });
+  },
+
   // ─── HEALTH ───
 
   async healthCheck() {
