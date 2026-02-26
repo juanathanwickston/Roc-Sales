@@ -3,11 +3,8 @@
 // L&D Pillars: Skill Measurement, Reinforcement Cadence, Visibility Reporting, Behavioral Standards
 
 // ─── STATE ───
-let D = JSON.parse(localStorage.getItem('roc3')||'null')||{xp:0,lvl:1,bst:0,modules:{},skills:{},repName:''};
-// Migrate old save format
-if(!D.modules) D.modules={};
-if(!D.skills) D.skills={};
-if(!D.repName) D.repName='';
+// D is loaded from server on init, used as local cache for rendering speed
+let D = {xp:0,lvl:1,bst:0,modules:{},skills:{},repName:''};
 let curMod = null;
 let audioCtx;
 
@@ -31,14 +28,15 @@ const SKILL_WEIGHTS = {
 };
 const SKILL_KEYS = Object.keys(SKILL_WEIGHTS);
 
-function saveSkill(gameId, pct){
+function saveSkill(gameId, pct, pts, maxPts){
   const key = SKILL_MAP[gameId]; if(!key||key==='certification') return;
   if(!D.skills[key]) D.skills[key]={best:0,last:0,attempts:0,lastDate:null};
   D.skills[key].last = pct;
   D.skills[key].best = Math.max(D.skills[key].best, pct);
   D.skills[key].attempts++;
   D.skills[key].lastDate = new Date().toISOString().split('T')[0];
-  sv();
+  // Submit score to backend
+  API.submitScore('game', gameId, pts||Math.round(pct), maxPts||100, {skill:key,pct:pct}).catch(e=>console.warn('[GAME] Score submit failed:',e.message));
 }
 
 // Proficiency levels (industry standard 5-tier model)
@@ -76,7 +74,7 @@ function getReinforcementStatus(dateStr){
 }
 
 // ─── CORE HELPERS ───
-function sv(){localStorage.setItem('roc3',JSON.stringify(D))}
+function sv(){/* no-op: saves now go through API */}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
 
 // ─── PROGRESS HELPERS ───
@@ -99,24 +97,22 @@ function getActStatus(modId, type){
 function completeAct(modId, type){
   if(!D.modules[modId]) D.modules[modId]={};
   D.modules[modId][type]=true;
-  const xpMap = {video:50, doc:75, game:0, apply:100};
-  if(xpMap[type]) addXP(xpMap[type]);
-  sv();
+  // Sync to backend
+  API.saveProgress(modId, type, 'done').catch(e=>console.warn('[PROGRESS] Save failed:',e.message));
 }
 
-// ─── XP & LEVEL ───
-function addXP(n){D.xp+=n;D.lvl=Math.floor(D.xp/300)+1;sv()}
-function streak(n){D.bst=Math.max(D.bst,n);sv()}
+// ─── XP & LEVEL (Power Score is computed server-side) ───
+function addXP(n){/* no-op: Power Score is server-side */}
+function streak(n){D.bst=Math.max(D.bst,n);}
 function sfx(f,t){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.08,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+t);o.start();o.stop(audioCtx.currentTime+t)}catch(e){}}
 function popup(txt,good,x,y){const d=document.createElement('div');d.className=`popup ${good?'good':'bad'}`;d.textContent=txt;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
 
 // ─── HOME SCREEN ───
 function home(){curMod=null;show('home');renderHome()}
 function renderHome(){
-  // Stats
-  document.getElementById('hXP').textContent=D.xp;
-  document.getElementById('hLv').textContent=D.lvl;
-  document.getElementById('hSk').textContent=D.bst+' 🔥';
+  // Stats — modules done count
+  const doneMods = MODULES.filter(m=>isModDone(m.id)).length;
+  document.getElementById('hSk').textContent=doneMods;
 
   // ─── READINESS INDEX (Pillar: Skill Measurement) ───
   const readiness = getReadiness();
@@ -442,7 +438,9 @@ function toggleCheck(i,el){
   D.modules[curMod].applyItems[i]=!D.modules[curMod].applyItems[i];
   el.classList.toggle('checked');
   el.querySelector('.chk-box').textContent=D.modules[curMod].applyItems[i]?'✓':'';
-  sv();sfx(D.modules[curMod].applyItems[i]?800:400,.1);
+  // Sync checklist to backend
+  API.saveChecklist(curMod, i, D.modules[curMod].applyItems[i]).catch(e=>console.warn('[CHECK] Save failed:',e.message));
+  sfx(D.modules[curMod].applyItems[i]?800:400,.1);
   const mod=MODULES.find(m=>m.id===curMod);
   const allDone=mod.apply.items.every((_,j)=>D.modules[curMod].applyItems[j]);
   const btn=document.getElementById('applyBtn');
@@ -513,7 +511,7 @@ function finishFloor(){
   if(curMod)completeAct(curMod,'game');
   const mx=FLOOR.reduce((s,c)=>s+c.steps.length*100,0);
   const pct=Math.round(fl.pts/mx*100);
-  saveSkill('salesFloor',pct);
+  saveSkill('salesFloor',pct,fl.pts,mx);
   showRes('The Sales Floor',fl.pts,mx,fl.str);
 }
 
@@ -574,7 +572,7 @@ function finishBlitz(){
   if(curMod)completeAct(curMod,'game');
   const mx=bz.pool.length*250;
   const pct=Math.round(bz.pts/mx*100);
-  saveSkill('objectionBlitz',pct);
+  saveSkill('objectionBlitz',pct,bz.pts,mx);
   showRes('Objection Blitz',bz.pts,mx,bz.str);
 }
 
@@ -608,7 +606,7 @@ function finishTerr(){
   if(curMod)completeAct(curMod,'game');
   const mx=tr.pool.length*100;
   const pct=Math.round(tr.pts/mx*100);
-  saveSkill('territory',pct);
+  saveSkill('territory',pct,tr.pts,mx);
   showRes('Territory & Pipeline',tr.pts,mx,0);
 }
 
@@ -649,7 +647,9 @@ function finishQuiz(){
   if(curMod)completeAct(curMod,'game');
   const mx=qz.pool.length*100;
   const pct=Math.round(qz.pts/mx*100);
-  saveSkill(qz.mode,pct);
+  // Submit quiz score to backend
+  API.submitScore('quiz', 'quiz_'+curMod, qz.pts, mx, {correct:qz.cor,total:qz.pool.length}).catch(e=>console.warn('[QUIZ] Score submit failed:',e.message));
+  saveSkill(qz.mode,pct,qz.pts,mx);
   showRes(qz.title,qz.pts,mx,0);
 }
 
@@ -684,7 +684,7 @@ function finishCoach(){
   if(curMod)completeAct(curMod,'game');
   const mx=co.pool.length*100;
   const pct=Math.round(co.pts/mx*100);
-  saveSkill('coachCorner',pct);
+  saveSkill('coachCorner',pct,co.pts,mx);
   showRes("Coach's Corner",co.pts,mx,0);
 }
 
@@ -721,46 +721,7 @@ function draw(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.dx;p.y+=
 x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(0,180,255,${p.a})`;x.fill()});requestAnimationFrame(draw)}
 resize();init();draw();addEventListener('resize',()=>{resize();init()})})();
 
-// ═══════════════════════════════════
-// MANAGER REPORT (Pillar: Visibility Reporting)
-// ═══════════════════════════════════
-function showReport(){
-  let h='<div class="rpt">';
-  h+='<div class="rpt-hdr"><div class="rpt-logo">ROC ACADEMY</div><div class="rpt-sub">90-Day Sales Ramp — Progress Report</div></div>';
-  h+=`<div class="rpt-field"><label>Rep Name</label><input type="text" id="rptName" value="${D.repName||''}" onchange="D.repName=this.value;sv()" placeholder="Enter rep name..."></div>`;
-  h+=`<div class="rpt-field"><label>Report Date</label><span>${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
-  // Readiness Score
-  const r=getReadiness(), rp=getProficiency(r);
-  h+=`<div class="rpt-sec"><div class="rpt-sec-t">Readiness Index</div><div class="rpt-big rs-${rp.cls}">${r}<span class="rpt-big-label"> / 100 &middot; ${rp.level}</span></div></div>`;
-  // Competency Scores
-  h+='<div class="rpt-sec"><div class="rpt-sec-t">Competency Profile</div><table class="rpt-tbl"><tr><th>Competency</th><th>Weight</th><th>Best Score</th><th>Level</th><th>Attempts</th><th>Last Practiced</th></tr>';
-  SKILL_KEYS.forEach(k=>{
-    const s=D.skills[k],best=s?s.best:0,prof=getProficiency(best),reinf=getReinforcementStatus(s?s.lastDate:null);
-    h+=`<tr><td>${SKILL_LABELS[k]}</td><td>${Math.round(SKILL_WEIGHTS[k]*100)}%</td><td class="rs-${prof.cls}">${best}%</td><td>${prof.level}</td><td>${s?s.attempts:0}</td><td>${reinf.icon} ${reinf.label}</td></tr>`;
-  });
-  h+='</table></div>';
-  // Module Completion
-  h+='<div class="rpt-sec"><div class="rpt-sec-t">Module Completion</div><table class="rpt-tbl"><tr><th>Module</th><th>Phase</th><th>📺</th><th>📖</th><th>🎮</th><th>✅</th><th>Status</th></tr>';
-  MODULES.forEach(m=>{
-    const p=getModProg(m.id),done=isModDone(m.id);
-    h+=`<tr><td>${m.icon} ${m.title}</td><td>P${m.phase}</td><td>${p.video?'✅':'—'}</td><td>${p.doc?'✅':'—'}</td><td>${p.game?'✅':'—'}</td><td>${p.apply?'✅':'—'}</td><td>${done?'✅ Complete':(p.count>0?p.count+'/4 In Progress':'Not Started')}</td></tr>`;
-  });
-  h+='</table></div>';
-  // Phase Progress
-  h+='<div class="rpt-sec"><div class="rpt-sec-t">Phase Progress</div>';
-  PHASES.forEach(ph=>{
-    const mods=MODULES.filter(m=>m.phase===ph.num),done=mods.filter(m=>isModDone(m.id)).length;
-    h+=`<div class="rpt-phase"><span>Phase ${ph.num}: ${ph.title} (${ph.days})</span><span>${done}/${mods.length} modules ${isPhaseDone(ph.num)?'✅ Complete':'In Progress'}</span></div>`;
-  });
-  h+='</div>';
-  // Certification
-  const total=MODULES.length*4,done2=MODULES.reduce((s,m)=>s+getModProg(m.id).count,0),cpct=Math.round(done2/total*100);
-  h+=`<div class="rpt-sec"><div class="rpt-sec-t">Certification Status</div><div class="rpt-cert">${cpct}% Complete${cpct>=100?' — ✅ CERTIFIED':''}</div></div>`;
-  h+='<div class="rpt-actions no-print"><button class="nb pr show" onclick="window.print()">🖨️ Print Report</button><button class="nb gh2 show" onclick="home()">← Back to Academy</button></div>';
-  h+='</div>';
-  document.getElementById('rptBody').innerHTML=h;
-  show('report');
-}
+// Manager report removed — replaced by admin panel (Admin.showUserProgress)
 
 // ═══════════════════════════════════
 // FEATURE FACTORY ENGINE (Tetris-Style)
@@ -1163,11 +1124,19 @@ function ffEndGame(){
   if(ffRAF) cancelAnimationFrame(ffRAF);
   const mx=ff.totalFeatures*100;
   const pct=Math.min(100,Math.round(ff.pts/mx*100));
-  saveSkill('featureFactory',pct);
+  saveSkill('featureFactory',pct,ff.pts,mx);
   if(curMod) completeAct(curMod,'game');
-  addXP(ff.pts);
   showRes('Feature Factory',ff.pts,mx,ff.bestStreak);
 }
 
 // ─── INIT ───
-home();
+// Load progress from server, then render home
+(async function loadAndInit(){
+  try {
+    const data = await API.getProgress();
+    if(data && data.modules) D.modules = data.modules;
+  } catch(e){
+    console.warn('[GAME] Could not load progress from server:', e.message);
+  }
+  home();
+})();
