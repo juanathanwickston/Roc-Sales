@@ -102,6 +102,9 @@ async function start() {
     // Auto-bootstrap superuser if none exists
     await bootstrapSuperuser();
 
+    // Auto-seed CMS content if tables are empty
+    await seedCmsContent();
+
     app.listen(PORT, () => {
       console.log(`[SERVER] ROC Academy running on port ${PORT}`);
       console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -109,6 +112,75 @@ async function start() {
   } catch (err) {
     console.error('[SERVER] Failed to start:', err.message);
     process.exit(1);
+  }
+}
+
+/**
+ * Seed CMS content tables on first deploy.
+ * Runs only once — skips if any modules already exist.
+ */
+async function seedCmsContent() {
+  try {
+    const existing = await db.query('SELECT COUNT(*) as cnt FROM cms_modules');
+    if (parseInt(existing.rows[0].cnt) > 0) return;
+
+    console.log('[SERVER] CMS tables empty. Seeding content...');
+    const seedData = require('../seed_content_data');
+    
+    for (let i = 0; i < seedData.MODULES.length; i++) {
+      const m = seedData.MODULES[i];
+      await db.query(
+        `INSERT INTO cms_modules (id, phase, title, description, icon, game_id, game_title, game_desc, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING`,
+        [m.id, m.phase, m.title, m.desc, m.icon, m.game_id, m.game_title, m.game_desc, i]
+      );
+      for (let j = 0; j < (m.videos || []).length; j++) {
+        const v = m.videos[j];
+        await db.query(
+          `INSERT INTO cms_videos (module_id, title, url, description, icon, sort_order)
+           SELECT $1,$2,$3,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_videos WHERE module_id=$1 AND title=$2)`,
+          [m.id, v.title, v.url || null, v.desc, v.icon, j]
+        );
+      }
+      for (let j = 0; j < (m.docs || []).length; j++) {
+        const d = m.docs[j];
+        await db.query(
+          `INSERT INTO cms_doc_sections (module_id, heading, body, sort_order)
+           SELECT $1,$2,$3,$4 WHERE NOT EXISTS (SELECT 1 FROM cms_doc_sections WHERE module_id=$1 AND heading=$2)`,
+          [m.id, d.h, d.body, j]
+        );
+      }
+      for (let j = 0; j < (m.apply_items || []).length; j++) {
+        const a = m.apply_items[j];
+        const text = typeof a === 'string' ? a : a.text;
+        const type = (typeof a === 'object' && a.type) ? a.type : 'text';
+        const url = (typeof a === 'object' && a.url) ? a.url : null;
+        const icon = (typeof a === 'object' && a.icon) ? a.icon : null;
+        await db.query(
+          `INSERT INTO cms_apply_items (module_id, text, item_type, url, icon, sort_order)
+           SELECT $1,$2,$3,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_apply_items WHERE module_id=$1 AND text=$2)`,
+          [m.id, text, type, url, icon, j]
+        );
+      }
+      console.log(`  ✓ ${m.id}: ${m.title}`);
+    }
+
+    for (const [pool, questions] of Object.entries(seedData.QUIZZES)) {
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        await db.query(
+          `INSERT INTO cms_quiz_questions (pool, question, options, correct_index, explanation, sort_order)
+           SELECT $1,$2,$3::jsonb,$4,$5,$6 WHERE NOT EXISTS (SELECT 1 FROM cms_quiz_questions WHERE pool=$1 AND question=$2)`,
+          [pool, q.q, JSON.stringify(q.opts), q.c, q.exp, i]
+        );
+      }
+      console.log(`  ✓ ${pool}: ${questions.length} questions`);
+    }
+
+    console.log('[SERVER] CMS content seeded successfully.');
+  } catch (err) {
+    // Don't crash the server if seeding fails — tables might not exist yet
+    console.warn('[SERVER] CMS seed skipped:', err.message);
   }
 }
 
