@@ -795,7 +795,11 @@ function startFactory(){
   if(typeof gsap!=='undefined'){
     gsap.fromTo('#factory',{scale:.92,opacity:0},{scale:1,opacity:1,duration:.45,ease:'back.out(1.4)'});
   }
-  resizeFFCanvas();
+  // Defer canvas sizing until layout is stable
+  requestAnimationFrame(()=>requestAnimationFrame(()=>resizeFFCanvas()));
+  // Resize on window change (rotation, etc.)
+  window.removeEventListener('resize', resizeFFCanvas);
+  window.addEventListener('resize', resizeFFCanvas);
 }
 
 function stopFactory(){
@@ -803,6 +807,7 @@ function stopFactory(){
   ffRAF=null; ff=null;
   window.removeEventListener('keydown',ffKeyDown);
   window.removeEventListener('keyup',ffKeyUp);
+  window.removeEventListener('resize', resizeFFCanvas);
   document.querySelectorAll('.ff-pop').forEach(el=>el.remove());
   backFromGame();
 }
@@ -820,13 +825,33 @@ function ffGsapPop(text,color,x,y){
 
 function resizeFFCanvas(){
   const c=document.getElementById('ffCanvas');
+  if(!c) return;
   const par=c.parentElement;
-  const gh=par.querySelector('.gh').getBoundingClientRect();
-  const hud=document.getElementById('ffHud').getBoundingClientRect();
-  const touch=document.getElementById('ffTouch').getBoundingClientRect();
+  if(!par) return;
+  const ghEl=par.querySelector('.gh');
+  const hudEl=document.getElementById('ffHud');
+  const touchEl=document.getElementById('ffTouch');
+  if(!ghEl||!hudEl||!touchEl) return;
   const rect=par.getBoundingClientRect();
-  c.width=rect.width;
-  c.height=rect.height - gh.height - hud.height - touch.height;
+  const ghH=ghEl.getBoundingClientRect().height;
+  const hudH=hudEl.getBoundingClientRect().height;
+  const touchH=touchEl.getBoundingClientRect().height;
+  const w=Math.floor(rect.width);
+  const h=Math.floor(rect.height - ghH - hudH - touchH);
+  if(w>0 && h>0){
+    c.width=w;
+    c.height=h;
+  } else {
+    // Layout not ready — retry
+    setTimeout(resizeFFCanvas, 100);
+  }
+  // Update running game state if active
+  if(ff && !ff.gameOver){
+    ff.W=c.width;
+    ff.H=c.height;
+    ff.colW=c.width/4;
+    for(let i=0;i<4;i++) ff.bins[i].x=i*ff.colW;
+  }
 }
 
 function beginFactory(){
@@ -994,7 +1019,7 @@ function ffUpdate(){
   a.y+=fallSpeed;
 
   // check landing
-  const binH=50;
+  const binH=60;
   const landY=f.H-binH-a.h;
   if(a.y>=landY){
     a.y=landY;
@@ -1071,28 +1096,46 @@ function ffDraw(){
   ctx.save();
   ctx.clearRect(0,0,f.W,f.H);
 
+  // Background gradient
+  const bgGrad=ctx.createLinearGradient(0,0,0,f.H);
+  bgGrad.addColorStop(0,'#060a17');
+  bgGrad.addColorStop(0.4,'#0a1224');
+  bgGrad.addColorStop(1,'#0d1830');
+  ctx.fillStyle=bgGrad;
+  ctx.fillRect(0,0,f.W,f.H);
+
+  // Subtle grid lines
+  ctx.strokeStyle='rgba(255,255,255,.02)';
+  ctx.lineWidth=1;
+  for(let y=0;y<f.H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(f.W,y);ctx.stroke();}
+
   // bins
-  const binH=50, binY=f.H-binH;
+  const binH=60, binY=f.H-binH;
   for(let i=0;i<4;i++){
     const b=f.bins[i];
-    ctx.fillStyle=b.color+'22';
+    // Gradient fill
+    const binGrad=ctx.createLinearGradient(b.x,binY,b.x,f.H);
+    binGrad.addColorStop(0,b.color+'33');
+    binGrad.addColorStop(1,b.color+'11');
+    ctx.fillStyle=binGrad;
     ctx.fillRect(b.x,binY,b.w,binH);
-    ctx.strokeStyle=b.color+'66';
-    ctx.lineWidth=1;
-    ctx.strokeRect(b.x,binY,b.w,binH);
-    // label
+    // Border
+    ctx.strokeStyle=b.color+'88';
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(b.x,binY);ctx.lineTo(b.x+b.w,binY);ctx.stroke();
+    // Label
     ctx.fillStyle=b.color;
-    ctx.font='bold 11px "Segoe UI",system-ui,sans-serif';
+    ctx.font='bold 13px "Segoe UI",system-ui,sans-serif';
     ctx.textAlign='center';
-    ctx.fillText(b.icon+' '+b.label, b.x+b.w/2, binY+20);
-    // subtle column shading
-    ctx.fillStyle=b.color+'08';
+    ctx.fillText(b.icon+' '+b.label, b.x+b.w/2, binY+24);
+    // Subtle column shading
+    ctx.fillStyle=b.color+'06';
     ctx.fillRect(b.x,0,b.w,binY);
   }
 
   // column separators
   for(let i=1;i<4;i++){
-    ctx.strokeStyle='rgba(255,255,255,.06)';
+    ctx.strokeStyle='rgba(255,255,255,.08)';
     ctx.lineWidth=1;
     ctx.beginPath();
     ctx.moveTo(i*f.colW,0);
