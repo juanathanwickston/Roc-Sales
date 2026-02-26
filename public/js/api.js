@@ -45,6 +45,33 @@ function sanitizeHTML(html) {
   return temp.innerHTML;
 }
 
+/**
+ * Toast notification system — global, auto-dismiss alerts.
+ * Usage: toast('Saved!') or toast('Error occurred', 'error')
+ * Types: 'success' (default), 'error', 'info'
+ */
+function toast(msg, type = 'success', duration = 3000) {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    document.body.appendChild(container);
+  }
+  const colors = { success: '#00FF88', error: '#FF4466', info: '#00B4FF' };
+  const icons = { success: '✅', error: '⚠️', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.style.cssText = `pointer-events:auto;padding:12px 20px;border-radius:12px;background:rgba(13,21,38,0.95);border:1px solid ${colors[type] || colors.success};color:#EDF2FF;font-size:.85rem;font-family:var(--font);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.4);`;
+  el.innerHTML = `<span style="margin-right:8px">${icons[type] || icons.success}</span>${esc(msg)}`;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.style.transform = 'translateX(0)');
+  setTimeout(() => {
+    el.style.transform = 'translateX(120%)';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
 const API = {
   baseUrl: '/api',
 

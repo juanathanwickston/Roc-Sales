@@ -16,7 +16,7 @@ const Leaderboard = {
       const data = await API.getLeaderboard(this.currentPeriod);
       container.innerHTML = this.buildHTML(data);
     } catch (err) {
-      container.innerHTML = `<div class="lb-error">${err.message}</div>`;
+      container.innerHTML = `<div class="lb-error"><div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>${esc(err.message)}<br><button class="nb pr show" style="margin-top:12px;font-size:.8rem" onclick="Leaderboard.render(this.parentElement.parentElement)">Retry</button></div>`;
     }
   },
 

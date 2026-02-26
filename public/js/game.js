@@ -98,7 +98,10 @@ function completeAct(modId, type){
   if(!D.modules[modId]) D.modules[modId]={};
   D.modules[modId][type]=true;
   // Sync to backend
-  API.saveProgress(modId, type, 'done').catch(e=>console.warn('[PROGRESS] Save failed:',e.message));
+  API.saveProgress(modId, type, 'done').catch(e=>{
+    console.warn('[PROGRESS] Save failed:',e.message);
+    toast('Progress save failed — will retry on next load','error');
+  });
 }
 
 // ─── XP & LEVEL (Power Score is computed server-side) ───
@@ -108,7 +111,7 @@ function sfx(f,t){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webk
 function popup(txt,good,x,y){const d=document.createElement('div');d.className=`popup ${good?'good':'bad'}`;d.textContent=txt;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
 
 // ─── HOME SCREEN ───
-function home(){curMod=null;show('home');renderHome()}
+function home(){curMod=null;cleanupGameState();show('home');renderHome()}
 function renderHome(){
   // Stats — modules done count
   const doneMods = MODULES.filter(m=>isModDone(m.id)).length;
@@ -222,7 +225,7 @@ function showModule(id){
   acts.forEach(a=>{
     const st=getActStatus(id,a.type);
     const stIcon=st==='done'?'✅':(st==='avail'?'→':'🔒');
-    const click=st!=='locked'?`launchAct('${a.type}')` : '';
+    const click=st==='locked'?`toast('Complete the previous activity to unlock this one','info')`:(`launchAct('${a.type}')`);
     h+=`<div class="act ${st}" onclick="${click}">
       <div class="act-i ${a.type}">${a.icon}</div>
       <div class="act-info"><div class="act-type">${a.label}</div><div class="act-t">${a.data.title}</div></div>
@@ -242,17 +245,32 @@ function launchAct(type){
 }
 
 function backToModule(){
-  // Pause any playing accordion video before leaving
-  if(typeof plExpanded!=='undefined' && plExpanded!==null){
-    const vidWrap=document.getElementById('plVid'+plExpanded);
-    if(vidWrap){
-      const iframe=vidWrap.querySelector('iframe');
-      if(iframe) iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}','*');
-    }
-  }
+  // Pause and destroy all iframes to prevent memory leaks
+  document.querySelectorAll('#actBody iframe').forEach(iframe => {
+    try { iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}','*'); } catch(e) {}
+    iframe.src = '';
+    iframe.remove();
+  });
+  plExpanded = null;
   if(curMod)showModule(curMod);else home();
 }
-function backFromGame(){if(curMod)showModule(curMod);else home()}
+function backFromGame(){cleanupGameState();if(curMod)showModule(curMod);else home()}
+
+// ─── GAME STATE CLEANUP ───
+// Clears any running timers, intervals, or event listeners from game engines
+function cleanupGameState(){
+  if(typeof bz!=='undefined' && bz.tid){clearInterval(bz.tid);bz.tid=null;}
+}
+
+// ─── ESCAPE KEY HANDLER ───
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){
+    const pwModal=document.getElementById('pwChangeModal');
+    if(pwModal && pwModal.style.display!=='none') { pwModal.style.display='none'; return; }
+    const profileModal=document.getElementById('profileCard');
+    if(profileModal && profileModal.classList.contains('show')) { profileModal.classList.remove('show'); return; }
+  }
+});
 
 // ─── VIDEO VIEWER (supports single video + playlist) ───
 let plWatched = {}; // track which playlist items have been viewed this session and expanded state
@@ -382,7 +400,7 @@ function togglePlaylistItem(idx){
     }
   }
 }
-function markVideoComplete(){completeAct(curMod,'video');sfx(600,.15);setTimeout(()=>sfx(900,.15),120);backToModule()}
+function markVideoComplete(){completeAct(curMod,'video');sfx(600,.15);setTimeout(()=>sfx(900,.15),120);toast('Video marked complete');backToModule()}
 
 // ─── DOC VIEWER ───
 function showDoc(mod){
@@ -400,7 +418,7 @@ function showDoc(mod){
   document.getElementById('actBody').innerHTML=h;
   show('activity');
 }
-function markDocComplete(){completeAct(curMod,'doc');sfx(600,.15);setTimeout(()=>sfx(900,.15),120);backToModule()}
+function markDocComplete(){completeAct(curMod,'doc');sfx(600,.15);setTimeout(()=>sfx(900,.15),120);toast('Doc marked as read');backToModule()}
 
 // ─── MASTER / CHECKLIST ───
 function showApply(mod){
@@ -453,6 +471,7 @@ function markApplyComplete(){
   const allDone=mod.apply.items.every((_,j)=>(D.modules[curMod]||{}).applyItems&&D.modules[curMod].applyItems[j]);
   if(!allDone)return;
   completeAct(curMod,'apply');sfx(600,.15);setTimeout(()=>sfx(900,.2),120);setTimeout(()=>sfx(1200,.15),240);
+  toast('Module activity completed! 🎉');
   backToModule();
 }
 
