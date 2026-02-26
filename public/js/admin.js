@@ -47,7 +47,7 @@ const Admin = {
   async exportCSV(type) {
     try {
       const res = await fetch(`/api/export/${type}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('roc_token')}` }
       });
       if (!res.ok) throw new Error('Export failed');
       const blob = await res.blob();
@@ -70,7 +70,7 @@ const Admin = {
     try {
       const res = await fetch('/api/admin/reset-scores', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('roc_token')}`, 'Content-Type': 'application/json' }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Reset failed');
