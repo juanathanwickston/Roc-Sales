@@ -1,0 +1,21 @@
+{
+  "name": "roc-academy",
+  "version": "1.0.0",
+  "description": "ROC Academy - Enterprise Sales Training LMS",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "setup": "node setup.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0"
+  }
+}

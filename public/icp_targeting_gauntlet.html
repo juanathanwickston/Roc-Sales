@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICP Targeting Gauntlet | ROC Academy</title>
+    <style>
+        :root {
+            --bg: #050b14;
+            --surface: #111827;
+            --surface-hover: #1f2937;
+            --border: #374151;
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 240, 255, 0.5);
+            --secondary: #ff003c;
+            --secondary-glow: rgba(255, 0, 60, 0.5);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #39ff14;
+            --error: #ff003c;
+            --warning: #facc15;
+            --gold: #fbbf24;
+            --radius: 8px;
+            --font: 'Courier New', Courier, monospace; /* Arcade feels */
+            --transition: all 0.15s ease-out;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            text-transform: uppercase; /* Arcade style */
+            letter-spacing: 0.5px;
+        }
+
+        /* Scanlines overlay */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        body.embed-mode { background: transparent; }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,240,255,0.05);
+        }
+
+        body.embed-mode .game-container {
+            min-height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(5, 11, 20, 0.9);
+            border-bottom: 2px solid var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title { font-weight: 800; font-size: 1.2rem; color: var(--text-main); text-shadow: 0 0 5px #fff; }
+        .header-title span { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        
+        .header-stats { display: flex; gap: 16px; align-items: center; }
+
+        .stat-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--surface);
+            padding: 8px 16px; border-radius: 4px;
+            font-size: 1rem; font-weight: bold;
+            border: 1px solid var(--primary);
+            box-shadow: inset 0 0 10px rgba(0,240,255,0.2);
+        }
+
+        .stat-badge.timer { color: var(--primary); font-variant-numeric: tabular-nums; }
+        .stat-badge.timer.warning { color: var(--warning); border-color: var(--warning); box-shadow: inset 0 0 10px rgba(250, 204, 21, 0.4); animation: pulseWarning 0.5s infinite alternate; }
+        .stat-badge.timer.critical { color: var(--error); border-color: var(--error); box-shadow: inset 0 0 15px rgba(255, 0, 60, 0.6); animation: pulseCritical 0.25s infinite alternate; }
+
+        #btnSound {
+            background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted);
+            padding: 4px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.8rem;
+            transition: var(--transition);
+        }
+        #btnSound.active { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+
+        /* ─── PROGRESS BAR ─── */
+        .progress-track { height: 6px; background: #000; width: 100%; border-bottom: 1px solid var(--border); }
+        .progress-fill {
+            height: 100%; background: var(--primary); width: 0%;
+            box-shadow: 0 0 10px var(--primary-glow); transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* ─── SCREENS ─── */
+        .screen { padding: 40px 32px; display: none; flex: 1; flex-direction: column; animation: glitchFadeIn 0.3s ease-out; }
+        .screen.active { display: flex; }
+
+        .screen-title {
+            font-size: 2.2rem; font-weight: 900; margin-bottom: 12px;
+            color: #fff; text-shadow: 2px 2px 0px var(--secondary), -2px -2px 0px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .screen-subtitle { color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 40px; max-width: 650px; border-left: 4px solid var(--primary); padding-left: 16px;}
+        .typewriter-cursor { display: inline-block; width: 10px; height: 1.2em; background: var(--primary); vertical-align: bottom; animation: blink 1s step-end infinite; }
+
+        /* ─── CARDS GRID (PICK PHASE) ─── */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px; }
+
+        .target-card {
+            background: var(--bg); border: 2px solid var(--border); border-radius: 0; padding: 24px;
+            cursor: pointer; transition: var(--transition); position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 4px 4px 0 rgba(255,255,255,0.05); /* Retro block shadow */
+        }
+        .target-card:hover { border-color: var(--primary); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--primary-glow); }
+        .target-card:active { transform: translate(2px, 2px); box-shadow: 0 0 0 transparent; }
+
+        .target-card.selected {
+            border-color: var(--primary); background: rgba(0, 240, 255, 0.05);
+            box-shadow: 0 0 20px var(--primary-glow) inset, 4px 4px 0 var(--primary);
+        }
+        .target-card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(100%); pointer-events: none;}
+
+        .target-card.selected::before {
+            content: '[LOCKED]'; position: absolute; top: 10px; right: 10px;
+            color: var(--primary); font-size: 0.7rem; font-weight: 900; text-shadow: 0 0 5px var(--primary);
+            animation: pulseWarning 1s infinite alternate;
+        }
+
+        .target-name { font-weight: 900; font-size: 1.2rem; margin-bottom: 12px; color: var(--primary); }
+        .target-desc { font-size: 0.95rem; color: #cbd5e1; line-height: 1.6; flex: 1; text-transform: none;}
+
+        /* ─── CHECKLISTS (JUSTIFY PHASE) ─── */
+        .justify-target-header {
+            background: transparent; padding: 20px; border: 2px solid var(--primary);
+            margin-bottom: 32px; box-shadow: inset 0 0 20px rgba(0,240,255,0.1);
+            position: relative;
+        }
+        .justify-target-header::after { content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 100%; background: var(--primary); }
+
+        .list-section { margin-bottom: 40px; }
+        .list-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;}
+        .list-subtitle { font-size: 0.85rem; color: var(--primary); margin-bottom: 20px; }
+
+        .check-item {
+            display: flex; align-items: flex-start; gap: 16px; padding: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            margin-bottom: 12px; cursor: pointer; transition: transform 0.1s, background 0.2s, border 0.2s;
+        }
+
+        .check-item:hover { background: var(--surface-hover); border-color: var(--text-muted); transform: translateX(5px); }
+        .check-item:active { transform: scale(0.98); }
+        .check-item.selected { border-color: var(--success); background: rgba(57, 255, 20, 0.05); box-shadow: inset 4px 0 0 var(--success); }
+
+        .check-box {
+            width: 24px; height: 24px; border: 2px solid var(--border); background: #000;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            color: transparent; font-size: 1rem; font-weight: 900; transition: var(--transition);
+        }
+        .check-item.selected .check-box { background: var(--success); border-color: var(--success); color: #000; }
+        .check-text { font-size: 0.95rem; line-height: 1.5; color: #e2e8f0; text-transform: none; }
+
+        /* ─── BUTTONS ─── */
+        .btn-bar { margin-top: auto; padding-top: 32px; display: flex; justify-content: flex-end; align-items: center; gap: 24px; }
+        .selection-count { color: var(--primary); font-size: 1rem; font-weight: 800; text-shadow: 0 0 5px var(--primary-glow); }
+
+        button.btn {
+            background: transparent; color: var(--primary); border: 2px solid var(--primary);
+            padding: 16px 32px; font-size: 1.1rem; font-weight: 900; font-family: var(--font); text-transform: uppercase;
+            cursor: pointer; transition: var(--transition); box-shadow: 0 0 10px rgba(0,240,255,0.2) inset;
+            position: relative; overflow: hidden;
+        }
+
+        button.btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,240,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        button.btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--text-muted); color: var(--text-muted); box-shadow: none; pointer-events: none;}
+        button.btn:not(:disabled):hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-glow); transform: scale(1.05); }
+        button.btn:not(:disabled):hover::before { left: 150%; }
+        button.btn:active { transform: scale(0.95); }
+
+        /* ─── RESULTS & FEEDBACK ─── */
+        .results-header { text-align: center; margin-bottom: 48px; }
+        .score-circle {
+            width: 150px; height: 150px; border-radius: 50%; background: #000; border: 4px solid var(--primary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 0 auto 24px; box-shadow: 0 0 40px var(--primary-glow);
+            animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .score-circle.tier-gold { border-color: var(--gold); box-shadow: 0 0 50px rgba(251, 191, 36, 0.6); }
+        .score-circle.tier-silver { border-color: #cbd5e1; box-shadow: 0 0 40px rgba(203, 213, 225, 0.4); }
+        .score-circle.tier-bronze { border-color: #b45309; box-shadow: 0 0 30px rgba(180, 83, 9, 0.4); }
+
+        .score-val { font-size: 3.5rem; font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.5);}
+        .score-lbl { font-size: 0.9rem; color: var(--primary); font-weight: 800; margin-top: 8px; }
+        .rank-label { font-size: 1.8rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 10px var(--gold); letter-spacing: 2px;}
+
+        .feedback-grid { display: flex; flex-direction: column; gap: 24px; margin-bottom: 48px; }
+        .feedback-card { background: rgba(17, 24, 39, 0.8); border: 1px solid var(--border); border-left: 4px solid var(--text-muted); padding: 24px; }
+        .feedback-card.good-card { border-left-color: var(--success); }
+        .feedback-card.bad-card { border-left-color: var(--error); }
+
+        .fb-target-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+        .fb-target-title .pts { font-size: 0.8rem; background: #000; border: 1px solid var(--text-muted); padding: 4px 8px; font-weight: 900; }
+        .pts.positive { color: var(--success); border-color: var(--success); box-shadow: 0 0 8px rgba(57,255,20,0.3);}
+        .pts.negative { color: var(--error); border-color: var(--error); box-shadow: 0 0 8px rgba(255,0,60,0.3);}
+
+        .fb-coach { background: rgba(0,0,0,0.4); padding: 16px; border: 1px solid var(--border); }
+        .fb-coach-text { font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; text-transform: none; }
+        .fb-coach-text ul { padding-left: 0; margin-top: 12px; list-style-type: none; }
+        .fb-coach-text li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .fb-coach-text li::before { content: '> '; color: var(--primary); font-weight: bold; }
+        .good-txt { color: var(--success); font-weight: bold; text-transform: uppercase;}
+        .bad-txt { color: var(--error); font-weight: bold; text-transform: uppercase;}
+        .warn-txt { color: var(--warning); font-weight: bold; text-transform: uppercase;}
+
+        /* Floating Points Animation */
+        .floating-points {
+            position: fixed; pointer-events: none; z-index: 1000;
+            font-size: 1.5rem; font-weight: 900; text-shadow: 0 0 10px #000;
+            animation: floatUpFade 1.2s ease-out forwards;
+        }
+        .float-good { color: var(--success); text-shadow: 0 0 10px var(--success); }
+        .float-bad { color: var(--error); text-shadow: 0 0 10px var(--error); }
+
+        /* Screen Shake */
+        .shake { animation: screenShake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .shake-constant { animation: screenShake 0.2s infinite; }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes glitchFadeIn { 0% { opacity: 0; transform: scale(1.02) skewX(2deg); filter: hue-rotate(90deg); } 50% { opacity: 1; transform: scale(1) skewX(-2deg); } 100% { transform: skewX(0); } }
+        @keyframes pulseWarning { from { opacity: 1; } to { opacity: 0.5; } }
+        @keyframes pulseCritical { from { opacity: 1; transform: scale(1); } to { opacity: 0.8; transform: scale(1.05); } }
+        @keyframes zoomIn { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes floatUpFade { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { transform: translateY(-20px) scale(1.2); opacity: 1; } 100% { transform: translateY(-60px) scale(1); opacity: 0; } }
+        @keyframes screenShake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-3px, 0, 0); } 40%, 60% { transform: translate3d(3px, 0, 0); } }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .screen { padding: 24px 16px; }
+            .btn-bar { flex-direction: column; width: 100%; align-items: stretch;}
+            button.btn { width: 100%; padding: 12px; }
+            .header-title { font-size: 0.9rem; }
+            .stat-badge { font-size: 0.8rem; padding: 6px 12px; }
+            .screen-title { font-size: 1.5rem; }
+            .score-circle { width: 100px; height: 100px; }
+            .score-val { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="gameBox">
+    <header>
+        <div class="header-title">ICP Targeting <span id="glitchTitle">Gauntlet</span></div>
+        <div class="header-stats">
+            <button id="btnSound" class="active" onclick="toggleSound()" title="Toggle Sound (M)">SFX: ON</button>
+            <div id="gameStats" style="display:none; gap:16px;">
+                <div class="stat-badge timer" id="timerBadge">⏱ <span id="timeVal">3:00</span></div>
+                <div class="stat-badge score" id="scoreBadge">0 PTS</div>
+            </div>
+        </div>
+    </header>
+    <div class="progress-track" id="progTrack" style="display:none;">
+        <div class="progress-fill" id="progFill"></div>
+    </div>
+
+    <!-- INTRO SCREEN -->
+    <div id="screen-intro" class="screen active">
+        <h1 class="screen-title">> MISSION_BRIEFING</h1>
+        <div class="screen-subtitle" id="introTextCont"></div>
+        
+        <div class="justify-layout" style="gap: 16px; margin-bottom: 40px; display:none;" id="introSteps">
+            <div class="check-item" style="cursor:default; border-color:var(--primary);">
+                <div class="check-text"><strong style="color:var(--primary)">PHASE 1:</strong> Identify top 2 high-probability targets based on pain/volume.</div>
+            </div>
+            <div class="check-item" style="cursor:default; border-color:var(--primary);">
+                <div class="check-text"><strong style="color:var(--primary)">PHASE 2:</strong> Defend choices with valid ICP triggers.</div>
+            </div>
+            <div class="check-item" style="cursor:default; border-color:var(--primary);">
+                <div class="check-text"><strong style="color:var(--primary)">PHASE 3:</strong> Build Discovery strategy (CHAMP/BANT).</div>
+            </div>
+        </div>
+
+        <div class="btn-bar" id="introBtn" style="opacity:0; transition: opacity 0.5s;">
+            <button class="btn" onclick="startGame()" onmouseover="sfx.hover()">> INITIATE_HUNT</button>
+        </div>
+    </div>
+
+    <!-- PICK PHASE -->
+    <div id="screen-pick" class="screen">
+        <h2 class="screen-title">> SELECT_TARGETS</h2>
+        <p class="screen-subtitle">Lock in EXACTLY TWO leads with maximum revenue potential & close probability.</p>
+        
+        <div class="card-grid" id="targetGrid"></div>
+
+        <div class="btn-bar">
+            <div class="selection-count" id="pickCount">0 / 2 LOCKED</div>
+            <button class="btn" id="btnLockTargets" disabled onclick="goToJustifyPhase()" onmouseover="sfx.hover()">> LOCK_TARGETS</button>
+        </div>
+    </div>
+
+    <!-- JUSTIFY PHASE -->
+    <div id="screen-justify" class="screen">
+        <h2 class="screen-title" id="justifyTitle">> STRATEGY_DEFENSE</h2>
+        <p class="screen-subtitle">Prove your logic. Match the right triggers and construct the best discovery flow.</p>
+        
+        <div class="justify-target-header">
+            <div class="target-name" id="jTargetName">---</div>
+            <div class="target-desc" id="jTargetDesc">---</div>
+        </div>
+
+        <div class="list-section">
+            <div class="list-title">ICP TRIGGERS <span>[SELECT 2]</span></div>
+            <div class="list-subtitle">Why is this a tier-1 target?</div>
+            <div id="reasonsList"></div>
+        </div>
+
+        <div class="list-section">
+            <div class="list-title">DISCOVERY VECTOR <span>[SELECT 2]</span></div>
+            <div class="list-subtitle">Balance Pain (Need) with Process (Authority/Timeline). No product pitching.</div>
+            <div id="questionsList"></div>
+        </div>
+
+        <div class="btn-bar">
+            <div class="selection-count" id="justifyCount">0 / 4 ARMED</div>
+            <button class="btn" id="btnNextJustify" disabled onclick="handleNextJustify()" onmouseover="sfx.hover()">> EXECUTE</button>
+        </div>
+    </div>
+
+    <!-- RESULTS PHASE -->
+    <div id="screen-results" class="screen">
+        <div class="results-header">
+            <h2 class="screen-title">> DEBRIEFING</h2>
+            <div class="score-circle" id="finalScoreCircle">
+                <div class="score-val" id="finalScoreTxt">0</div>
+                <div class="score-lbl">FINAL SCORE</div>
+            </div>
+            <div class="rank-label" id="finalRankTxt">ROOKIE</div>
+            <div style="font-size:0.9rem; color:var(--primary); margin-top:12px; font-weight:bold;" id="speedBonusTxt"></div>
+        </div>
+
+        <h3 style="margin-bottom: 20px; color:var(--primary); font-size:1.3rem;">> AUTO_COACH_ANALYSIS</h3>
+        <div class="feedback-grid" id="feedbackContainer"></div>
+
+        <div class="btn-bar" style="justify-content: center; margin-top:40px;">
+            <button class="btn" onclick="location.reload()" onmouseover="sfx.hover()">> RE-DEPLOY</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/** 
+ * WEBAUDIO SYNTH ENGINE (THE JUICE)
+ */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let actx;
+let soundEnabled = true;
+
+const sfx = {
+    init: function() { if(!actx) actx = new AudioContext(); if(actx.state === 'suspended') actx.resume(); },
+    play: function(freq, type, duration, vol=0.1, slideFreq=null) {
+        if(!soundEnabled) return;
+        this.init();
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, actx.currentTime);
+        if(slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, actx.currentTime + duration);
+        gain.gain.setValueAtTime(vol, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start();
+        osc.stop(actx.currentTime + duration);
+    },
+    hover: () => sfx.play(400, 'square', 0.05, 0.02),
+    select: () => sfx.play(800, 'sine', 0.1, 0.05, 1200),
+    deselect: () => sfx.play(400, 'sine', 0.1, 0.05, 200),
+    lock: () => { sfx.play(200, 'square', 0.1, 0.1); setTimeout(()=>sfx.play(300, 'square', 0.2, 0.1), 100); },
+    error: () => { sfx.play(150, 'sawtooth', 0.3, 0.1, 100); shakeScreen(); },
+    success: () => { sfx.play(523.25, 'sine', 0.1, 0.1); setTimeout(()=>sfx.play(659.25, 'sine', 0.1, 0.1), 100); setTimeout(()=>sfx.play(783.99, 'sine', 0.3, 0.1), 200); },
+    tick: () => sfx.play(1000, 'square', 0.02, 0.02),
+    tickUrgent: () => sfx.play(600, 'sawtooth', 0.05, 0.05),
+    scoreUp: () => sfx.play(1200, 'sine', 0.05, 0.02, 1600)
+};
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('btnSound');
+    btn.textContent = soundEnabled ? 'SFX: ON' : 'SFX: OFF';
+    if(soundEnabled) { btn.classList.add('active'); sfx.init(); sfx.play(600,'sine',0.1); }
+    else { btn.classList.remove('active'); }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if(e.key.toLowerCase() === 'm') toggleSound();
+});
+
+/**
+ * VISUAL EFFECTS (MORE JUICE)
+ */
+function floatText(x, y, text, type='good') {
+    const el = document.createElement('div');
+    el.className = `floating-points float-${type}`;
+    el.textContent = text;
+    el.style.left = (x - 20) + 'px';
+    el.style.top = (y - 20) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+}
+
+function shakeScreen() {
+    const box = document.getElementById('gameBox');
+    box.classList.remove('shake');
+    void box.offsetWidth; // trigger reflow
+    box.classList.add('shake');
+}
+
+/** 
+ * CONFIGURATION & SCENARIO DATA
+ */
+const CONFIG = {
+    totalSeconds: 180,
+    embedMode: new URLSearchParams(window.location.search).get('embed') === '1'
+};
+
+const SCENARIO = {
+    targets: [
+        { id: "t1", name: "Alpha Restaurant Group", desc: "3-location restaurant group using Square. Owner active daily.", score: 30, fb: "Multi-loc food/bev = high volume & pain. Decision maker access. TIER 1." },
+        { id: "t4", name: "Dave's Auto Repair", desc: "Independent auto repair. 10 bays. High ticket average.", score: 30, fb: "High ticket = massive saving potential (surcharging). 10 bays = scale. TIER 1." },
+        { id: "t3", name: "MegaCorp Franchise", desc: "12-location franchise. Corporate purchasing.", score: 15, fb: "High volume, but corporate purchasing = red tape & long cycles. TIER 2." },
+        { id: "t2", name: "Bob's Boutique", desc: "Single retail store. 'Happy with current processor.'", score: 0, fb: "Single location + NO PAIN = waste of time without a trigger event. AVOID." },
+        { id: "t5", name: "Seaside Souvenirs", desc: "Seasonal tourist gift shop. Open May-Sept.", score: 0, fb: "Seasonal = volatile cashflow, lower annual volume. Not a priority build. AVOID." }
+    ],
+    reasons: [
+        { id: "r1", text: "Multi-location = higher volume + operational complexity", validFor: ["t1", "t3"] },
+        { id: "r2", text: "Visible pain potential (reconciliation, reporting)", validFor: ["t1", "t3"] },
+        { id: "r3", text: "Owner/operator access (decision maker reachable)", validFor: ["t1", "t4"] },
+        { id: "r4", text: "High average ticket = meaningful savings/ROI", validFor: ["t4"] },
+        { id: "r5", text: "Seasonal business lowers urgency (Avoid)", validFor: ["t5"] },
+        { id: "r6", text: "'Happy now' increases friction without a trigger (Avoid)", validFor: ["t2"] },
+        { id: "r7", text: "Corporate purchasing means long, complex sales cycle", validFor: ["t3"] },
+        { id: "r8", text: "Current provider fit issues (e.g. Square limitations at scale)", validFor: ["t1"] }
+    ],
+    questions: [
+        { id: "q1", text: "What's the biggest friction in your checkout or reconciliation today?", type: "Need" },
+        { id: "q2", text: "Who besides you weighs in on payments decisions?", type: "Authority" },
+        { id: "q3", text: "What's driving you to evaluate changes right now, if anything?", type: "Timeline" },
+        { id: "q4", text: "What happens if nothing changes over the next 6 months?", type: "Need" },
+        { id: "q5", text: "How do you measure success for payments and ops?", type: "Need" },
+        { id: "q6", text: "Are there renewal dates or contracts we should be aware of?", type: "Timeline" },
+        { id: "q7", text: "What are your processing rates?", type: "Product" },
+        { id: "q8", text: "Do you want a free terminal?", type: "Product" }
+    ]
+};
+
+function shuffle(array) {
+    let currentIndex = array.length, r;
+    while (currentIndex != 0) {
+        r = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[r]] = [array[r], array[currentIndex]];
+    }
+    return array;
+}
+
+/**
+ * GAME STATE
+ */
+const STATE = {
+    timeLeft: CONFIG.totalSeconds, timerId: null,
+    score: 0, speedBonus: 0,
+    selectedTargets: [], currentJustifyIndex: 0,
+    justifications: {}, feedback: []
+};
+
+/**
+ * INIT & NAVIGATION
+ */
+function init() {
+    if(CONFIG.embedMode) document.body.classList.add('embed-mode');
+    
+    // Typewriter effect for intro
+    const text = "Incoming transmission... You have 5 raw inbound leads. You only have bandwidth to qualify exactly TWO today. Use ICP logic to lock in the highest probability targets. Failure wastes pipeline.";
+    const cont = document.getElementById('introTextCont');
+    let i = 0;
+    function typeWriter() {
+        if (i < text.length) {
+            cont.innerHTML = text.substring(0, i+1) + '<span class="typewriter-cursor"></span>';
+            if(i%3===0) sfx.play(1200+Math.random()*200, 'square', 0.02, 0.01);
+            i++;
+            setTimeout(typeWriter, 20);
+        } else {
+            document.getElementById('introSteps').style.display = 'flex';
+            document.getElementById('introBtn').style.opacity = '1';
+            sfx.play(800, 'sine', 0.3, 0.1);
+        }
+    }
+    setTimeout(typeWriter, 500);
+
+    renderTargets();
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+}
+
+function updateProgress(step, totalSteps) {
+    const el = document.getElementById('progTrack');
+    const fill = document.getElementById('progFill');
+    if(step === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    fill.style.width = ((step / totalSteps) * 100) + '%';
+}
+
+function updateScoreUI(pointsAdd, e) {
+    STATE.score += pointsAdd;
+    document.getElementById('scoreBadge').textContent = `${STATE.score} PTS`;
+    
+    // Animate score badge
+    const badge = document.getElementById('scoreBadge');
+    badge.style.transform = 'scale(1.2)';
+    badge.style.borderColor = pointsAdd > 0 ? 'var(--success)' : 'var(--error)';
+    setTimeout(() => { badge.style.transform = 'scale(1)'; badge.style.borderColor = 'var(--primary)'; }, 200);
+
+    // Floating text
+    if(e && pointsAdd !== 0) {
+        floatText(e.clientX, e.clientY, pointsAdd > 0 ? `+${pointsAdd}` : pointsAdd, pointsAdd > 0 ? 'good' : 'bad');
+        if(pointsAdd > 0) sfx.scoreUp();
+        else sfx.error();
+    }
+}
+
+/**
+ * TIMER
+ */
+function startTimer() {
+    sfx.init();
+    document.getElementById('gameStats').style.display = 'flex';
+    STATE.timerId = setInterval(() => {
+        STATE.timeLeft--;
+        if(STATE.timeLeft <= 0) { STATE.timeLeft = 0; endGame(true); return; }
+        
+        updateTimerUI();
+        
+        if(STATE.timeLeft <= 10) { sfx.tickUrgent(); if(STATE.timeLeft % 2 === 0) shakeScreen(); }
+        else if(STATE.timeLeft <= 30) { sfx.tick(); }
+        
+    }, 1000);
+}
+
+function stopTimer() { clearInterval(STATE.timerId); }
+
+function updateTimerUI() {
+    const mins = Math.floor(STATE.timeLeft / 60);
+    const secs = STATE.timeLeft % 60;
+    const badge = document.getElementById('timerBadge');
+    document.getElementById('timeVal').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    
+    if(STATE.timeLeft < 10) {
+        badge.className = 'stat-badge timer critical';
+        if(STATE.timeLeft%2===0) badge.style.transform = `translateX(${Math.random()*4-2}px)`;
+        else badge.style.transform = 'none';
+    }
+    else if(STATE.timeLeft < 30) badge.className = 'stat-badge timer warning';
+    else badge.className = 'stat-badge timer';
+}
+
+/**
+ * PHASE: PICK
+ */
+function startGame() {
+    startTimer();
+    updateProgress(1, 3);
+    sfx.lock();
+    showScreen('pick');
+}
+
+function renderTargets() {
+    const grid = document.getElementById('targetGrid');
+    grid.innerHTML = '';
+    shuffle([...SCENARIO.targets]).forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'target-card';
+        card.id = `tc-${t.id}`;
+        card.onmouseover = () => { if(!card.classList.contains('disabled')) sfx.hover(); };
+        card.onclick = (e) => toggleTarget(t.id, e);
+        card.innerHTML = `<div class="target-name">${t.name}</div><div class="target-desc">${t.desc}</div>`;
+        grid.appendChild(card);
+    });
+}
+
+function toggleTarget(id, e) {
+    const idx = STATE.selectedTargets.indexOf(id);
+    const card = document.getElementById(`tc-${id}`);
+    
+    if(idx > -1) {
+        STATE.selectedTargets.splice(idx, 1);
+        card.classList.remove('selected');
+        sfx.deselect();
+    } else {
+        if(STATE.selectedTargets.length >= 2) { shakeScreen(); sfx.error(); return; }
+        STATE.selectedTargets.push(id);
+        card.classList.add('selected');
+        sfx.select();
+        
+        // IMMEDIATE FEEDBACK JUICE on target pick (just visual pop, scoring happens on lock)
+        floatText(e.clientX, e.clientY, "LOCKED", 'good');
+    }
+    
+    const count = STATE.selectedTargets.length;
+    document.getElementById('pickCount').textContent = `${count} / 2 LOCKED`;
+    document.getElementById('btnLockTargets').disabled = count !== 2;
+    
+    document.querySelectorAll('.target-card').forEach(c => {
+        if(count >= 2 && !c.classList.contains('selected')) c.classList.add('disabled');
+        else c.classList.remove('disabled');
+    });
+}
+
+/**
+ * PHASE: JUSTIFY
+ */
+function goToJustifyPhase() {
+    sfx.lock();
+    
+    // Score target selection
+    STATE.selectedTargets.forEach((tid, i) => {
+        const target = SCENARIO.targets.find(t => t.id === tid);
+        STATE.justifications[tid] = { reasons: [], questions: [] };
+        
+        // Give points with visual delay
+        setTimeout(() => {
+            updateScoreUI(target.score, {clientX: window.innerWidth/2 + (i*50 - 25), clientY: 100});
+        }, 300 + (i*400));
+
+        STATE.feedback.push({
+            type: 'target', title: `[TGT_LOCK] ${target.name}`, text: target.fb,
+            pts: target.score, good: target.score > 0
+        });
+    });
+    
+    STATE.currentJustifyIndex = 0;
+    renderJustifyScreen();
+    showScreen('justify');
+}
+
+function renderJustifyScreen() {
+    updateProgress(2 + STATE.currentJustifyIndex, 4);
+    const tid = STATE.selectedTargets[STATE.currentJustifyIndex];
+    const target = SCENARIO.targets.find(t => t.id === tid);
+    
+    document.getElementById('justifyTitle').innerHTML = `> DEFEND_CHOICE <span>[${STATE.currentJustifyIndex + 1}/2]</span>`;
+    document.getElementById('jTargetName').textContent = target.name;
+    document.getElementById('jTargetDesc').textContent = target.desc;
+    
+    renderChecklist('reasonsList', SCENARIO.reasons, 'reasons');
+    renderChecklist('questionsList', SCENARIO.questions, 'questions');
+    updateJustifyBtn();
+}
+
+function renderChecklist(containerId, items, typeKey) {
+    const list = document.getElementById(containerId);
+    list.innerHTML = '';
+    shuffle([...items]).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'check-item';
+        div.id = `chk-${typeKey}-${item.id}`;
+        div.onmouseover = () => { if(STATE.justifications[STATE.selectedTargets[STATE.currentJustifyIndex]][typeKey].length < 2 || div.classList.contains('selected')) sfx.hover(); };
+        div.onclick = (e) => toggleJustifyItem(typeKey, item.id, e);
+        div.innerHTML = `<div class="check-box">X</div><div class="check-text">${item.text}</div>`;
+        list.appendChild(div);
+    });
+}
+
+function toggleJustifyItem(typeKey, itemId, e) {
+    const tid = STATE.selectedTargets[STATE.currentJustifyIndex];
+    const selectedList = STATE.justifications[tid][typeKey];
+    const el = document.getElementById(`chk-${typeKey}-${itemId}`);
+    
+    const idx = selectedList.indexOf(itemId);
+    if(idx > -1) {
+        selectedList.splice(idx, 1);
+        el.classList.remove('selected');
+        sfx.deselect();
+    } else {
+        if(selectedList.length >= 2) { shakeScreen(); sfx.error(); return; }
+        selectedList.push(itemId);
+        el.classList.add('selected');
+        sfx.select();
+    }
+    updateJustifyBtn();
+}
+
+function updateJustifyBtn() {
+    const tid = STATE.selectedTargets[STATE.currentJustifyIndex];
+    const rCount = STATE.justifications[tid].reasons.length;
+    const qCount = STATE.justifications[tid].questions.length;
+    document.getElementById('justifyCount').textContent = `${rCount+qCount} / 4 ARMED`;
+    const btn = document.getElementById('btnNextJustify');
+    btn.disabled = (rCount !== 2 || qCount !== 2);
+    btn.textContent = STATE.currentJustifyIndex === 0 ? "> NEXT_TARGET" : "> INITIATE_SCORING";
+}
+
+function handleNextJustify() {
+    const tid = STATE.selectedTargets[STATE.currentJustifyIndex];
+    scoreJustification(tid);
+    
+    if(STATE.currentJustifyIndex === 0) {
+        sfx.lock();
+        STATE.currentJustifyIndex++;
+        renderJustifyScreen();
+    } else {
+        endGame(false);
+    }
+}
+
+function scoreJustification(tid) {
+    const target = SCENARIO.targets.find(t => t.id === tid);
+    const j = STATE.justifications[tid];
+    let rScore = 0; let qScore = 0; let feedbackNotes = [];
+    
+    j.reasons.forEach(rid => {
+        const reason = SCENARIO.reasons.find(r => r.id === rid);
+        if(reason.validFor.includes(tid)) { rScore += 5; feedbackNotes.push(`<span class="good-txt">HIT:</span> ${reason.text}`); }
+        else { feedbackNotes.push(`<span class="bad-txt">MISS:</span> ${reason.text} (Invalid logic for this target)`); }
+    });
+    
+    let hasNeed = false; let hasAuthTime = false; let badProd = false;
+    j.questions.forEach(qid => {
+        const q = SCENARIO.questions.find(q => q.id === qid);
+        if(q.type === 'Need') hasNeed = true;
+        if(q.type === 'Authority' || q.type === 'Timeline') hasAuthTime = true;
+        if(q.type === 'Product') badProd = true;
+    });
+    
+    if(badProd) { qScore = 0; feedbackNotes.push(`<span class="bad-txt">CRITICAL ERROR:</span> Pitched product before establishing pain/timeline.`); }
+    else if(hasNeed && hasAuthTime) { qScore = 10; feedbackNotes.push(`<span class="good-txt">PERFECT BALANCED DISCOVERY:</span> Uncovered Pain + Qualified Process.`); }
+    else if (hasNeed || hasAuthTime) { qScore = 5; feedbackNotes.push(`<span class="warn-txt">PARTIAL DISCOVERY:</span> Lacked balance. Need BOTH Pain & Process.`); }
+    else { feedbackNotes.push(`<span class="bad-txt">WEAK DISCOVERY:</span> Failed to uncover real pain or buying timeline.`); }
+    
+    const totalJScore = rScore + qScore;
+    
+    // Animate score slightly delayed for impact
+    setTimeout(() => {
+        updateScoreUI(totalJScore, {clientX: window.innerWidth/2, clientY: 150});
+    }, 200);
+
+    STATE.feedback.push({ type: 'justify', title: `[LOGIC_EVAL] ${target.name}`, pts: totalJScore, notes: feedbackNotes });
+}
+
+/**
+ * PHASE: RESULTS
+ */
+function endGame(outOfTime) {
+    stopTimer();
+    updateProgress(4, 4);
+    
+    if(STATE.score > 40 && STATE.timeLeft > 0 && !outOfTime) {
+        STATE.speedBonus = Math.min(10, Math.floor((STATE.timeLeft / CONFIG.totalSeconds) * 20));
+        setTimeout(() => updateScoreUI(STATE.speedBonus, {clientX: window.innerWidth/2, clientY: 200}), 600);
+    }
+    
+    document.getElementById('gameBox').classList.add('shake');
+    sfx.success();
+    setTimeout(()=> renderResults(), 800);
+}
+
+function renderResults() {
+    showScreen('results');
+    const score = STATE.score;
+    
+    // Count up animation for score
+    let displayScore = 0;
+    const scoreTxt = document.getElementById('finalScoreTxt');
+    const intv = setInterval(() => {
+        displayScore += Math.ceil(score / 20) || 1;
+        if(displayScore >= score) { displayScore = score; clearInterval(intv); }
+        scoreTxt.textContent = displayScore;
+    }, 30);
+    
+    const circle = document.getElementById('finalScoreCircle');
+    const rankTxt = document.getElementById('finalRankTxt');
+    
+    if(score >= 90) { circle.className = 'score-circle tier-gold'; rankTxt.textContent = 'ELITE HUNTER'; rankTxt.style.color='var(--gold)'; }
+    else if(score >= 70) { circle.className = 'score-circle tier-silver'; rankTxt.textContent = 'SOLID CONTRIBUTOR'; rankTxt.style.color='#cbd5e1';}
+    else { circle.className = 'score-circle tier-bronze'; rankTxt.textContent = 'ROOKIE'; rankTxt.style.color='#b45309'; sfx.error(); }
+    
+    if(STATE.speedBonus > 0) document.getElementById('speedBonusTxt').textContent = `INCLUDES +${STATE.speedBonus} SPEED BONUS`;
+    
+    const fbCont = document.getElementById('feedbackContainer');
+    fbCont.innerHTML = '';
+    STATE.feedback.forEach((fb, i) => {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = `feedback-card ${fb.pts === 0 ? 'bad-card' : 'good-card'}`;
+            div.style.animation = 'glitchFadeIn 0.3s forwards';
+            if(fb.type === 'target') {
+                div.innerHTML = `<div class="fb-target-title">${fb.title} <span class="pts ${fb.pts>0?'positive':'negative'}">${fb.pts} PTS</span></div>
+                                 <div class="fb-coach"><div class="fb-coach-text" style="color:var(--text-main);">${fb.text}</div></div>`;
+            } else {
+                div.innerHTML = `<div class="fb-target-title">${fb.title} <span class="pts ${fb.pts===20?'positive':'negative'}">${fb.pts}/20 PTS</span></div>
+                                 <div class="fb-coach" style="background:transparent; border:none; padding:0; margin-top:8px;">
+                                    <div class="fb-coach-text"><ul>${fb.notes.map(n => `<li>${n}</li>`).join('')}</ul></div>
+                                 </div>`;
+            }
+            fbCont.appendChild(div);
+            if(fb.pts > 0) sfx.play(800 + (fb.pts*10), 'sine', 0.1, 0.05);
+            else sfx.play(200, 'sawtooth', 0.1, 0.05);
+        }, i * 300);
+    });
+}
+
+init();
+</script>
+</body>
+</html>

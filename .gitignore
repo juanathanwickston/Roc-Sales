@@ -1,12 +1,23 @@
-# OS files
-Thumbs.db
-.DS_Store
+# Dependencies
+node_modules/
 
-# Editor files
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
 *.swp
 *.swo
-.vscode/
+*~
 
-# Python cache (from local dev server)
-__pycache__/
-*.pyc
+# Logs
+*.log
+npm-debug.log*
+
+# Build
+dist/
