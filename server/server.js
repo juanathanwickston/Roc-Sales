@@ -133,7 +133,7 @@ async function start() {
     // Auto-seed CMS content if tables are empty
     await seedCmsContent();
 
-    app.listen(PORT, () => {
+    global._httpServer = app.listen(PORT, () => {
       console.log(`[SERVER] ROC Academy running on port ${PORT}`);
       console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
     });
@@ -255,3 +255,26 @@ process.on('uncaughtException', (err) => {
   console.error('[UNCAUGHT EXCEPTION]', err);
   process.exit(1);
 });
+
+// ─── GRACEFUL SHUTDOWN ───
+function shutdown(signal) {
+  console.log(`\n[SERVER] ${signal} received. Shutting down gracefully...`);
+  if (global._httpServer) {
+    global._httpServer.close(() => {
+      console.log('[SERVER] HTTP server closed.');
+      db.end(() => {
+        console.log('[SERVER] Database pool closed.');
+        process.exit(0);
+      });
+    });
+    // Force exit after 10s if connections hang
+    setTimeout(() => {
+      console.error('[SERVER] Forced shutdown after timeout.');
+      process.exit(1);
+    }, 10000);
+  } else {
+    process.exit(0);
+  }
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -351,6 +351,7 @@ const Admin = {
       body += `<div class="modal-field"><label>Phase</label><select id="cmPhase"><option value="1"${m.phase===1?' selected':''}>1 - Foundation</option><option value="2"${m.phase===2?' selected':''}>2 - Applied</option><option value="3"${m.phase===3?' selected':''}>3 - Validation</option></select></div>`;
       body += `<div class="modal-field"><label>Game ID</label><input type="text" id="cmGameId" value="${m.game_id || ''}"></div>`;
       body += `<div class="modal-field"><label>Game Title</label><input type="text" id="cmGameTitle" value="${this.esc(m.game_title || '')}"></div>`;
+      body += `<div class="modal-field"><label>Game Description</label><textarea id="cmGameDesc" rows="2">${this.esc(m.game_desc || '')}</textarea></div>`;
       body += `<div id="cmError" class="modal-error"></div>`;
       body += `<button class="modal-submit" onclick="Admin.saveModule('${moduleId}')">Save Module</button>`;
       body += '</div>';
@@ -400,7 +401,8 @@ const Admin = {
         icon: document.getElementById('cmIcon').value,
         phase: parseInt(document.getElementById('cmPhase').value),
         game_id: document.getElementById('cmGameId').value,
-        game_title: document.getElementById('cmGameTitle').value
+        game_title: document.getElementById('cmGameTitle').value,
+        game_desc: document.getElementById('cmGameDesc').value
       });
       this.closeModal();
       await this.renderContent();
