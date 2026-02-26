@@ -855,6 +855,7 @@ function resizeFFCanvas(){
 }
 
 function beginFactory(){
+  try{
   document.getElementById('ffStart').style.display='none';
 
   const c=document.getElementById('ffCanvas');
@@ -919,6 +920,12 @@ function beginFactory(){
   c.addEventListener('touchend',ffTouchEnd,{passive:false});
 
   ffLoop();
+  }catch(err){
+    console.error('[FF] beginFactory ERROR:', err);
+    const overlay=document.getElementById('ffStart');
+    overlay.style.display='flex';
+    overlay.innerHTML=`<div style="color:#ff4466;font-size:1.2rem;font-weight:700">Game Error</div><div style="color:#94a3b8;font-size:.85rem;max-width:400px;word-break:break-all">${err.message}<br><br>${err.stack||''}</div><button class="nb pr show" onclick="stopFactory()">← Back</button>`;
+  }
 }
 
 function ffSpawnPiece(){
