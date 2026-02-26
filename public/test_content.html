@@ -1,0 +1,25 @@
+<html>
+<body>
+<pre id="out">Testing content.js parse...</pre>
+<script>
+// Test if content.js can be parsed by the browser
+var script = document.createElement('script');
+script.src = '/js/content.js?v=' + Date.now();
+script.onerror = function(e) {
+    document.getElementById('out').textContent = 'LOAD ERROR: ' + JSON.stringify(e);
+};
+script.onload = function() {
+    var result = '';
+    result += 'PRODUCT_BINS: ' + (typeof PRODUCT_BINS !== 'undefined' ? JSON.stringify(PRODUCT_BINS).substring(0,100) : 'UNDEFINED') + '\n\n';
+    result += 'FEATURES: ' + (typeof FEATURES !== 'undefined' ? FEATURES.length + ' items' : 'UNDEFINED') + '\n\n';
+    result += 'FLOOR: ' + (typeof FLOOR !== 'undefined' ? FLOOR.length + ' items' : 'UNDEFINED') + '\n\n';
+    result += 'BLITZ: ' + (typeof BLITZ !== 'undefined' ? BLITZ.length + ' items' : 'UNDEFINED') + '\n\n';
+    result += 'TERR: ' + (typeof TERR !== 'undefined' ? TERR.length + ' items' : 'UNDEFINED') + '\n\n';
+    result += 'COMP: ' + (typeof COMP !== 'undefined' ? COMP.length + ' items' : 'UNDEFINED') + '\n\n';
+    result += 'COACH: ' + (typeof COACH !== 'undefined' ? COACH.length + ' items' : 'UNDEFINED') + '\n\n';
+    document.getElementById('out').textContent = result;
+};
+document.head.appendChild(script);
+</script>
+</body>
+</html>
