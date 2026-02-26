@@ -121,7 +121,7 @@ async function start() {
  */
 async function seedCmsContent() {
   try {
-    const existing = await db.query('SELECT COUNT(*) as cnt FROM cms_modules');
+    const existing = await db.query('SELECT COUNT(*) as cnt FROM cms_videos');
     if (parseInt(existing.rows[0].cnt) > 0) return;
 
     console.log('[SERVER] CMS tables empty. Seeding content...');
