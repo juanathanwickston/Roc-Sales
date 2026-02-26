@@ -7,10 +7,21 @@ const express = require('express');
 const path = require('path');
 const db = require('./db');
 
+let helmet;
+try { helmet = require('helmet'); } catch(e) { helmet = null; }
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── MIDDLEWARE ───
+
+// Security headers (if helmet is installed)
+if (helmet) {
+  app.use(helmet({
+    contentSecurityPolicy: false, // Allow inline scripts/styles (SPA)
+    crossOriginEmbedderPolicy: false // Allow YouTube embeds
+  }));
+}
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -89,6 +100,12 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'Endpoint not found' });
   }
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+// Express error middleware — catches unhandled route errors
+app.use((err, req, res, next) => {
+  console.error('[ERROR]', err.stack || err.message);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // ─── START ───
@@ -219,3 +236,11 @@ async function bootstrapSuperuser() {
 
 start();
 
+// ─── PROCESS ERROR HANDLERS ───
+process.on('unhandledRejection', (err) => {
+  console.error('[UNHANDLED REJECTION]', err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT EXCEPTION]', err);
+  process.exit(1);
+});

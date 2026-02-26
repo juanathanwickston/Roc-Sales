@@ -49,9 +49,9 @@ const Leaderboard = {
         const isMe = entry.id === (Auth.user ? Auth.user.id : null);
         h += `<div class="lb-pod lb-pod-${place}${isMe ? ' lb-me' : ''}">`;
         h += `<div class="lb-pod-rank">${place}</div>`;
-        h += `<div class="lb-pod-avatar">${entry.firstName[0]}${entry.lastName[0]}</div>`;
-        h += `<div class="lb-pod-name">${entry.firstName} ${entry.lastName}</div>`;
-        if (entry.nickname) h += `<div class="lb-pod-nick">${entry.nickname}</div>`;
+        h += `<div class="lb-pod-avatar">${esc(entry.firstName)[0]}${esc(entry.lastName)[0]}</div>`;
+        h += `<div class="lb-pod-name">${esc(entry.firstName)} ${esc(entry.lastName)}</div>`;
+        if (entry.nickname) h += `<div class="lb-pod-nick">${esc(entry.nickname)}</div>`;
         h += `<div class="lb-pod-score">${entry.powerScore}</div>`;
         h += '</div>';
       });
@@ -64,9 +64,9 @@ const Leaderboard = {
       const isMe = entry.id === (Auth.user ? Auth.user.id : null);
       h += `<div class="lb-row${isMe ? ' lb-me' : ''}">`;
       h += `<div class="lb-rank">${entry.rank}</div>`;
-      h += `<div class="lb-avatar">${entry.firstName[0]}${entry.lastName[0]}</div>`;
+      h += `<div class="lb-avatar">${esc(entry.firstName)[0]}${esc(entry.lastName)[0]}</div>`;
       h += '<div class="lb-info">';
-      h += `<div class="lb-name">${entry.displayName}</div>`;
+      h += `<div class="lb-name">${esc(entry.displayName)}</div>`;
       h += '</div>';
       h += `<div class="lb-score">${entry.powerScore}</div>`;
       h += '</div>';

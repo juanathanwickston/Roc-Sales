@@ -392,8 +392,8 @@ function showDoc(mod){
   let h=`<div class="vid-title">${d.title}</div>`;
   d.sections.forEach((s,i)=>{
     h+=`<div class="doc-sec" onclick="this.classList.toggle('open')">
-      <div class="doc-h"><span>${s.h}</span><span class="arr">▼</span></div>
-      <div class="doc-b">${s.body}</div></div>`;
+      <div class="doc-h"><span>${esc(s.h)}</span><span class="arr">▼</span></div>
+      <div class="doc-b">${sanitizeHTML(s.body)}</div></div>`;
   });
   const done=getActStatus(curMod,'doc')==='done';
   h+=`<button class="nb pr show" style="margin-top:16px" onclick="markDocComplete()" ${done?'disabled style="opacity:.5;margin-top:16px"':''}>${done?'✅ Completed':'Mark as Read'}</button>`;
@@ -1143,15 +1143,31 @@ function ffEndGame(){
   }
 
   // Load everything in parallel
-  const [progressData] = await Promise.allSettled([
+  const [progressData, , , scoresData] = await Promise.allSettled([
     API.getProgress().catch(e => { console.warn('[GAME] Progress load failed:', e.message); return null; }),
     loadModules(),
-    loadQuizzes()
+    loadQuizzes(),
+    API.getMyScores().catch(e => { console.warn('[GAME] Scores load failed:', e.message); return null; })
   ]);
 
   // Apply progress data
   if (progressData.status === 'fulfilled' && progressData.value && progressData.value.modules) {
     D.modules = progressData.value.modules;
+  }
+
+  // Rebuild skills from backend scores (fixes skills lost on refresh)
+  if (scoresData.status === 'fulfilled' && scoresData.value && scoresData.value.scores) {
+    scoresData.value.scores.forEach(s => {
+      const skillKey = SKILL_MAP[s.activity_id];
+      if (!skillKey || skillKey === 'certification') return;
+      const pct = s.max_score > 0 ? Math.round((s.best_score / s.max_score) * 100) : 0;
+      D.skills[skillKey] = {
+        best: pct,
+        last: pct,
+        attempts: parseInt(s.attempts) || 0,
+        lastDate: s.last_date ? new Date(s.last_date).toISOString().split('T')[0] : null
+      };
+    });
   }
 
   // Remove loader

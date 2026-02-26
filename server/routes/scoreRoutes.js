@@ -49,6 +49,28 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/scores/my
+ * Returns the current user's best score per game activity.
+ * Used to rebuild the skills readiness index on page load.
+ */
+router.get('/my', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT activity_id, MAX(score) as best_score, MAX(max_score) as max_score,
+              COUNT(*) as attempts, MAX(submitted_at) as last_date
+       FROM scores
+       WHERE user_id = $1 AND activity_type = 'game'
+       GROUP BY activity_id`,
+      [req.user.id]
+    );
+    res.json({ scores: result.rows });
+  } catch (err) {
+    console.error('[SCORES] My scores error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * GET /api/leaderboard
  * Query: ?period=week|month|all (default: all)
  * Returns ranked list of active reps by composite Power Score.
@@ -65,8 +87,9 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
   }
 
   try {
-    // Total module count for completion calculation
-    const totalModules = 9; // Hardcoded for Phase 1
+    // Total module count for completion calculation (dynamic from CMS)
+    const modCount = await db.query('SELECT COUNT(*) AS cnt FROM cms_modules');
+    const totalModules = parseInt(modCount.rows[0].cnt) || 9;
 
     const result = await db.query(`
       WITH user_completion AS (

@@ -4,6 +4,47 @@
  * Handles token management, error responses, and offline detection.
  */
 
+// ─── SHARED SECURITY HELPERS ───
+// Loaded first (api.js) so all other scripts can use them.
+
+/**
+ * Escape HTML entities in user-sourced strings (names, nicknames, etc.)
+ * Prevents XSS when inserting via innerHTML/template literals.
+ */
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+/**
+ * Sanitize HTML from CMS content — allows safe formatting tags,
+ * strips everything else (scripts, event handlers, iframes, etc.)
+ * Used for doc body content that contains intentional <b>, <br>, <ul> tags.
+ */
+function sanitizeHTML(html) {
+  if (!html) return '';
+  const ALLOWED_TAGS = ['B', 'BR', 'UL', 'LI', 'OL', 'P', 'STRONG', 'EM'];
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  // Remove all script/style/iframe elements
+  temp.querySelectorAll('script, style, iframe, object, embed, form, input, textarea, link').forEach(el => el.remove());
+  // Remove event handler attributes from all elements
+  temp.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      if (attr.name.startsWith('on') || attr.name === 'href' && attr.value.trim().toLowerCase().startsWith('javascript:')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+    // Remove disallowed tags but keep their text content
+    if (!ALLOWED_TAGS.includes(el.tagName)) {
+      el.replaceWith(...el.childNodes);
+    }
+  });
+  return temp.innerHTML;
+}
+
 const API = {
   baseUrl: '/api',
 
@@ -85,6 +126,8 @@ const API = {
 
   logout() {
     this.clearToken();
+    localStorage.removeItem('openai_api_key');
+    localStorage.removeItem('roc_chat_state');
     window.location.href = '/login.html';
   },
 
@@ -106,6 +149,10 @@ const API = {
 
   async submitScore(activityType, activityId, score, maxScore, details) {
     return this.request('POST', '/scores', { activityType, activityId, score, maxScore, details });
+  },
+
+  async getMyScores() {
+    return this.request('GET', '/scores/my');
   },
 
   async getLeaderboard(period) {
