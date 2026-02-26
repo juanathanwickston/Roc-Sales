@@ -14,6 +14,8 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // Railway Postgres uses self-signed certs — rejectUnauthorized:false is required.
+  // This is safe because Railway's internal network is trusted.
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,

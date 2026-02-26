@@ -52,13 +52,24 @@ if (process.env.NODE_ENV !== 'main') {
   });
 }
 
+// ─── RATE LIMITERS ───
+const rateLimit = require('express-rate-limit');
+const scoreLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: { error: 'Too many score submissions. Try again in a minute.' } });
+const cmsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { error: 'Too many CMS operations. Try again in a minute.' } });
+
 // ─── API ROUTES ───
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/progress', require('./routes/progressRoutes'));
-app.use('/api/scores', require('./routes/scoreRoutes'));
+app.use('/api/scores', scoreLimiter, require('./routes/scoreRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/cms', require('./routes/cmsRoutes'));
+app.use('/api/cms', cmsLimiter, require('./routes/cmsRoutes'));
+
+// Health check for Railway monitoring
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await db.healthCheck();
+  res.json({ status: 'ok', db: dbHealth, uptime: Math.round(process.uptime()) });
+});
 
 // Profile nickname update
 const requireAuth = require('./middleware/requireAuth');
