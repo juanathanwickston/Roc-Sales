@@ -75,7 +75,40 @@ function getReinforcementStatus(dateStr){
 
 // ─── CORE HELPERS ───
 function sv(){/* no-op: saves now go through API */}
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+function show(id, opts){
+  const prev = document.querySelector('.screen.active');
+  const prevId = prev ? prev.id : null;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  // Push to browser history (skip game engines — they're transient screens)
+  const noHistory = new Set(['floor','blitz','terr','quiz','coach']);
+  if (!noHistory.has(id) && (!opts || !opts.replace)) {
+    history.pushState({screen: id, prev: prevId}, '', '#' + id);
+  } else if (opts && opts.replace) {
+    history.replaceState({screen: id}, '', '#' + id);
+  }
+}
+// ─── BROWSER HISTORY (back button) ───
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.screen) {
+    const id = e.state.screen;
+    const el = document.getElementById(id);
+    if (el) {
+      cleanupGameState();
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      el.classList.add('active');
+      window.scrollTo(0,0);
+      if (id === 'home') renderHome();
+    }
+  } else {
+    // No state — go home
+    cleanupGameState();
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('home').classList.add('active');
+    renderHome();
+  }
+});
 
 // ─── PROGRESS HELPERS ───
 function getModProg(id){

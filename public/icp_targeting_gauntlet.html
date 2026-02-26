@@ -375,8 +375,9 @@
         <h3 style="margin-bottom: 20px; color:var(--primary); font-size:1.3rem;">> AUTO_COACH_ANALYSIS</h3>
         <div class="feedback-grid" id="feedbackContainer"></div>
 
-        <div class="btn-bar" style="justify-content: center; margin-top:40px;">
+        <div class="btn-bar" style="justify-content: center; margin-top:40px; gap:12px;">
             <button class="btn" onclick="location.reload()" onmouseover="sfx.hover()">> RE-DEPLOY</button>
+            <button class="btn" onclick="window.location.href='/'" onmouseover="sfx.hover()" style="background:transparent; border:1px solid var(--primary); color:var(--primary);"> BACK TO ACADEMY</button>
         </div>
     </div>
 </div>
@@ -512,6 +513,12 @@ const STATE = {
  * INIT & NAVIGATION
  */
 function init() {
+    // Auth gate — redirect to login if no token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login.html';
+      return;
+    }
     if(CONFIG.embedMode) document.body.classList.add('embed-mode');
     
     // Typewriter effect for intro
@@ -844,6 +851,16 @@ function renderResults() {
             else sfx.play(200, 'sawtooth', 0.1, 0.05);
         }, i * 300);
     });
+
+    // Post score to backend API
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/api/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ activityType: 'game', activityId: 'icp_gauntlet', score: STATE.score, maxScore: 100, details: { speedBonus: STATE.speedBonus } })
+      }).catch(err => console.warn('[ICP] Score save failed:', err.message));
+    }
 }
 
 init();
