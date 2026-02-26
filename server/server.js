@@ -21,8 +21,10 @@ app.set('trust proxy', 1);
 // Security headers (if helmet is installed)
 if (helmet) {
   app.use(helmet({
-    contentSecurityPolicy: false, // Allow inline scripts/styles (SPA)
-    crossOriginEmbedderPolicy: false // Allow YouTube embeds
+    contentSecurityPolicy: false,        // Allow inline scripts/styles (SPA)
+    crossOriginEmbedderPolicy: false,    // Allow YouTube embeds
+    crossOriginOpenerPolicy: false,      // Allow cross-origin iframes
+    crossOriginResourcePolicy: false     // Allow cross-origin resources
   }));
 }
 
