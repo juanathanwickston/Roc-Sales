@@ -352,6 +352,11 @@ router.delete('/apply-items/:id', requireAuth, requireRole('manager'), async (re
     const item = await db.query('SELECT module_id FROM cms_apply_items WHERE id = $1', [req.params.id]);
     if (item.rows.length === 0) return res.status(404).json({ error: 'Apply item not found' });
 
+    const count = await db.query('SELECT COUNT(*) as cnt FROM cms_apply_items WHERE module_id = $1', [item.rows[0].module_id]);
+    if (parseInt(count.rows[0].cnt) <= 1) {
+      return res.status(400).json({ error: 'Cannot delete the last apply item. Every module must have at least one.' });
+    }
+
     await db.query('DELETE FROM cms_apply_items WHERE id = $1', [req.params.id]);
     await auditLog(req.user.id, 'cms_apply_delete', null, { item_id: req.params.id, module_id: item.rows[0].module_id });
     res.json({ message: 'Apply item deleted' });

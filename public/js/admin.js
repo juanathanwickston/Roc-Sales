@@ -590,8 +590,13 @@ const Admin = {
 
   async saveNewQuizQuestion(pool) {
     try {
-      const options = [0,1,2,3].map(i => document.getElementById('aqO'+i).value).filter(o => o.trim());
-      await API.createQuizQuestion({ pool, question: document.getElementById('aqQ').value, options, correct_index: parseInt(document.getElementById('aqC').value), explanation: document.getElementById('aqExp').value });
+      const allOpts = [0,1,2,3].map(i => document.getElementById('aqO'+i).value);
+      const originalCorrect = parseInt(document.getElementById('aqC').value);
+      const correctText = allOpts[originalCorrect];
+      const options = allOpts.filter(o => o.trim());
+      const correct_index = options.indexOf(correctText);
+      if (correct_index === -1) { document.getElementById('aqError').textContent = 'Correct answer option cannot be blank'; document.getElementById('aqError').style.display = 'block'; return; }
+      await API.createQuizQuestion({ pool, question: document.getElementById('aqQ').value, options, correct_index, explanation: document.getElementById('aqExp').value });
       this.closeModal();
       this.editQuizzes();
     } catch (err) { document.getElementById('aqError').textContent = err.message; document.getElementById('aqError').style.display = 'block'; }
@@ -613,8 +618,13 @@ const Admin = {
 
   async saveEditQuizQuestion(id) {
     try {
-      const options = [0,1,2,3].map(i => document.getElementById('eqO'+i).value).filter(o => o.trim());
-      await API.updateQuizQuestion(id, { question: document.getElementById('eqQ').value, options, correct_index: parseInt(document.getElementById('eqC').value), explanation: document.getElementById('eqExp').value });
+      const allOpts = [0,1,2,3].map(i => document.getElementById('eqO'+i).value);
+      const originalCorrect = parseInt(document.getElementById('eqC').value);
+      const correctText = allOpts[originalCorrect];
+      const options = allOpts.filter(o => o.trim());
+      const correct_index = options.indexOf(correctText);
+      if (correct_index === -1) { document.getElementById('eqError').textContent = 'Correct answer option cannot be blank'; document.getElementById('eqError').style.display = 'block'; return; }
+      await API.updateQuizQuestion(id, { question: document.getElementById('eqQ').value, options, correct_index, explanation: document.getElementById('eqExp').value });
       this.closeModal();
       this.editQuizzes();
     } catch (err) { document.getElementById('eqError').textContent = err.message; document.getElementById('eqError').style.display = 'block'; }

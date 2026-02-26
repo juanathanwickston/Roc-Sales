@@ -18,30 +18,35 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  // Verify session is still active (single session enforcement)
-  const session = await db.query(
-    'SELECT id FROM sessions WHERE user_id = $1 AND token_hash = $2 AND expires_at > NOW()',
+  // Combined session + user check (single query instead of two)
+  const result = await db.query(
+    `SELECT s.id AS session_id, s.expires_at, u.id AS user_id, u.role, u.must_change_password
+     FROM sessions s
+     JOIN users u ON u.id = s.user_id AND u.is_active = TRUE
+     WHERE s.user_id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()`,
     [payload.userId, payload.sessionHash]
   );
 
-  if (session.rows.length === 0) {
-    return res.status(401).json({ error: 'Session expired or invalidated' });
+  if (result.rows.length === 0) {
+    return res.status(401).json({ error: 'Session expired or account deactivated' });
   }
 
-  // Verify user is still active
-  const user = await db.query(
-    'SELECT id, role, must_change_password FROM users WHERE id = $1 AND is_active = TRUE',
-    [payload.userId]
-  );
+  const row = result.rows[0];
 
-  if (user.rows.length === 0) {
-    return res.status(401).json({ error: 'Account deactivated' });
+  // Sliding window: extend session if >50% through its 8hr lifetime
+  const expiresAt = new Date(row.expires_at);
+  const remainingMs = expiresAt.getTime() - Date.now();
+  const halfWindow = 4 * 60 * 60 * 1000; // 4 hours
+  if (remainingMs < halfWindow) {
+    const newExpiry = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    db.query('UPDATE sessions SET expires_at = $1 WHERE id = $2', [newExpiry, row.session_id])
+      .catch(err => console.error('[AUTH] Session extend error:', err.message));
   }
 
   req.user = {
     id: payload.userId,
-    role: user.rows[0].role,
-    mustChangePassword: user.rows[0].must_change_password
+    role: row.role,
+    mustChangePassword: row.must_change_password
   };
 
   next();

@@ -85,6 +85,11 @@ router.post('/users', async (req, res) => {
     return res.status(400).json({ error: passwordError });
   }
 
+  // Email validation
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
   const targetRole = role || 'rep';
 
   // Managers can only create reps
@@ -123,7 +128,7 @@ router.post('/users', async (req, res) => {
         hash,
         firstName.trim(),
         lastName.trim(),
-        email ? email.trim() : null,
+        email ? email.trim().substring(0, 255) : null,
         targetRole,
         teamId || null,
         req.user.id
@@ -149,6 +154,11 @@ router.post('/users', async (req, res) => {
 router.put('/users/:id', async (req, res) => {
   const targetId = parseInt(req.params.id);
   const { firstName, lastName, email, nickname, teamId, isActive } = req.body;
+
+  // Email validation
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
 
   if (isNaN(targetId)) {
     return res.status(400).json({ error: 'Invalid user ID' });
@@ -385,6 +395,7 @@ router.put('/teams/:id', requireRole('superuser'), async (req, res) => {
     }
 
     res.json({ message: 'Team updated' });
+    await logAudit(req.user.id, 'team_updated', teamId, { name: name.trim() });
   } catch (err) {
     console.error('[ADMIN] Update team error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
