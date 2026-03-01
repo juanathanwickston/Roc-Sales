@@ -15,49 +15,49 @@
 /* ─── RESET + BASE ─── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#080E1A;--n2:#0D1526;--n3:#131D35;--n4:#1A2744;
-  --blue:#00B4FF;--cyan:#00E5FF;--teal:#00D4AA;
-  --white:#EDF2FF;--gray:#6B7A99;
+  --navy:#001D4E;--cobalt:#0051C2;--cobalt-hover:#003d91;
+  --sky:#F4F7FE;--mint:#00e0b8;--mint-dark:#00c4a0;
+  --white:#ffffff;--text:#001D4E;--gray:#6c757d;--light-border:rgba(0,29,78,.08);
   --font:'Geist',system-ui,-apple-system,sans-serif;
-  --r:18px;--rs:12px;
-  --carousel-bg:#E8ECF0;--card-bg:#ffffff;
-  --nav-active:#1a1a2e;--nav-disabled:#b0b8c8;
+  --r:18px;--rs:12px;--r-sm:6px;
+  --carousel-bg:#EDF0F5;--card-bg:#ffffff;
+  --nav-active:#001D4E;--nav-disabled:#b0b8c8;
 }
 html{font-size:16px;scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-x:hidden}
+body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:hidden}
 
 /* ─── HERO ─── */
 #hero{
   position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;
-  background:var(--navy);
+  background:var(--navy);color:var(--white);
 }
 .hero-content{
   position:relative;z-index:2;width:60%;padding:80px 60px 80px 80px;
 }
 .hero-content h1{
   font-size:clamp(2.2rem,4.5vw,3.6rem);font-weight:900;line-height:1.15;
-  color:var(--white);margin-bottom:24px;
+  color:#ffffff;margin-bottom:24px;
 }
 .hero-badge{
   display:flex;align-items:center;gap:10px;margin-bottom:32px;
 }
 .hero-badge-circle{
-  width:36px;height:36px;border-radius:50%;background:var(--teal);
+  width:36px;height:36px;border-radius:50%;background:var(--mint);
   display:flex;align-items:center;justify-content:center;
   font-weight:700;font-size:.75rem;color:var(--navy);
 }
-.hero-badge-name{font-size:.85rem;color:var(--gray);font-weight:500}
+.hero-badge-name{font-size:.85rem;color:rgba(255,255,255,.6);font-weight:500}
 .hero-panel{
   position:absolute;top:0;right:0;width:45%;height:100%;z-index:1;overflow:hidden;
 }
 .hero-panel::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,#0D1526 0%,#131D35 50%,#1A2744 100%);
+  background:linear-gradient(135deg,#002766 0%,#003380 50%,#004099 100%);
   clip-path:polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
 }
 .hero-panel-logo{
   position:absolute;bottom:15%;right:10%;z-index:2;
-  font-size:2rem;font-weight:300;color:rgba(255,255,255,.15);letter-spacing:4px;
+  font-size:2rem;font-weight:300;color:rgba(255,255,255,.12);letter-spacing:4px;
 }
 .hero-down{
   position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:3;
@@ -68,19 +68,19 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 @keyframes heroDown{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
 
 /* Hero animated bg */
-#heroBg{position:absolute;inset:0;z-index:0;opacity:.3}
+#heroBg{position:absolute;inset:0;z-index:0;opacity:.25}
 
 /* ─── ABOUT / EXPLAINER ─── */
 #about{
-  background:var(--navy);padding:100px 40px;text-align:center;position:relative;
+  background:var(--navy);padding:100px 40px;text-align:center;position:relative;color:#ffffff;
 }
 .about-accent{
-  width:48px;height:3px;background:var(--teal);border-radius:3px;margin:0 auto 32px;
+  width:48px;height:3px;background:var(--mint);border-radius:3px;margin:0 auto 32px;
 }
 #about p{
-  max-width:640px;margin:0 auto;font-size:1.15rem;line-height:1.7;color:rgba(237,242,255,.8);
+  max-width:640px;margin:0 auto;font-size:1.15rem;line-height:1.7;color:rgba(255,255,255,.8);
 }
-#about p.scroll-hint{margin-top:24px;font-weight:600;color:var(--white)}
+#about p.scroll-hint{margin-top:24px;font-weight:600;color:#ffffff}
 
 /* ─── CAROUSEL SECTION ─── */
 #carousel{
@@ -92,7 +92,7 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 
 /* Step badge */
 .step-badge{
-  width:36px;height:36px;border-radius:8px;background:var(--teal);
+  width:36px;height:36px;border-radius:8px;background:var(--mint);
   color:var(--navy);font-weight:900;font-size:1rem;
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 16px;
@@ -105,13 +105,13 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
   transition:opacity .3s ease;
 }
 .carousel-card h2{
-  font-size:1.4rem;font-weight:800;color:var(--navy);margin-bottom:20px;
+  font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:20px;
 }
 .carousel-card .card-img{
-  width:100%;border-radius:var(--rs);background:linear-gradient(135deg,#0D1526,#1A2744);
+  width:100%;border-radius:var(--r-sm);background:var(--sky);
   aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
   color:var(--gray);font-size:.9rem;margin-bottom:20px;overflow:hidden;
-  border:1px solid rgba(0,0,0,.08);
+  border:1px solid var(--light-border);
 }
 .carousel-card .card-img img{width:100%;height:100%;object-fit:cover;display:block}
 .carousel-card .card-body{
@@ -130,9 +130,9 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 }
 .nav-arrow.left{left:-80px}
 .nav-arrow.right{right:-80px}
-.nav-arrow.active{background:var(--nav-active);color:var(--white);box-shadow:0 4px 16px rgba(0,0,0,.2)}
-.nav-arrow.active:hover{background:#2a2a4e;transform:translateY(-50%) scale(1.06)}
-.nav-arrow.disabled{background:var(--nav-disabled);color:var(--white);cursor:default;opacity:.5}
+.nav-arrow.active{background:var(--nav-active);color:#ffffff;box-shadow:0 4px 16px rgba(0,29,78,.2)}
+.nav-arrow.active:hover{background:var(--cobalt);transform:translateY(-50%) scale(1.06)}
+.nav-arrow.disabled{background:var(--nav-disabled);color:#ffffff;cursor:default;opacity:.5}
 
 /* Bottom pagination */
 .carousel-pagination{
@@ -145,10 +145,10 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
   font-size:.75rem;font-weight:700;color:#999;background:transparent;
   cursor:default;transition:all .2s;
 }
-.pag-item.active{border-color:var(--teal);color:var(--teal)}
+.pag-item.active{border-color:var(--cobalt);color:var(--cobalt)}
 .pag-item.chevron{border:none;font-size:1rem;color:#999}
 .pag-item.check{border:none;font-size:1rem;color:#999}
-.pag-item.check.done{color:var(--teal)}
+.pag-item.check.done{color:var(--mint)}
 
 /* Start gate */
 .start-gate{text-align:center}
@@ -156,19 +156,19 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 .start-btn{
   display:inline-flex;align-items:center;gap:8px;
   padding:14px 40px;border-radius:50px;border:none;
-  background:var(--teal);color:var(--navy);
+  background:var(--cobalt);color:#ffffff;
   font-family:var(--font);font-size:1rem;font-weight:800;
   cursor:pointer;transition:all .25s;letter-spacing:.5px;
 }
-.start-btn:hover{background:#00e8b8;transform:scale(1.04);box-shadow:0 4px 20px rgba(0,212,170,.3)}
+.start-btn:hover{background:var(--cobalt-hover);transform:scale(1.04);box-shadow:0 4px 20px rgba(0,81,194,.3)}
 
 /* Start again link */
 .start-again{
   display:inline-flex;align-items:center;gap:6px;margin-top:16px;
-  background:none;border:none;color:var(--teal);font-family:var(--font);
+  background:none;border:none;color:var(--cobalt);font-family:var(--font);
   font-size:.85rem;font-weight:700;cursor:pointer;text-decoration:underline;
 }
-.start-again:hover{color:#00e8b8}
+.start-again:hover{color:var(--cobalt-hover)}
 
 /* In-carousel exit arrow */
 .carousel-exit{
@@ -184,10 +184,10 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 
 /* ─── FEATURES SHOWCASE ─── */
 #features{
-  background:var(--navy);padding:100px 40px;position:relative;
+  background:var(--sky);padding:100px 40px;position:relative;
 }
 #features h2{
-  text-align:center;font-size:1.8rem;font-weight:900;color:var(--white);margin-bottom:12px;
+  text-align:center;font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:12px;
 }
 #features .features-sub{
   text-align:center;color:var(--gray);font-size:1rem;margin-bottom:48px;
@@ -197,13 +197,13 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
   gap:20px;max-width:1000px;margin:0 auto;
 }
 .feature-card{
-  background:rgba(13,21,38,.6);border:1px solid rgba(0,180,255,.1);
-  border-radius:var(--r);padding:28px 24px;backdrop-filter:blur(12px);
-  transition:all .3s;
+  background:var(--white);border:1px solid var(--light-border);
+  border-radius:var(--r-sm);padding:28px 24px;
+  box-shadow:0 1px 3px rgba(0,29,78,.08);transition:all .3s;
 }
-.feature-card:hover{border-color:rgba(0,180,255,.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,180,255,.08)}
+.feature-card:hover{border-color:rgba(0,81,194,.2);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,29,78,.1)}
 .feature-icon{font-size:2rem;margin-bottom:12px}
-.feature-card h3{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:6px}
+.feature-card h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px}
 .feature-card p{font-size:.85rem;color:var(--gray);line-height:1.5}
 
 /* Media embed slots */
@@ -211,23 +211,23 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
   max-width:800px;margin:48px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:24px;
 }
 .media-slot{
-  background:rgba(13,21,38,.6);border:1px solid rgba(0,180,255,.1);
-  border-radius:var(--r);padding:24px;text-align:center;
+  background:var(--white);border:1px solid var(--light-border);
+  border-radius:var(--r-sm);padding:24px;text-align:center;box-shadow:0 1px 3px rgba(0,29,78,.08);
 }
-.media-slot h4{font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:12px}
+.media-slot h4{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:12px}
 .media-slot .placeholder{
-  width:100%;aspect-ratio:16/9;background:rgba(0,180,255,.05);border-radius:var(--rs);
+  width:100%;aspect-ratio:16/9;background:var(--sky);border-radius:var(--r-sm);
   display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.8rem;
-  border:1px dashed rgba(0,180,255,.15);
+  border:1px dashed rgba(0,29,78,.12);
 }
 
 /* ─── FAQ ─── */
 #faq{
-  background:linear-gradient(135deg,#0a1628,#101d38);padding:80px 40px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#001D4E,#002766);padding:80px 40px;position:relative;overflow:hidden;color:#ffffff;
 }
 /* Diagonal decorative shapes */
 #faq::before,#faq::after{
-  content:'';position:absolute;background:rgba(0,180,255,.04);
+  content:'';position:absolute;background:rgba(0,81,194,.08);
 }
 #faq::before{
   width:400px;height:400px;top:-50px;right:-80px;
@@ -238,11 +238,11 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
   clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transform:rotate(-10deg);
 }
 #faq h2{
-  text-align:center;font-size:1.5rem;font-weight:900;color:var(--white);margin-bottom:40px;
+  text-align:center;font-size:1.5rem;font-weight:900;color:#ffffff;margin-bottom:40px;
   position:relative;z-index:1;
 }
 .faq-card{
-  max-width:700px;margin:0 auto;background:var(--card-bg);border-radius:var(--r);
+  max-width:700px;margin:0 auto;background:var(--card-bg);border-radius:var(--r-sm);
   overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.15);position:relative;z-index:1;
 }
 .faq-item{border-bottom:1px solid #e8e8ee}
@@ -267,31 +267,31 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 
 /* ─── CTA ─── */
 #cta{
-  background:var(--navy);padding:80px 40px;
+  background:var(--navy);padding:80px 40px;color:#ffffff;
 }
 .cta-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:700px;margin:0 auto;
 }
 .cta-block{
   text-align:center;padding:40px 24px;
-  background:rgba(13,21,38,.4);border:1px solid rgba(0,180,255,.08);
-  border-radius:var(--r);
+  background:rgba(0,29,78,.4);border:1px solid rgba(0,81,194,.15);
+  border-radius:var(--r-sm);
 }
-.cta-block h3{font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:16px}
+.cta-block h3{font-size:1.1rem;font-weight:700;color:#ffffff;margin-bottom:16px}
 .cta-btn{
   display:inline-block;padding:14px 36px;border-radius:50px;border:none;
-  background:var(--white);color:var(--navy);font-family:var(--font);
+  background:#ffffff;color:var(--navy);font-family:var(--font);
   font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s;
   text-decoration:none;letter-spacing:.5px;
 }
-.cta-btn:hover{background:#fff;transform:scale(1.04);box-shadow:0 4px 20px rgba(237,242,255,.2)}
+.cta-btn:hover{background:#f0f4f8;transform:scale(1.04);box-shadow:0 4px 20px rgba(255,255,255,.15)}
 
 /* ─── FLOATING CONTROLS ─── */
 .float-up,.float-down{
   position:fixed;z-index:100;width:40px;height:40px;border-radius:50%;
   border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
   font-size:1rem;transition:all .3s;
-  background:var(--white);color:var(--navy);box-shadow:0 2px 12px rgba(0,0,0,.15);
+  background:#ffffff;color:var(--navy);box-shadow:0 2px 12px rgba(0,29,78,.12);
 }
 .float-up{top:24px;right:24px;opacity:0;pointer-events:none}
 .float-up.show{opacity:1;pointer-events:auto}
@@ -301,14 +301,14 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 /* ─── PROGRESS INDICATOR ─── */
 .progress-pill{
   position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:100;
-  background:var(--nav-active);border-radius:20px;padding:8px 6px;
+  background:var(--navy);border-radius:20px;padding:8px 6px;
   display:flex;flex-direction:column;gap:8px;align-items:center;
 }
 .progress-dot{
   width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);
   transition:all .3s;
 }
-.progress-dot.active{background:var(--white)}
+.progress-dot.active{background:#ffffff}
 
 /* ─── RESPONSIVE ─── */
 @media(max-width:900px){
@@ -351,8 +351,8 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
       <span class="hero-badge-name">John Hamilton</span>
     </div>
     <h1>All Your Training.<br>One Platform.</h1>
-    <p style="color:var(--gray);font-size:1.05rem;line-height:1.6;max-width:480px">
-      Your training lives across multiple LMS platforms, shared drives, and pages nobody can find. ROC Academy brings it all into one place — with structure, accountability, and a clear path forward.
+    <p style="color:rgba(255,255,255,.65);font-size:1.05rem;line-height:1.6;max-width:480px">
+      Your training lives across multiple LMS platforms, shared drives, and pages nobody can find. ROC Academy puts it all in one place. Structure. Accountability. A clear path forward.
     </p>
   </div>
   <div class="hero-panel">
@@ -364,7 +364,7 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 <!-- ═══ ABOUT ═══ -->
 <section id="about">
   <div class="about-accent"></div>
-  <p>Payroc's training resources are spread across multiple platforms, shared drives, and internal pages. The L&D team is working to centralize everything — and ROC Academy is the destination. Curated content, structured learner pathways, interactive skill-building, and real-time visibility into rep readiness.</p>
+  <p>Payroc's training resources are spread across multiple platforms, shared drives, and internal pages. The L&D team is working to bring it all together, and ROC Academy is where it all lives. Curated content, structured learner pathways, interactive skill-building, and real-time visibility into rep readiness.</p>
   <p class="scroll-hint">Scroll to see how it works.</p>
 </section>
 
@@ -401,17 +401,17 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 <!-- ═══ FEATURES ═══ -->
 <section id="features">
   <h2>What's Inside ROC Academy</h2>
-  <p class="features-sub">Everything a sales rep needs to ramp up, stay sharp, and compete — unified in one platform.</p>
+  <p class="features-sub">Everything a sales rep needs to ramp up, stay sharp, and compete. All unified in one platform.</p>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon">📚</div>
       <h3>Curated Content</h3>
-      <p>Training pulled from multiple platforms and organized into structured learner pathways — no more hunting for resources.</p>
+      <p>Training pulled from multiple platforms and organized into structured learner pathways. No more hunting for resources.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🎮</div>
       <h3>Interactive Games</h3>
-      <p>Feature Factory, Sales Floor, Objection Blitz — learn by doing, not doom scrolling through slide decks.</p>
+      <p>Feature Factory, Sales Floor, Objection Blitz. Learn by doing, not doom scrolling through slide decks.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🤖</div>
@@ -436,7 +436,7 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
     <div class="feature-card">
       <div class="feature-icon">📱</div>
       <h3>Mobile Ready</h3>
-      <p>Progressive Web App — install it on any device and train anywhere.</p>
+      <p>Progressive Web App. Install it on any device and train anywhere.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💡</div>
@@ -466,19 +466,19 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
       <button class="faq-q" aria-expanded="false" aria-controls="faqA0">
         <span>What is ROC Academy?</span><span class="faq-icon">+</span>
       </button>
-      <div class="faq-a" id="faqA0"><div class="faq-a-inner">ROC Academy is Payroc's centralized sales training platform. It brings together curated content from multiple LMS systems, interactive games, AI coaching, leaderboards, and progress tracking — all in one place. Think of it as your single hub for everything you need to ramp up and stay sharp.</div></div>
+      <div class="faq-a" id="faqA0"><div class="faq-a-inner">ROC Academy is Payroc's centralized sales training platform. It pulls together curated content from multiple LMS systems, interactive games, AI coaching, leaderboards, and progress tracking, all in one place. Think of it as your single hub for everything you need to ramp up and stay sharp.</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false" aria-controls="faqA1">
         <span>Who is ROC Academy for?</span><span class="faq-icon">+</span>
       </button>
-      <div class="faq-a" id="faqA1"><div class="faq-a-inner">ROC Academy is designed for Payroc sales representatives — from brand new hires during their first 30 days to seasoned reps looking to sharpen specific skills. Managers also benefit from visibility into team readiness and leaderboard performance.</div></div>
+      <div class="faq-a" id="faqA1"><div class="faq-a-inner">ROC Academy is designed for Payroc sales representatives, from brand new hires during their first 30 days to seasoned reps looking to sharpen specific skills. Managers also benefit from visibility into team readiness and leaderboard performance.</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false" aria-controls="faqA2">
         <span>What training content is available?</span><span class="faq-icon">+</span>
       </button>
-      <div class="faq-a" id="faqA2"><div class="faq-a-inner">Content is organized into phase-based modules covering product knowledge, the sales process, objection handling, territory management, compensation, and coaching. Each module contains curated videos, documents, and interactive activities — some sourced from existing Payroc LMS platforms, others built natively for ROC Academy.</div></div>
+      <div class="faq-a" id="faqA2"><div class="faq-a-inner">Content is organized into phase-based modules covering product knowledge, the sales process, objection handling, territory management, compensation, and coaching. Each module contains curated videos, documents, and interactive activities. Some are sourced from existing Payroc LMS platforms, others are built natively for ROC Academy.</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false" aria-controls="faqA3">
@@ -502,7 +502,7 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
       <button class="faq-q" aria-expanded="false" aria-controls="faqA6">
         <span>Does ROC Academy work on mobile?</span><span class="faq-icon">+</span>
       </button>
-      <div class="faq-a" id="faqA6"><div class="faq-a-inner">Yes. ROC Academy is built as a Progressive Web App (PWA), which means you can install it directly to your phone's home screen and use it like a native app. It works on any device with a modern browser — no app store download required.</div></div>
+      <div class="faq-a" id="faqA6"><div class="faq-a-inner">Yes. ROC Academy is built as a Progressive Web App (PWA), which means you can install it directly to your phone's home screen and use it like a native app. It works on any device with a modern browser. No app store download required.</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false" aria-controls="faqA7">
@@ -545,7 +545,7 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-
 const TUTORIAL = {
   intro: {
     title: 'From Scattered to Structured',
-    body: 'Right now, training lives across multiple platforms — different LMS systems, shared drives, internal pages. Reps don\'t know where to look, and managers can\'t see what\'s been completed. ROC Academy solves this by bringing everything into one unified learning experience built specifically for Payroc sales teams.',
+    body: 'Right now, training lives across multiple platforms. Different LMS systems, shared drives, internal pages. Reps don\'t always know where to find what they need, and managers can\'t easily see what\'s been completed. ROC Academy fixes that by pulling everything into one learning experience built for Payroc sales teams.',
     instruction: 'Click the Start button to learn more.'
   },
   steps: [
@@ -553,8 +553,8 @@ const TUTORIAL = {
       badge: 1,
       panels: [{
         title: 'One Hub for All Training',
-        imgAlt: 'ROC Academy Dashboard — screenshot coming soon',
-        body: 'ROC Academy organizes training into structured learner pathways. Phase 1 covers your first 30 days — product knowledge, the sales process, and compensation basics. Content is curated from existing platforms and organized into a clear, guided sequence so reps always know what to do next.',
+        imgAlt: 'ROC Academy Dashboard',
+        body: 'ROC Academy organizes training into structured learner pathways. Phase 1 covers your first 30 days: product knowledge, the sales process, and compensation basics. Content is curated from existing platforms and organized into a clear, guided sequence so reps always know what to do next.',
         instruction: 'When you\'re done, click the arrow → to advance to the next step.'
       }]
     },
@@ -563,14 +563,14 @@ const TUTORIAL = {
       panels: [
         {
           title: 'Learn by Doing, Not Just Watching',
-          imgAlt: 'Feature Factory game — screenshot coming soon',
+          imgAlt: 'Feature Factory game',
           body: 'No more doom scrolling through slide decks or passively watching training videos. ROC Academy uses interactive games to build real muscle memory. Feature Factory tests product knowledge. Objection Blitz sharpens responses under pressure. The AI Sales Coach provides on-demand guidance whenever you need it.',
           instruction: 'Click the arrow → to see how your progress is tracked.'
         },
         {
           title: 'Visibility for Reps and Leaders',
-          imgAlt: 'Leaderboard and Readiness Index — screenshot coming soon',
-          body: 'Every game, quiz, and activity feeds into your Readiness Index — a six-skill competency score that shows exactly where you stand. The leaderboard lets you compete with your peers. Managers get real-time visibility into team readiness, helping them identify who needs support and recognize top performers.',
+          imgAlt: 'Leaderboard and Readiness Index',
+          body: 'Every game, quiz, and activity feeds into your Readiness Index, a six-skill competency score showing exactly where you stand. The leaderboard lets you compete with your team. Managers get real-time visibility into readiness, so they know who needs support and who\'s leading the pack.',
           instruction: 'When you\'re ready to exit this carousel, click the arrow ↓ below to scroll to the next section.',
           showStartAgain: true
         }
@@ -801,7 +801,7 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 180, 255, ${p.alpha})`;
+      ctx.fillStyle = `rgba(0, 29, 78, ${p.alpha})`;
       ctx.fill();
     }
 
@@ -815,7 +815,7 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(0, 180, 255, ${0.06 * (1 - dist / 150)})`;
+          ctx.strokeStyle = `rgba(0, 29, 78, ${0.06 * (1 - dist / 150)})`;
           ctx.lineWidth = 0.5;
           ctx.stroke();
         }
