@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Getting Started — ROC Academy</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="ROC Academy — Centralized Sales Training Platform. Learn how to use ROC Academy to master your sales skills.">
+<style>
+@font-face { font-family: 'Geist'; src: url('/fonts/Geist-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('/fonts/Geist-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('/fonts/Geist-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+</style>
+<style>
+/* ─── RESET + BASE ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#080E1A;--n2:#0D1526;--n3:#131D35;--n4:#1A2744;
+  --blue:#00B4FF;--cyan:#00E5FF;--teal:#00D4AA;
+  --white:#EDF2FF;--gray:#6B7A99;
+  --font:'Geist',system-ui,-apple-system,sans-serif;
+  --r:18px;--rs:12px;
+  --carousel-bg:#E8ECF0;--card-bg:#ffffff;
+  --nav-active:#1a1a2e;--nav-disabled:#b0b8c8;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-x:hidden}
+
+/* ─── HERO ─── */
+#hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;
+  background:var(--navy);
+}
+.hero-content{
+  position:relative;z-index:2;width:60%;padding:80px 60px 80px 80px;
+}
+.hero-content h1{
+  font-size:clamp(2.2rem,4.5vw,3.6rem);font-weight:900;line-height:1.15;
+  color:var(--white);margin-bottom:24px;
+}
+.hero-badge{
+  display:flex;align-items:center;gap:10px;margin-bottom:32px;
+}
+.hero-badge-circle{
+  width:36px;height:36px;border-radius:50%;background:var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.75rem;color:var(--navy);
+}
+.hero-badge-name{font-size:.85rem;color:var(--gray);font-weight:500}
+.hero-panel{
+  position:absolute;top:0;right:0;width:45%;height:100%;z-index:1;overflow:hidden;
+}
+.hero-panel::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,#0D1526 0%,#131D35 50%,#1A2744 100%);
+  clip-path:polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
+}
+.hero-panel-logo{
+  position:absolute;bottom:15%;right:10%;z-index:2;
+  font-size:2rem;font-weight:300;color:rgba(255,255,255,.15);letter-spacing:4px;
+}
+.hero-down{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:3;
+  background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;
+  font-size:1.8rem;transition:color .3s;animation:heroDown 2s ease infinite;
+}
+.hero-down:hover{color:var(--white)}
+@keyframes heroDown{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* Hero animated bg */
+#heroBg{position:absolute;inset:0;z-index:0;opacity:.3}
+
+/* ─── ABOUT / EXPLAINER ─── */
+#about{
+  background:var(--navy);padding:100px 40px;text-align:center;position:relative;
+}
+.about-accent{
+  width:48px;height:3px;background:var(--teal);border-radius:3px;margin:0 auto 32px;
+}
+#about p{
+  max-width:640px;margin:0 auto;font-size:1.15rem;line-height:1.7;color:rgba(237,242,255,.8);
+}
+#about p.scroll-hint{margin-top:24px;font-weight:600;color:var(--white)}
+
+/* ─── CAROUSEL SECTION ─── */
+#carousel{
+  background:var(--carousel-bg);padding:80px 40px 120px;position:relative;min-height:80vh;
+}
+.carousel-wrap{
+  max-width:780px;margin:0 auto;position:relative;
+}
+
+/* Step badge */
+.step-badge{
+  width:36px;height:36px;border-radius:8px;background:var(--teal);
+  color:var(--navy);font-weight:900;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+}
+
+/* Card */
+.carousel-card{
+  background:var(--card-bg);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.1);
+  padding:48px 48px 40px;min-height:420px;position:relative;
+  transition:opacity .3s ease;
+}
+.carousel-card h2{
+  font-size:1.4rem;font-weight:800;color:var(--navy);margin-bottom:20px;
+}
+.carousel-card .card-img{
+  width:100%;border-radius:var(--rs);background:linear-gradient(135deg,#0D1526,#1A2744);
+  aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  color:var(--gray);font-size:.9rem;margin-bottom:20px;overflow:hidden;
+  border:1px solid rgba(0,0,0,.08);
+}
+.carousel-card .card-img img{width:100%;height:100%;object-fit:cover;display:block}
+.carousel-card .card-body{
+  font-size:.95rem;line-height:1.65;color:#3a3a4a;margin-bottom:16px;
+}
+.carousel-card .card-instruction{
+  font-style:italic;font-weight:600;font-size:.88rem;color:#2a2a3a;
+}
+
+/* Nav arrows (large circles) */
+.nav-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:10;
+  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;transition:all .25s;
+}
+.nav-arrow.left{left:-80px}
+.nav-arrow.right{right:-80px}
+.nav-arrow.active{background:var(--nav-active);color:var(--white);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.nav-arrow.active:hover{background:#2a2a4e;transform:translateY(-50%) scale(1.06)}
+.nav-arrow.disabled{background:var(--nav-disabled);color:var(--white);cursor:default;opacity:.5}
+
+/* Bottom pagination */
+.carousel-pagination{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  margin-top:24px;
+}
+.pag-item{
+  width:28px;height:28px;border-radius:50%;border:2px solid #ccc;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;color:#999;background:transparent;
+  cursor:default;transition:all .2s;
+}
+.pag-item.active{border-color:var(--teal);color:var(--teal)}
+.pag-item.chevron{border:none;font-size:1rem;color:#999}
+.pag-item.check{border:none;font-size:1rem;color:#999}
+.pag-item.check.done{color:var(--teal)}
+
+/* Start gate */
+.start-gate{text-align:center}
+.start-gate .card-body{text-align:left}
+.start-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 40px;border-radius:50px;border:none;
+  background:var(--teal);color:var(--navy);
+  font-family:var(--font);font-size:1rem;font-weight:800;
+  cursor:pointer;transition:all .25s;letter-spacing:.5px;
+}
+.start-btn:hover{background:#00e8b8;transform:scale(1.04);box-shadow:0 4px 20px rgba(0,212,170,.3)}
+
+/* Start again link */
+.start-again{
+  display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+  background:none;border:none;color:var(--teal);font-family:var(--font);
+  font-size:.85rem;font-weight:700;cursor:pointer;text-decoration:underline;
+}
+.start-again:hover{color:#00e8b8}
+
+/* In-carousel exit arrow */
+.carousel-exit{
+  display:flex;align-items:center;justify-content:center;margin-top:32px;
+}
+.carousel-exit button{
+  width:44px;height:44px;border-radius:50%;border:2px solid var(--nav-active);
+  background:var(--card-bg);color:var(--nav-active);cursor:pointer;
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  transition:all .25s;
+}
+.carousel-exit button:hover{background:var(--nav-active);color:var(--white)}
+
+/* ─── FEATURES SHOWCASE ─── */
+#features{
+  background:var(--navy);padding:100px 40px;position:relative;
+}
+#features h2{
+  text-align:center;font-size:1.8rem;font-weight:900;color:var(--white);margin-bottom:12px;
+}
+#features .features-sub{
+  text-align:center;color:var(--gray);font-size:1rem;margin-bottom:48px;
+}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;max-width:1000px;margin:0 auto;
+}
+.feature-card{
+  background:rgba(13,21,38,.6);border:1px solid rgba(0,180,255,.1);
+  border-radius:var(--r);padding:28px 24px;backdrop-filter:blur(12px);
+  transition:all .3s;
+}
+.feature-card:hover{border-color:rgba(0,180,255,.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,180,255,.08)}
+.feature-icon{font-size:2rem;margin-bottom:12px}
+.feature-card h3{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:6px}
+.feature-card p{font-size:.85rem;color:var(--gray);line-height:1.5}
+
+/* Media embed slots */
+.media-slots{
+  max-width:800px;margin:48px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:24px;
+}
+.media-slot{
+  background:rgba(13,21,38,.6);border:1px solid rgba(0,180,255,.1);
+  border-radius:var(--r);padding:24px;text-align:center;
+}
+.media-slot h4{font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:12px}
+.media-slot .placeholder{
+  width:100%;aspect-ratio:16/9;background:rgba(0,180,255,.05);border-radius:var(--rs);
+  display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.8rem;
+  border:1px dashed rgba(0,180,255,.15);
+}
+
+/* ─── FAQ ─── */
+#faq{
+  background:linear-gradient(135deg,#0a1628,#101d38);padding:80px 40px;position:relative;overflow:hidden;
+}
+/* Diagonal decorative shapes */
+#faq::before,#faq::after{
+  content:'';position:absolute;background:rgba(0,180,255,.04);
+}
+#faq::before{
+  width:400px;height:400px;top:-50px;right:-80px;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transform:rotate(15deg);
+}
+#faq::after{
+  width:300px;height:300px;bottom:-40px;left:-60px;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transform:rotate(-10deg);
+}
+#faq h2{
+  text-align:center;font-size:1.5rem;font-weight:900;color:var(--white);margin-bottom:40px;
+  position:relative;z-index:1;
+}
+.faq-card{
+  max-width:700px;margin:0 auto;background:var(--card-bg);border-radius:var(--r);
+  overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.15);position:relative;z-index:1;
+}
+.faq-item{border-bottom:1px solid #e8e8ee}
+.faq-item:last-child{border-bottom:none}
+.faq-q{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 28px;cursor:pointer;background:none;border:none;width:100%;
+  text-align:left;font-family:var(--font);font-size:.92rem;font-weight:600;
+  color:#1a1a2e;transition:background .2s;
+}
+.faq-q:hover{background:rgba(0,0,0,.02)}
+.faq-q .faq-icon{
+  font-size:1.2rem;color:#999;transition:transform .3s;flex-shrink:0;margin-left:16px;
+}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-a{
+  max-height:0;overflow:hidden;transition:max-height .35s ease;
+}
+.faq-a-inner{
+  padding:0 28px 20px;font-size:.88rem;line-height:1.65;color:#4a4a5a;
+}
+
+/* ─── CTA ─── */
+#cta{
+  background:var(--navy);padding:80px 40px;
+}
+.cta-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:700px;margin:0 auto;
+}
+.cta-block{
+  text-align:center;padding:40px 24px;
+  background:rgba(13,21,38,.4);border:1px solid rgba(0,180,255,.08);
+  border-radius:var(--r);
+}
+.cta-block h3{font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:16px}
+.cta-btn{
+  display:inline-block;padding:14px 36px;border-radius:50px;border:none;
+  background:var(--white);color:var(--navy);font-family:var(--font);
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s;
+  text-decoration:none;letter-spacing:.5px;
+}
+.cta-btn:hover{background:#fff;transform:scale(1.04);box-shadow:0 4px 20px rgba(237,242,255,.2)}
+
+/* ─── FLOATING CONTROLS ─── */
+.float-up,.float-down{
+  position:fixed;z-index:100;width:40px;height:40px;border-radius:50%;
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:all .3s;
+  background:var(--white);color:var(--navy);box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+.float-up{top:24px;right:24px;opacity:0;pointer-events:none}
+.float-up.show{opacity:1;pointer-events:auto}
+.float-down{bottom:24px;right:24px}
+.float-up:hover,.float-down:hover{transform:scale(1.1);box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* ─── PROGRESS INDICATOR ─── */
+.progress-pill{
+  position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:100;
+  background:var(--nav-active);border-radius:20px;padding:8px 6px;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+}
+.progress-dot{
+  width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);
+  transition:all .3s;
+}
+.progress-dot.active{background:var(--white)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .hero-content{width:100%;padding:60px 32px}
+  .hero-panel{width:50%}
+  .nav-arrow.left{left:-20px}
+  .nav-arrow.right{right:-20px}
+  .carousel-card{padding:32px 28px}
+  .cta-grid{grid-template-columns:1fr}
+  .media-slots{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .hero-content{padding:40px 20px}
+  .hero-content h1{font-size:1.8rem}
+  .hero-panel{display:none}
+  #about{padding:60px 20px}
+  #carousel{padding:60px 16px 80px}
+  .carousel-wrap{max-width:100%}
+  .nav-arrow{width:40px;height:40px;font-size:1rem}
+  .nav-arrow.left{left:4px}
+  .nav-arrow.right{right:4px}
+  .carousel-card{padding:24px 20px;min-height:auto}
+  #features{padding:60px 20px}
+  #faq{padding:60px 20px}
+  #cta{padding:60px 20px}
+  .progress-pill{right:8px}
+  .float-up{right:8px;top:12px}
+  .float-down{right:8px;bottom:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <canvas id="heroBg"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="hero-badge-circle">JH</div>
+      <span class="hero-badge-name">John Hamilton</span>
+    </div>
+    <h1>One Platform.<br>Every Tool You Need.</h1>
+    <p style="color:var(--gray);font-size:1.05rem;line-height:1.6;max-width:480px">
+      Your sales training lives across multiple systems. ROC Academy brings it all together — curated content, interactive games, AI coaching, and real-time progress tracking.
+    </p>
+  </div>
+  <div class="hero-panel">
+    <div class="hero-panel-logo">ROC ACADEMY</div>
+  </div>
+  <button class="hero-down" onclick="scrollToSection('#about')" aria-label="Scroll to learn more">↓</button>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section id="about">
+  <div class="about-accent"></div>
+  <p>ROC Academy is your single destination for sales enablement. Instead of juggling five different LMS platforms, scattered slide decks, and disconnected training tools — everything lives here.</p>
+  <p class="scroll-hint">Scroll to learn more.</p>
+</section>
+
+<!-- ═══ CAROUSEL ═══ -->
+<section id="carousel">
+  <div class="carousel-wrap">
+    <!-- Nav arrows -->
+    <button class="nav-arrow left disabled" id="navLeft" onclick="goPrev()" aria-label="Previous tutorial step">‹</button>
+    <button class="nav-arrow right active" id="navRight" onclick="goNext()" aria-label="Next tutorial step">›</button>
+
+    <!-- Step badge -->
+    <div class="step-badge" id="stepBadge" style="display:none">1</div>
+
+    <!-- Card container -->
+    <div class="carousel-card" id="carouselCard">
+      <!-- Content injected by JS -->
+    </div>
+
+    <!-- Bottom pagination -->
+    <div class="carousel-pagination">
+      <span class="pag-item chevron" id="pagChevron">›</span>
+      <span class="pag-item" id="pag1">1</span>
+      <span class="pag-item" id="pag2">2</span>
+      <span class="pag-item check" id="pagCheck">✓</span>
+    </div>
+
+    <!-- Exit arrow -->
+    <div class="carousel-exit" id="carouselExit" style="display:none">
+      <button onclick="scrollToSection('#features')" aria-label="Exit tutorial and continue to features">↓</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section id="features">
+  <h2>What's Inside ROC Academy</h2>
+  <p class="features-sub">Everything a sales rep needs to ramp up, stay sharp, and compete.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <h3>Curated Content</h3>
+      <p>Training from multiple LMS sources, organized in one hub with phase-based learning paths.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <h3>Interactive Games</h3>
+      <p>Feature Factory, Sales Floor, Objection Blitz — learn by doing, not just watching.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>AI Sales Coach</h3>
+      <p>On-demand coaching chatbot for guidance on products, objections, and sales scenarios.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>Leaderboards</h3>
+      <p>Compete with peers, track your rank, and see who's leading the pack.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Readiness Index</h3>
+      <p>Six-skill competency radar measuring your sales readiness across every dimension.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎓</div>
+      <h3>ROC Certification</h3>
+      <p>Structured certification program with progress tracking and completion badges.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Mobile Ready</h3>
+      <p>Progressive Web App — install it on any device and train anywhere.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💡</div>
+      <h3>Coach's Corner</h3>
+      <p>Scenario-based coaching exercises for real-world sales situations.</p>
+    </div>
+  </div>
+
+  <!-- NotebookLM embed slots -->
+  <div class="media-slots">
+    <div class="media-slot">
+      <h4>Video Overview</h4>
+      <div class="placeholder">Video embed coming soon</div>
+    </div>
+    <div class="media-slot">
+      <h4>ROC Academy Podcast</h4>
+      <div class="placeholder">Podcast embed coming soon</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══ -->
+<section id="faq">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-card" id="faqCard">
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA0">
+        <span>What is ROC Academy?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA0"><div class="faq-a-inner">ROC Academy is Payroc's centralized sales training platform. It brings together curated content from multiple LMS systems, interactive games, AI coaching, leaderboards, and progress tracking — all in one place. Think of it as your single hub for everything you need to ramp up and stay sharp.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA1">
+        <span>Who is ROC Academy for?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA1"><div class="faq-a-inner">ROC Academy is designed for Payroc sales representatives — from brand new hires during their first 30 days to seasoned reps looking to sharpen specific skills. Managers also benefit from visibility into team readiness and leaderboard performance.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA2">
+        <span>What training content is available?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA2"><div class="faq-a-inner">Content is organized into phase-based modules covering product knowledge, the sales process, objection handling, territory management, compensation, and coaching. Each module contains curated videos, documents, and interactive activities — some sourced from existing Payroc LMS platforms, others built natively for ROC Academy.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA3">
+        <span>How do the interactive games work?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA3"><div class="faq-a-inner">Each game targets a specific skill area. Feature Factory is a Tetris-style sorting game that tests product knowledge. Objection Blitz is a rapid-fire quiz on handling objections. Sales Floor walks you through realistic customer scenarios. Games are scored, tracked, and contribute to your Readiness Index and leaderboard ranking.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA4">
+        <span>Can my manager see my progress?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA4"><div class="faq-a-inner">Yes. Managers with admin access can view the leaderboard, export progress reports, and see individual Readiness Index scores. This visibility helps managers identify who needs support and recognize top performers.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA5">
+        <span>How is my Readiness Index calculated?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA5"><div class="faq-a-inner">The Readiness Index measures competency across six skill areas: Product Knowledge, Sales Process, Objection Handling, Territory Management, Comp &amp; Margin IQ, and Coaching. Each area is weighted based on its correlation with revenue performance. Your scores from games, quizzes, and activities feed into each skill area to produce an overall readiness percentage.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA6">
+        <span>Does ROC Academy work on mobile?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA6"><div class="faq-a-inner">Yes. ROC Academy is built as a Progressive Web App (PWA), which means you can install it directly to your phone's home screen and use it like a native app. It works on any device with a modern browser — no app store download required.</div></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" aria-controls="faqA7">
+        <span>What is ROC Certification?</span><span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a" id="faqA7"><div class="faq-a-inner">ROC Certification is a structured program that requires completing all core modules and achieving minimum scores across skill areas. Once certified, your status is visible on the leaderboard and your profile. It demonstrates that you've mastered the fundamentals needed to succeed in the field.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section id="cta">
+  <div class="cta-grid">
+    <div class="cta-block">
+      <h3>Ready to get started?</h3>
+      <a href="/login.html" class="cta-btn">LOG IN</a>
+    </div>
+    <div class="cta-block">
+      <h3>Have questions?</h3>
+      <a href="mailto:john.hamilton@payroc.com" class="cta-btn">CONTACT US</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FLOATING CONTROLS ═══ -->
+<button class="float-up" id="floatUp" onclick="scrollToSection('#hero')" aria-label="Scroll to top">↑</button>
+<button class="float-down" id="floatDown" onclick="scrollToNext()" aria-label="Scroll to next section">↓</button>
+
+<!-- ═══ PROGRESS PILL ═══ -->
+<div class="progress-pill" id="progressPill">
+  <div class="progress-dot" id="dot0"></div>
+  <div class="progress-dot" id="dot1"></div>
+</div>
+
+<!-- ═══ GSAP ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+<script>
+// ─── TUTORIAL DATA ───
+const TUTORIAL = {
+  intro: {
+    title: 'Centralized Sales Training',
+    body: 'Your training is scattered across five different platforms — different LMS systems, random slide decks, disconnected tools. ROC Academy brings it all together into one unified experience designed specifically for Payroc sales reps.',
+    instruction: 'Click the Start button to learn more.'
+  },
+  steps: [
+    {
+      badge: 1,
+      panels: [{
+        title: 'Everything in One Place',
+        imgAlt: 'ROC Academy Dashboard — screenshot coming soon',
+        body: 'ROC Academy organizes training into phase-based modules. Phase 1 covers your first 30 days — product knowledge, the sales process, and compensation basics. All content is curated from existing Payroc LMS platforms, plus interactive activities built to reinforce what you learn.',
+        instruction: 'When you\'re done, click the arrow → to advance to the next step.'
+      }]
+    },
+    {
+      badge: 2,
+      panels: [
+        {
+          title: 'Train Like a Pro',
+          imgAlt: 'Feature Factory game — screenshot coming soon',
+          body: 'Instead of passive video watching, ROC Academy uses interactive games to build muscle memory. Feature Factory tests product knowledge. Objection Blitz sharpens your responses under pressure. The AI Sales Coach gives you on-demand guidance whenever you need it.',
+          instruction: 'Click the arrow → to see how your progress is tracked.'
+        },
+        {
+          title: 'Track Your Growth',
+          imgAlt: 'Leaderboard and Readiness Index — screenshot coming soon',
+          body: 'Every game, quiz, and activity feeds into your Readiness Index — a six-skill competency score that shows exactly where you stand. The leaderboard lets you compete with your peers. Your manager gets visibility into team readiness, helping them coach more effectively.',
+          instruction: 'When you\'re ready to exit this carousel, click the arrow ↓ below to scroll to the next section.',
+          showStartAgain: true
+        }
+      ]
+    }
+  ]
+};
+
+// ─── STATE ───
+let tutorialStarted = false;
+let mainStep = 0;
+let subStep = 0;
+
+// ─── CAROUSEL RENDERING ───
+function renderCarousel() {
+  const card = document.getElementById('carouselCard');
+  const badge = document.getElementById('stepBadge');
+  const navL = document.getElementById('navLeft');
+  const navR = document.getElementById('navRight');
+  const exitEl = document.getElementById('carouselExit');
+
+  if (!tutorialStarted) {
+    // Show intro / start gate
+    badge.style.display = 'none';
+    exitEl.style.display = 'none';
+    card.innerHTML = `
+      <div class="start-gate">
+        <h2>${TUTORIAL.intro.title}</h2>
+        <div class="card-img"><span>${TUTORIAL.steps[0].panels[0].imgAlt}</span></div>
+        <div class="card-body">${TUTORIAL.intro.body}</div>
+        <p class="card-instruction">${TUTORIAL.intro.instruction}</p>
+        <button class="start-btn" onclick="startTutorial()">START ›</button>
+      </div>
+    `;
+    navL.className = 'nav-arrow left disabled';
+    navR.className = 'nav-arrow right disabled';
+    updatePagination(-1);
+    updateProgress(-1);
+    return;
+  }
+
+  const step = TUTORIAL.steps[mainStep];
+  const panel = step.panels[subStep];
+
+  // Badge
+  badge.style.display = 'flex';
+  badge.textContent = step.badge;
+
+  // Card content
+  let extra = '';
+  if (panel.showStartAgain) {
+    extra = `<button class="start-again" onclick="resetTutorial()">↺ START AGAIN</button>`;
+  }
+  card.innerHTML = `
+    <h2>${panel.title}</h2>
+    <div class="card-img"><span>${panel.imgAlt}</span></div>
+    <div class="card-body">${panel.body}</div>
+    <p class="card-instruction">${panel.instruction}</p>
+    ${extra}
+  `;
+
+  // Arrow states
+  const isFirst = mainStep === 0 && subStep === 0;
+  const isLast = mainStep === TUTORIAL.steps.length - 1 &&
+                 subStep === TUTORIAL.steps[mainStep].panels.length - 1;
+
+  navL.className = isFirst ? 'nav-arrow left disabled' : 'nav-arrow left active';
+  navR.className = isLast ? 'nav-arrow right disabled' : 'nav-arrow right active';
+
+  // Show exit arrow only on final panel
+  exitEl.style.display = isLast ? 'flex' : 'none';
+
+  updatePagination(mainStep);
+  updateProgress(mainStep);
+
+  // GSAP transition
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo(card, {opacity: 0, y: 12}, {opacity: 1, y: 0, duration: 0.35, ease: 'power2.out'});
+  }
+}
+
+function updatePagination(activeStep) {
+  document.getElementById('pag1').className = 'pag-item' + (activeStep === 0 ? ' active' : '');
+  document.getElementById('pag2').className = 'pag-item' + (activeStep === 1 ? ' active' : '');
+  const isComplete = tutorialStarted && mainStep === TUTORIAL.steps.length - 1 &&
+                     subStep === TUTORIAL.steps[mainStep].panels.length - 1;
+  document.getElementById('pagCheck').className = 'pag-item check' + (isComplete ? ' done' : '');
+}
+
+function updateProgress(activeStep) {
+  document.getElementById('dot0').className = 'progress-dot' + (activeStep === 0 ? ' active' : '');
+  document.getElementById('dot1').className = 'progress-dot' + (activeStep === 1 ? ' active' : '');
+}
+
+// ─── NAVIGATION ───
+function startTutorial() {
+  tutorialStarted = true;
+  mainStep = 0;
+  subStep = 0;
+  renderCarousel();
+}
+
+function resetTutorial() {
+  tutorialStarted = false;
+  mainStep = 0;
+  subStep = 0;
+  renderCarousel();
+}
+
+function goNext() {
+  if (!tutorialStarted) return;
+  const step = TUTORIAL.steps[mainStep];
+  if (subStep < step.panels.length - 1) {
+    subStep++;
+  } else if (mainStep < TUTORIAL.steps.length - 1) {
+    mainStep++;
+    subStep = 0;
+  }
+  renderCarousel();
+}
+
+function goPrev() {
+  if (!tutorialStarted) return;
+  if (subStep > 0) {
+    subStep--;
+  } else if (mainStep > 0) {
+    mainStep--;
+    subStep = TUTORIAL.steps[mainStep].panels.length - 1;
+  }
+  renderCarousel();
+}
+
+// ─── SCROLL NAVIGATION ───
+const SECTIONS = ['#hero', '#about', '#carousel', '#features', '#faq', '#cta'];
+
+function scrollToSection(selector) {
+  const el = document.querySelector(selector);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function scrollToNext() {
+  const scrollY = window.scrollY;
+  for (const sel of SECTIONS) {
+    const el = document.querySelector(sel);
+    if (el && el.offsetTop > scrollY + 20) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+  }
+}
+
+// ─── FLOATING CONTROLS ───
+function updateFloatingControls() {
+  const heroH = document.getElementById('hero').offsetHeight;
+  const up = document.getElementById('floatUp');
+  if (window.scrollY > heroH * 0.3) {
+    up.classList.add('show');
+  } else {
+    up.classList.remove('show');
+  }
+}
+window.addEventListener('scroll', updateFloatingControls, { passive: true });
+
+// ─── FAQ ACCORDION ───
+document.getElementById('faqCard').addEventListener('click', function(e) {
+  const btn = e.target.closest('.faq-q');
+  if (!btn) return;
+  const item = btn.closest('.faq-item');
+  const answer = item.querySelector('.faq-a');
+  const inner = answer.querySelector('.faq-a-inner');
+  const isOpen = item.classList.contains('open');
+
+  // Close all others (single-open mode)
+  document.querySelectorAll('.faq-item.open').forEach(function(other) {
+    if (other !== item) {
+      other.classList.remove('open');
+      other.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+      other.querySelector('.faq-a').style.maxHeight = '0';
+    }
+  });
+
+  if (isOpen) {
+    item.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    answer.style.maxHeight = '0';
+  } else {
+    item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    answer.style.maxHeight = inner.scrollHeight + 'px';
+  }
+});
+
+// ─── HERO BACKGROUND ANIMATION ───
+(function initHeroBg() {
+  const canvas = document.getElementById('heroBg');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Create particles
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2 + 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.4 + 0.1
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 180, 255, ${p.alpha})`;
+      ctx.fill();
+    }
+
+    // Draw connecting lines
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(0, 180, 255, ${0.06 * (1 - dist / 150)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─── INIT ───
+renderCarousel();
+updateFloatingControls();
+</script>
+
+</body>
+</html>
