@@ -38,7 +38,7 @@ const Leaderboard = {
     if (leaderboard.length === 0 || maxScore === 0) {
       h += '<div class="lb-empty" style="text-align:center;padding:48px 24px">';
       h += '<div style="font-size:2.5rem;margin-bottom:16px">🚀</div>';
-      h += '<div style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:var(--cyan,#00f0ff)">No Scores Yet</div>';
+      h += '<div style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:var(--cyan,#60A5FA)">No Scores Yet</div>';
       h += '<div style="font-size:.9rem;color:var(--gray,#94a3b8);line-height:1.6">Complete modules to start earning Power Score.<br>Watch videos, read docs, play games, and finish checklists to climb the ranks.</div>';
       h += '</div>';
       return h;

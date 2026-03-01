@@ -812,7 +812,7 @@ function showRes(title,pts,mx,str){
 function resize(){c.width=innerWidth;c.height=innerHeight}
 function init(){ps=[];for(let i=0;i<60;i++)ps.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.5,dx:Math.random()*.3-.15,dy:Math.random()*.3-.15,a:Math.random()*.3+.1})}
 function draw(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.dx;p.y+=p.dy;if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
-x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(0,180,255,${p.a})`;x.fill()});requestAnimationFrame(draw)}
+x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(59,130,246,${p.a})`;x.fill()});requestAnimationFrame(draw)}
 resize();init();draw();addEventListener('resize',()=>{resize();init()})})();
 
 // Manager report removed — replaced by admin panel (Admin.showUserProgress)
@@ -928,7 +928,7 @@ function beginFactory(){
     var c = document.getElementById('ffCanvas');
     if(c){
       var ctx = c.getContext('2d');
-      ctx.fillStyle='#0a0e1a';
+      ctx.fillStyle='#0a1628';
       ctx.fillRect(0,0,c.width||800,c.height||600);
       ctx.fillStyle='#ef4444';
       ctx.font='bold 18px system-ui,sans-serif';

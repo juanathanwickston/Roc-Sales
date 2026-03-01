@@ -58,10 +58,11 @@ function toast(msg, type = 'success', duration = 3000) {
     container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
     document.body.appendChild(container);
   }
-  const colors = { success: '#00FF88', error: '#FF4466', info: '#00B4FF' };
+  const colors = { success: '#00e0b8', error: '#FF4466', info: '#3B82F6' };
+  const bgMap = { success: '#00e0b8', error: '#FF4466', info: '#3B82F6' };
   const icons = { success: '✅', error: '⚠️', info: 'ℹ️' };
   const el = document.createElement('div');
-  el.style.cssText = `pointer-events:auto;padding:12px 20px;border-radius:12px;background:rgba(13,21,38,0.95);border:1px solid ${colors[type] || colors.success};color:#EDF2FF;font-size:.85rem;font-family:var(--font);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.4);`;
+  el.style.cssText = `pointer-events:auto;padding:12px 20px;border-radius:12px;background:rgba(15,27,50,0.95);border:1px solid ${colors[type] || colors.success};color:#EDF2FF;font-size:.85rem;font-family:var(--font);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.4);`;
   el.innerHTML = `<span style="margin-right:8px">${icons[type] || icons.success}</span>${esc(msg)}`;
   container.appendChild(el);
   requestAnimationFrame(() => el.style.transform = 'translateX(0)');
