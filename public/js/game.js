@@ -2,6 +2,48 @@
 // Module navigation, activity viewers, all game engines, progress tracking
 // L&D Pillars: Skill Measurement, Reinforcement Cadence, Visibility Reporting, Behavioral Standards
 
+// --- FALLBACK GAME DATA ---
+// If content.js failed to load/parse, define the data here so games still work
+if(typeof PRODUCT_BINS === 'undefined'){
+  var PRODUCT_BINS = [
+    {label:'ROC Giving', icon:'\u2764', color:'#a78bfa'},
+    {label:'ROC Services', icon:'\u2699', color:'#60a5fa'},
+    {label:'Terminal+', icon:'\u2588', color:'#34d399'},
+    {label:'RewardPay', icon:'\u0024', color:'#fbbf24'}
+  ];
+}
+if(typeof FEATURES === 'undefined'){
+  var FEATURES = [
+    {text:'Text-to-Give', product:0},
+    {text:'QR Code Giving', product:0},
+    {text:'Fee Offset', product:0},
+    {text:'Recurring Giving', product:0},
+    {text:'Branded Campaigns', product:0},
+    {text:'Donor Analytics', product:0},
+    {text:'No Platform Fee', product:0},
+    {text:'Mobile Invoicing', product:1},
+    {text:'QuickBooks Sync', product:1},
+    {text:'Estimate to Invoice', product:1},
+    {text:'BBPOS Card Reader', product:1},
+    {text:'Job Scheduling', product:1},
+    {text:'Payment Links', product:1},
+    {text:'Item Catalog', product:1},
+    {text:'Dual Display', product:2},
+    {text:'Bill Splitting', product:2},
+    {text:'Tip Management', product:2},
+    {text:'NFC / Apple Pay', product:2},
+    {text:'Inventory Tracking', product:2},
+    {text:'Barcode Scanner', product:2},
+    {text:'Cash + Cashback', product:2},
+    {text:'Dual Pricing', product:3},
+    {text:'Surcharging', product:3},
+    {text:'Credit-Only Fee', product:3},
+    {text:'50-70% Cost Cut', product:3},
+    {text:'ACH Integration', product:3},
+    {text:'Cash vs Card Price', product:3}
+  ];
+}
+
 // ─── STATE ───
 // D is loaded from server on init, used as local cache for rendering speed
 let D = {xp:0,lvl:1,bst:0,modules:{},skills:{},repName:''};
@@ -830,56 +872,76 @@ function resizeFFCanvas(){
 }
 
 function beginFactory(){
-  document.getElementById('ffStart').style.display='none';
-  resizeFFCanvas();
-  const c=document.getElementById('ffCanvas');
-  const pool=[...FEATURES].sort(()=>Math.random()-.5);
-  const colW=c.width/4;
+  try{
+    document.getElementById('ffStart').style.display='none';
+    resizeFFCanvas();
+    const c=document.getElementById('ffCanvas');
+    console.log('[FF] Canvas:', c.width, 'x', c.height, 'FEATURES:', typeof FEATURES !== 'undefined' ? FEATURES.length : 'UNDEF', 'BINS:', typeof PRODUCT_BINS !== 'undefined' ? PRODUCT_BINS.length : 'UNDEF');
+    const pool=[...FEATURES].sort(()=>Math.random()-.5);
+    const colW=c.width/4;
 
-  ff={
-    canvas:c, ctx:c.getContext('2d'),
-    W:c.width, H:c.height,
-    colW:colW,
-    pool:pool, poolIdx:0,
-    active:null,      // the one piece currently falling
-    bins:[],
-    pts:0, streak:0, bestStreak:0,
-    lives:5, maxLives:5,
-    baseSpeed:1.2, speedMult:1,
-    particles:[],
-    flashes:[],
-    totalFeatures:pool.length,
-    sorted:0,
-    gameOver:false,
-    dropPressed:false,
-    hdrH:0, hudH:0  // cached heights for GSAP popup positioning
-  };
+    ff={
+      canvas:c, ctx:c.getContext('2d'),
+      W:c.width, H:c.height,
+      colW:colW,
+      pool:pool, poolIdx:0,
+      active:null,      // the one piece currently falling
+      bins:[],
+      pts:0, streak:0, bestStreak:0,
+      lives:5, maxLives:5,
+      baseSpeed:1.2, speedMult:1,
+      particles:[],
+      flashes:[],
+      totalFeatures:pool.length,
+      sorted:0,
+      gameOver:false,
+      dropPressed:false,
+      hdrH:0, hudH:0  // cached heights for GSAP popup positioning
+    };
 
-  // build bins
-  for(let i=0;i<4;i++){
-    ff.bins.push({x:i*colW, w:colW, label:PRODUCT_BINS[i].label, icon:PRODUCT_BINS[i].icon, color:PRODUCT_BINS[i].color});
+    // build bins
+    for(let i=0;i<4;i++){
+      ff.bins.push({x:i*colW, w:colW, label:PRODUCT_BINS[i].label, icon:PRODUCT_BINS[i].icon, color:PRODUCT_BINS[i].color});
+    }
+
+    // cache header/HUD heights for GSAP popup positioning
+    ff.hdrH=document.querySelector('#factory .gh').getBoundingClientRect().height;
+    ff.hudH=document.getElementById('ffHud').getBoundingClientRect().height;
+
+    // spawn first piece
+    ffSpawnPiece();
+    ffUpdateNextPreview();
+
+    // keys
+    ffKeys={};
+    window.addEventListener('keydown',ffKeyDown);
+    window.addEventListener('keyup',ffKeyUp);
+
+    // touch swipe
+    c.addEventListener('touchstart',ffTouchStart,{passive:false});
+    c.addEventListener('touchmove',ffTouchMove,{passive:false});
+    c.addEventListener('touchend',ffTouchEnd,{passive:false});
+
+    ffLoop();
+  } catch(err) {
+    console.error('[FF] beginFactory error:', err);
+    var c = document.getElementById('ffCanvas');
+    if(c){
+      var ctx = c.getContext('2d');
+      ctx.fillStyle='#0a0e1a';
+      ctx.fillRect(0,0,c.width||800,c.height||600);
+      ctx.fillStyle='#ef4444';
+      ctx.font='bold 18px system-ui,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Game Error', (c.width||800)/2, 60);
+      ctx.fillStyle='#ccc';
+      ctx.font='14px system-ui,sans-serif';
+      ctx.fillText(err.message, (c.width||800)/2, 90);
+      ctx.fillText(err.stack ? err.stack.split('\n')[1] : '', (c.width||800)/2, 115);
+    }
   }
-
-  // cache header/HUD heights for GSAP popup positioning
-  ff.hdrH=document.querySelector('#factory .gh').getBoundingClientRect().height;
-  ff.hudH=document.getElementById('ffHud').getBoundingClientRect().height;
-
-  // spawn first piece
-  ffSpawnPiece();
-  ffUpdateNextPreview();
-
-  // keys
-  ffKeys={};
-  window.addEventListener('keydown',ffKeyDown);
-  window.addEventListener('keyup',ffKeyUp);
-
-  // touch swipe
-  c.addEventListener('touchstart',ffTouchStart,{passive:false});
-  c.addEventListener('touchmove',ffTouchMove,{passive:false});
-  c.addEventListener('touchend',ffTouchEnd,{passive:false});
-
-  ffLoop();
 }
+
 
 function ffSpawnPiece(){
   if(ff.poolIdx>=ff.pool.length){ff.active=null;return;}
