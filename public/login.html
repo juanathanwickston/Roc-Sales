@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ROC Academy - Login</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<meta name="theme-color" content="#00B4FF">
+<meta name="theme-color" content="#001D4E">
 <style>
 @font-face {
   font-family: 'Geist';
@@ -27,151 +27,136 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --navy: #080E1A;
-  --surface: #0D1526;
-  --surface2: #131D35;
-  --border: rgba(0, 180, 255, 0.12);
-  --blue: #00B4FF;
-  --blue2: #0088CC;
-  --cyan: #00E5FF;
-  --green: #00FF88;
-  --red: #FF4466;
-  --white: #EDF2FF;
-  --gray: #6B7A99;
-  --radius: 18px;
+  --navy: #001D4E;
+  --cobalt: #0051C2;
+  --cobalt-hover: #003d91;
+  --sky: #F4F7FE;
+  --mint: #00e0b8;
+  --white: #ffffff;
+  --gray: #6c757d;
+  --red: #dc3545;
+  --radius: 6px;
   --font: 'Geist', system-ui, -apple-system, sans-serif;
 }
 html, body { height: 100%; }
 body {
   font-family: var(--font);
-  background: var(--navy);
-  color: var(--white);
+  background: var(--sky);
+  color: var(--navy);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-body::before {
-  content: '';
-  position: fixed;
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  left: -200px;
-  background: radial-gradient(circle, rgba(0, 180, 255, 0.06), transparent 70%);
-  pointer-events: none;
-}
-body::after {
-  content: '';
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  bottom: -200px;
-  right: -200px;
-  background: radial-gradient(circle, rgba(170, 85, 255, 0.04), transparent 70%);
-  pointer-events: none;
-}
 .login-card {
   width: 100%;
   max-width: 400px;
-  padding: 40px 32px;
-  background: linear-gradient(145deg, var(--surface2), var(--surface));
-  border: 1px solid var(--border);
+  padding: 48px 40px 40px;
+  background: var(--white);
+  border: 1px solid rgba(0, 29, 78, 0.08);
   border-radius: var(--radius);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 180, 255, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 29, 78, 0.08), 0 8px 40px rgba(0, 29, 78, 0.06);
   position: relative;
-  overflow: hidden;
-}
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--blue), var(--cyan), var(--blue));
-  opacity: 0.6;
 }
 .brand {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
+}
+.brand-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-logo-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--navy);
 }
 .brand-name {
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  background: linear-gradient(135deg, var(--cyan), var(--blue));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: 0.5px;
 }
 .brand-sub {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-style: italic;
   color: var(--gray);
-  margin-top: 4px;
-  text-transform: uppercase;
+  margin-top: 2px;
+  margin-bottom: 28px;
 }
 .field {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .field label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--gray);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy);
   margin-bottom: 6px;
 }
 .field input {
   width: 100%;
-  padding: 14px 16px;
-  background: var(--navy);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--white);
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid rgba(0, 29, 78, 0.2);
+  border-radius: var(--radius);
+  color: var(--navy);
   font-family: var(--font);
   font-size: 0.9rem;
   outline: none;
-  transition: border-color 0.25s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .field input:focus {
-  border-color: rgba(0, 180, 255, 0.4);
+  border-color: var(--cobalt);
+  box-shadow: 0 0 0 0.2rem rgba(0, 81, 194, 0.25);
 }
 .login-btn {
   width: 100%;
-  padding: 16px;
+  padding: 12px;
   margin-top: 8px;
-  background: linear-gradient(135deg, var(--blue2), var(--blue));
+  background: var(--cobalt);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius);
   color: white;
   font-family: var(--font);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background-color 0.15s, transform 0.1s;
 }
 .login-btn:hover {
-  box-shadow: 0 6px 30px rgba(0, 180, 255, 0.25);
-  transform: translateY(-2px);
+  background: var(--cobalt-hover);
+}
+.login-btn:active {
+  transform: scale(0.98);
 }
 .login-btn:disabled {
   opacity: 0.5;
   cursor: default;
   transform: none;
-  box-shadow: none;
+}
+.forgot-hint {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.75rem;
+  color: var(--gray);
 }
 .error-msg {
   display: none;
   margin-top: 14px;
-  padding: 12px 16px;
-  background: rgba(255, 68, 102, 0.06);
-  border: 1px solid rgba(255, 68, 102, 0.2);
-  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: var(--radius);
   color: var(--red);
   font-size: 0.82rem;
   font-weight: 500;
@@ -179,7 +164,15 @@ body::after {
 }
 .error-msg.visible {
   display: block;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.15s ease;
+}
+.footer-brand {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(0, 29, 78, 0.3);
+  letter-spacing: 1px;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
@@ -187,8 +180,9 @@ body::after {
 <body>
 <div class="login-card">
   <div class="brand">
-    <div class="brand-name">ROC ACADEMY</div>
-    <div class="brand-sub">Sales Training Platform</div>
+    <div class="brand-logo"><span class="brand-logo-text">payroc</span></div>
+    <div class="brand-name">ROC Academy</div>
+    <div class="brand-sub">Built for the people who build people</div>
   </div>
   <form id="loginForm">
     <div class="field">
@@ -200,9 +194,11 @@ body::after {
       <input type="password" id="password" autocomplete="current-password" required>
     </div>
     <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    <p class="forgot-hint">Forgot password? Contact your administrator.</p>
     <div class="error-msg" id="errorMsg"></div>
   </form>
 </div>
+<div class="footer-brand">payroc</div>
 <script src="js/api.js"></script>
 <script>
 // If already authenticated, redirect to app
