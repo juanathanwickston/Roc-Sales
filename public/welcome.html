@@ -55,9 +55,10 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   background:linear-gradient(135deg,#002766 0%,#003380 50%,#004099 100%);
   clip-path:polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
 }
-.hero-panel-logo{
-  position:absolute;bottom:15%;right:10%;z-index:2;
-  font-size:2rem;font-weight:300;color:rgba(255,255,255,.12);letter-spacing:4px;
+.hero-panel img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  clip-path:polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
+  z-index:1;opacity:.35;
 }
 .hero-down{
   position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:3;
@@ -298,17 +299,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 .float-down{bottom:24px;right:24px}
 .float-up:hover,.float-down:hover{transform:scale(1.1);box-shadow:0 4px 20px rgba(0,0,0,.25)}
 
-/* ─── PROGRESS INDICATOR ─── */
-.progress-pill{
-  position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:100;
-  background:var(--navy);border-radius:20px;padding:8px 6px;
-  display:flex;flex-direction:column;gap:8px;align-items:center;
-}
-.progress-dot{
-  width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);
-  transition:all .3s;
-}
-.progress-dot.active{background:#ffffff}
+
 
 /* ─── RESPONSIVE ─── */
 @media(max-width:900px){
@@ -356,7 +347,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
     </p>
   </div>
   <div class="hero-panel">
-    <img src="/img/payroc-logo.svg" alt="Payroc" style="position:absolute;bottom:15%;right:10%;z-index:2;width:120px;opacity:.12;filter:brightness(0) invert(1)">
+    <img src="/img/hero-sales-team.png" alt="Sales team collaborating">
   </div>
   <button class="hero-down" onclick="scrollToSection('#about')" aria-label="Scroll to learn more">↓</button>
 </section>
@@ -531,11 +522,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 <button class="float-up" id="floatUp" onclick="scrollToSection('#hero')" aria-label="Scroll to top">↑</button>
 <button class="float-down" id="floatDown" onclick="scrollToNext()" aria-label="Scroll to next section">↓</button>
 
-<!-- ═══ PROGRESS PILL ═══ -->
-<div class="progress-pill" id="progressPill">
-  <div class="progress-dot" id="dot0"></div>
-  <div class="progress-dot" id="dot1"></div>
-</div>
+
 
 <!-- ═══ GSAP ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
