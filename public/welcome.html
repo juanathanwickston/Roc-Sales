@@ -335,23 +335,33 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   white-space:nowrap;min-width:70px;text-align:right;
 }
 .podcast-transcript{
-  position:relative;min-height:180px;padding:0 20px;
-  display:flex;align-items:center;justify-content:center;
+  position:relative;max-width:700px;margin:0 auto;
+  height:220px;overflow:hidden;
+}
+.podcast-transcript::before,.podcast-transcript::after{
+  content:'';position:absolute;left:0;right:0;height:60px;z-index:2;pointer-events:none;
+}
+.podcast-transcript::before{
+  top:0;background:linear-gradient(to bottom,var(--navy),transparent);
+}
+.podcast-transcript::after{
+  bottom:0;background:linear-gradient(to top,var(--navy),transparent);
 }
 #transcriptBody{
-  position:relative;max-width:640px;width:100%;min-height:160px;
+  height:100%;overflow-y:auto;scroll-behavior:smooth;
+  padding:80px 20px;
+  -ms-overflow-style:none;scrollbar-width:none;
 }
+#transcriptBody::-webkit-scrollbar{display:none}
 .transcript-sentence{
-  position:absolute;top:0;left:0;right:0;
-  text-align:center;
-  font-size:clamp(1.15rem,2.5vw,1.55rem);line-height:1.7;
-  color:#00e0b8;font-weight:600;
-  opacity:0;
-  transition:opacity .6s ease;
-  pointer-events:none;
+  display:block;text-align:center;padding:10px 0;
+  font-size:clamp(1rem,2.2vw,1.35rem);line-height:1.65;
+  color:rgba(255,255,255,.25);font-weight:600;
+  transition:color .4s ease,transform .4s ease;
+  cursor:pointer;
 }
 .transcript-sentence.active{
-  opacity:1;pointer-events:auto;
+  color:#00e0b8;transform:scale(1.05);
 }
 
 /* ─── FLOATING CONTROLS ─── */
@@ -525,20 +535,22 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
       </audio>
     </div>
 
-    <div class="podcast-transcript" id="transcriptBody">
-      <span class="transcript-sentence" data-start="0" data-end="8">This is the brief on ROC Academy. </span>
-      <span class="transcript-sentence" data-start="8" data-end="18">So Payroc just dropped this brand new sales training platform, and it’s basically designed to rescue new reps from the absolute chaos of scattered materials and get them out there selling confidently. </span>
-      <span class="transcript-sentence" data-start="18" data-end="23">First, it totally solves the massive headache of disorganized training. </span>
-      <span class="transcript-sentence" data-start="23" data-end="36">You know the drill. Instead of making your new hires hunt across multiple platforms, shared drives, and random links with zero direction, ROC Academy gives them one centralized home base. </span>
-      <span class="transcript-sentence" data-start="36" data-end="44">It hands reps a really clear structured learning path right from day one, specifically kicking off with a 30 day foundation phase. </span>
-      <span class="transcript-sentence" data-start="44" data-end="52">Second, it completely flips the learning experience on its head. </span>
-      <span class="transcript-sentence" data-start="52" data-end="60">It finally stops new reps from just passively doom scrolling through incredibly boring training videos. Gone are the days of just clicking next for hours. </span>
-      <span class="transcript-sentence" data-start="60" data-end="70">Instead, we’re looking at interactive learning from multiple angles — quizzes, real world scenarios, and awesome gamification. </span>
-      <span class="transcript-sentence" data-start="70" data-end="80">Thanks to some healthy competition driven by leaderboards and an active recall game called Feature Factory, your reps actually stay fully engaged. </span>
-      <span class="transcript-sentence" data-start="80" data-end="90">Finally, let’s talk about the built-in accountability and manager visibility. Forget that vague “how’s it going?” guesswork. </span>
-      <span class="transcript-sentence" data-start="90" data-end="100">Now, managers get real-time tracking through a data-driven readiness index. </span>
-      <span class="transcript-sentence" data-start="100" data-end="112">This literally scores your reps across six key competencies like product knowledge, objection handling, and comp structure. So leadership knows exactly who is on track and who really needs some coaching. </span>
-      <span class="transcript-sentence" data-start="112" data-end="130">By replacing scattered files and guesswork with structure and accountability, ROC Academy gives reps a clear engaging path to success from day one.</span>
+    <div class="podcast-transcript">
+      <div id="transcriptBody">
+        <div class="transcript-sentence" data-start="0" data-end="8">This is the brief on ROC Academy.</div>
+        <div class="transcript-sentence" data-start="8" data-end="18">So Payroc just dropped this brand new sales training platform, and it’s basically designed to rescue new reps from the absolute chaos of scattered materials and get them out there selling confidently.</div>
+        <div class="transcript-sentence" data-start="18" data-end="23">First, it totally solves the massive headache of disorganized training.</div>
+        <div class="transcript-sentence" data-start="23" data-end="36">You know the drill. Instead of making your new hires hunt across multiple platforms, shared drives, and random links with zero direction, ROC Academy gives them one centralized home base.</div>
+        <div class="transcript-sentence" data-start="36" data-end="44">It hands reps a really clear structured learning path right from day one, specifically kicking off with a 30 day foundation phase.</div>
+        <div class="transcript-sentence" data-start="44" data-end="52">Second, it completely flips the learning experience on its head.</div>
+        <div class="transcript-sentence" data-start="52" data-end="60">It finally stops new reps from just passively doom scrolling through incredibly boring training videos. Gone are the days of just clicking next for hours.</div>
+        <div class="transcript-sentence" data-start="60" data-end="70">Instead, we’re looking at interactive learning from multiple angles — quizzes, real world scenarios, and awesome gamification.</div>
+        <div class="transcript-sentence" data-start="70" data-end="80">Thanks to some healthy competition driven by leaderboards and an active recall game called Feature Factory, your reps actually stay fully engaged.</div>
+        <div class="transcript-sentence" data-start="80" data-end="90">Finally, let’s talk about the built-in accountability and manager visibility. Forget that vague “how’s it going?” guesswork.</div>
+        <div class="transcript-sentence" data-start="90" data-end="100">Now, managers get real-time tracking through a data-driven readiness index.</div>
+        <div class="transcript-sentence" data-start="100" data-end="112">This literally scores your reps across six key competencies like product knowledge, objection handling, and comp structure. So leadership knows exactly who is on track and who really needs some coaching.</div>
+        <div class="transcript-sentence" data-start="112" data-end="130">By replacing scattered files and guesswork with structure and accountability, ROC Academy gives reps a clear engaging path to success from day one.</div>
+      </div>
     </div>
   </div>
 </section>
@@ -923,6 +935,8 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
     return m+':'+(sec<10?'0':'')+sec;
   }
 
+  var scrollContainer = document.getElementById('transcriptBody');
+
   // Show first sentence on load
   if(sentences.length > 0) sentences[0].classList.add('active');
 
@@ -942,12 +956,18 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
     fill.style.width = (t/d*100)+'%';
     timeEl.textContent = fmt(t)+' / '+fmt(d);
 
-    // Show only the active sentence
+    // Highlight active sentence and auto-scroll to center it
     sentences.forEach(function(s){
       var start = parseFloat(s.getAttribute('data-start'));
       var end = parseFloat(s.getAttribute('data-end'));
       if(t >= start && t < end){
-        if(!s.classList.contains('active')) s.classList.add('active');
+        if(!s.classList.contains('active')){
+          s.classList.add('active');
+          // Scroll to center in container
+          var containerH = scrollContainer.clientHeight;
+          var scrollTarget = s.offsetTop - scrollContainer.offsetTop - (containerH/2) + (s.offsetHeight/2);
+          scrollContainer.scrollTop = scrollTarget;
+        }
       } else {
         s.classList.remove('active');
       }
