@@ -290,71 +290,60 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 
 /* ─── PODCAST SECTION ─── */
 #podcast{
-  background:#ffffff;padding:80px 40px;
+  background:var(--navy);padding:80px 40px;color:#ffffff;
 }
 #podcast h2{
   text-align:center;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;
-  color:var(--navy);margin-bottom:8px;
+  color:#ffffff;margin-bottom:8px;
 }
 .podcast-sub{
-  text-align:center;font-size:.95rem;color:#6b7280;margin-bottom:40px;max-width:600px;margin-left:auto;margin-right:auto;
+  text-align:center;font-size:.95rem;color:rgba(255,255,255,.5);margin-bottom:48px;max-width:600px;margin-left:auto;margin-right:auto;
 }
 .podcast-container{
-  max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:24px;
+  max-width:700px;margin:0 auto;
 }
 .podcast-player{
-  background:var(--navy);border-radius:var(--r-sm);padding:24px 28px;
-  color:#ffffff;position:relative;overflow:hidden;
+  margin-bottom:48px;position:relative;
 }
 .podcast-player::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#0051C2,#00e0b8);opacity:.8;
+  content:'';display:block;width:48px;height:3px;margin:0 auto 32px;
+  background:linear-gradient(90deg,#0051C2,#00e0b8);border-radius:2px;
 }
 .podcast-player-top{
-  display:flex;align-items:center;gap:16px;margin-bottom:16px;
+  display:flex;align-items:center;gap:14px;margin-bottom:14px;
 }
 .podcast-play-btn{
-  width:48px;height:48px;border-radius:50%;border:none;
-  background:#0051C2;color:#ffffff;font-size:1.1rem;
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:transparent;color:rgba(255,255,255,.7);font-size:1.2rem;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:all .2s;flex-shrink:0;
 }
-.podcast-play-btn:hover{background:#003d91;transform:scale(1.05)}
-.podcast-info{flex:1}
-.podcast-title{font-size:.95rem;font-weight:700;margin-bottom:2px}
-.podcast-label{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.podcast-play-btn:hover{color:#ffffff}
 .podcast-progress{
-  display:flex;align-items:center;gap:10px;
+  flex:1;display:flex;align-items:center;gap:10px;
 }
 .podcast-track{
-  flex:1;height:6px;background:rgba(255,255,255,.12);border-radius:3px;
+  flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:2px;
   cursor:pointer;position:relative;overflow:hidden;
 }
 .podcast-fill{
-  height:100%;background:linear-gradient(90deg,#0051C2,#00e0b8);
-  border-radius:3px;width:0%;transition:width .1s linear;
+  height:100%;background:#00e0b8;
+  border-radius:2px;width:0%;transition:width .1s linear;
 }
 .podcast-time{
-  font-size:.7rem;color:rgba(255,255,255,.5);font-weight:600;
+  font-size:.7rem;color:rgba(255,255,255,.4);font-weight:600;
   white-space:nowrap;min-width:70px;text-align:right;
 }
 .podcast-transcript{
-  background:var(--card-bg);border-radius:var(--r-sm);padding:28px 32px;
-  box-shadow:0 4px 24px rgba(0,29,78,.08);border:1px solid rgba(0,29,78,.06);
-  max-height:280px;overflow-y:auto;
-}
-.podcast-transcript-label{
-  font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:#9ca3af;margin-bottom:14px;
+  text-align:center;padding:0 20px;
 }
 .transcript-sentence{
-  display:inline;font-size:.9rem;line-height:1.75;color:#6b7280;
-  transition:color .3s,background .3s;
-  padding:2px 0;border-radius:3px;
+  display:inline;font-size:clamp(1.1rem,2.5vw,1.5rem);line-height:1.8;
+  color:rgba(255,255,255,.85);font-weight:600;
+  transition:color .4s;
 }
 .transcript-sentence.active{
-  color:#001D4E;font-weight:600;
-  background:rgba(0,81,194,.08);
+  color:#00e0b8;
 }
 
 /* ─── FLOATING CONTROLS ─── */
@@ -510,43 +499,38 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 <!-- ═══ PODCAST ═══ -->
 <section id="podcast">
   <h2>Hear the Brief</h2>
-  <p class="podcast-sub">A quick overview of what ROC Academy is, the problems it solves, and why it matters for your sales team.</p>
+  <p class="podcast-sub">A quick overview of what ROC Academy is, the problems it solves, and why it matters.</p>
 
   <div class="podcast-container">
     <div class="podcast-player">
       <div class="podcast-player-top">
         <button class="podcast-play-btn" id="podPlayBtn" aria-label="Play podcast">▶</button>
-        <div class="podcast-info">
-          <div class="podcast-title">The ROC Academy Brief</div>
-          <div class="podcast-label">Payroc Sales Training</div>
+        <div class="podcast-progress">
+          <div class="podcast-track" id="podTrack">
+            <div class="podcast-fill" id="podFill"></div>
+          </div>
+          <div class="podcast-time" id="podTime">0:00 / 0:00</div>
         </div>
       </div>
-      <div class="podcast-progress">
-        <div class="podcast-track" id="podTrack">
-          <div class="podcast-fill" id="podFill"></div>
-        </div>
-        <div class="podcast-time" id="podTime">0:00 / 0:00</div>
-      </div>
-      <audio id="podAudio" preload="metadata" src="/audio/ROC_Academy_Sales_Training_Platform.m4a"></audio>
+      <audio id="podAudio" preload="metadata">
+        <source src="/audio/ROC_Academy_Sales_Training_Platform.m4a" type="audio/mp4">
+      </audio>
     </div>
 
-    <div class="podcast-transcript">
-      <div class="podcast-transcript-label">Transcript</div>
-      <div id="transcriptBody">
-        <span class="transcript-sentence" data-start="0" data-end="8">This is the brief on ROC Academy.</span>
-        <span class="transcript-sentence" data-start="8" data-end="18">So Payroc just dropped this brand new sales training platform, and it's basically designed to rescue new reps from the absolute chaos of scattered materials and get them out there selling confidently.</span>
-        <span class="transcript-sentence" data-start="18" data-end="23">First, it totally solves the massive headache of disorganized training.</span>
-        <span class="transcript-sentence" data-start="23" data-end="36">You know the drill. Instead of making your new hires hunt across multiple platforms, shared drives, and random links with zero direction, ROC Academy gives them one centralized home base.</span>
-        <span class="transcript-sentence" data-start="36" data-end="44">It hands reps a really clear structured learning path right from day one, specifically kicking off with a 30 day foundation phase.</span>
-        <span class="transcript-sentence" data-start="44" data-end="52">Second, it completely flips the learning experience on its head.</span>
-        <span class="transcript-sentence" data-start="52" data-end="60">It finally stops new reps from just passively doom scrolling through incredibly boring training videos. Gone are the days of just clicking next for hours.</span>
-        <span class="transcript-sentence" data-start="60" data-end="70">Instead, we're looking at interactive learning from multiple angles, quizzes, real world scenarios, and awesome gamification.</span>
-        <span class="transcript-sentence" data-start="70" data-end="80">Thanks to some healthy competition driven by leaderboards and an active recall game called Feature Factory, your reps actually stay fully engaged.</span>
-        <span class="transcript-sentence" data-start="80" data-end="90">Finally, let's talk about the built-in accountability and manager visibility. Forget that vague "how's it going?" guesswork.</span>
-        <span class="transcript-sentence" data-start="90" data-end="100">Now, managers get real-time tracking through a data-driven readiness index.</span>
-        <span class="transcript-sentence" data-start="100" data-end="112">This literally scores your reps across six key competencies like product knowledge, objection handling, and comp structure. So leadership knows exactly who is on track and who really needs some coaching.</span>
-        <span class="transcript-sentence" data-start="112" data-end="130">By replacing scattered files and guesswork with structure and accountability, ROC Academy gives reps a clear engaging path to success from day one.</span>
-      </div>
+    <div class="podcast-transcript" id="transcriptBody">
+      <span class="transcript-sentence" data-start="0" data-end="8">This is the brief on ROC Academy. </span>
+      <span class="transcript-sentence" data-start="8" data-end="18">So Payroc just dropped this brand new sales training platform, and it’s basically designed to rescue new reps from the absolute chaos of scattered materials and get them out there selling confidently. </span>
+      <span class="transcript-sentence" data-start="18" data-end="23">First, it totally solves the massive headache of disorganized training. </span>
+      <span class="transcript-sentence" data-start="23" data-end="36">You know the drill. Instead of making your new hires hunt across multiple platforms, shared drives, and random links with zero direction, ROC Academy gives them one centralized home base. </span>
+      <span class="transcript-sentence" data-start="36" data-end="44">It hands reps a really clear structured learning path right from day one, specifically kicking off with a 30 day foundation phase. </span>
+      <span class="transcript-sentence" data-start="44" data-end="52">Second, it completely flips the learning experience on its head. </span>
+      <span class="transcript-sentence" data-start="52" data-end="60">It finally stops new reps from just passively doom scrolling through incredibly boring training videos. Gone are the days of just clicking next for hours. </span>
+      <span class="transcript-sentence" data-start="60" data-end="70">Instead, we’re looking at interactive learning from multiple angles — quizzes, real world scenarios, and awesome gamification. </span>
+      <span class="transcript-sentence" data-start="70" data-end="80">Thanks to some healthy competition driven by leaderboards and an active recall game called Feature Factory, your reps actually stay fully engaged. </span>
+      <span class="transcript-sentence" data-start="80" data-end="90">Finally, let’s talk about the built-in accountability and manager visibility. Forget that vague “how’s it going?” guesswork. </span>
+      <span class="transcript-sentence" data-start="90" data-end="100">Now, managers get real-time tracking through a data-driven readiness index. </span>
+      <span class="transcript-sentence" data-start="100" data-end="112">This literally scores your reps across six key competencies like product knowledge, objection handling, and comp structure. So leadership knows exactly who is on track and who really needs some coaching. </span>
+      <span class="transcript-sentence" data-start="112" data-end="130">By replacing scattered files and guesswork with structure and accountability, ROC Academy gives reps a clear engaging path to success from day one.</span>
     </div>
   </div>
 </section>

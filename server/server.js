@@ -111,7 +111,11 @@ app.get('/api/health', async (req, res) => {
 
 // ─── STATIC FILES ───
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.m4a')) res.setHeader('Content-Type', 'audio/mp4');
+  }
+}));
 
 // SPA fallback: serve index.html for non-API routes
 app.get('*', (req, res) => {
