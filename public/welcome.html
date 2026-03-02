@@ -335,15 +335,26 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   white-space:nowrap;min-width:70px;text-align:right;
 }
 .podcast-transcript{
-  text-align:center;padding:0 20px;
+  text-align:center;padding:0 20px;min-height:200px;
+  display:flex;align-items:center;justify-content:center;
+}
+#transcriptBody{
+  max-width:640px;
 }
 .transcript-sentence{
   display:inline;font-size:clamp(1.1rem,2.5vw,1.5rem);line-height:1.8;
   color:rgba(255,255,255,.85);font-weight:600;
-  transition:color .4s;
+  transition:color .5s,opacity .5s;
+  opacity:0;
+}
+.transcript-sentence.visible{
+  opacity:.35;
 }
 .transcript-sentence.active{
-  color:#00e0b8;
+  color:#00e0b8;opacity:1;
+}
+.transcript-sentence.pre-active{
+  opacity:1;color:rgba(255,255,255,.85);
 }
 
 /* ─── FLOATING CONTROLS ─── */
@@ -915,6 +926,10 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
     return m+':'+(sec<10?'0':'')+sec;
   }
 
+  // Show first sentence on load
+  if(sentences.length > 0) sentences[0].classList.add('visible');
+  if(sentences.length > 1) sentences[1].classList.add('visible');
+
   playBtn.addEventListener('click',function(){
     if(audio.paused){audio.play();playBtn.textContent='\u23F8';}
     else{audio.pause();playBtn.textContent='\u25B6';}
@@ -922,7 +937,7 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
 
   audio.addEventListener('ended',function(){
     playBtn.textContent='\u25B6';
-    sentences.forEach(function(s){s.classList.remove('active');});
+    sentences.forEach(function(s){s.classList.remove('active','visible','pre-active');});
   });
 
   audio.addEventListener('timeupdate',function(){
@@ -931,22 +946,28 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
     fill.style.width = (t/d*100)+'%';
     timeEl.textContent = fmt(t)+' / '+fmt(d);
 
-    // Highlight active sentence
-    sentences.forEach(function(s){
-      var start = parseFloat(s.getAttribute('data-start'));
-      var end = parseFloat(s.getAttribute('data-end'));
-      if(t >= start && t < end){
-        if(!s.classList.contains('active')){
-          s.classList.add('active');
-          s.scrollIntoView({behavior:'smooth',block:'nearest'});
-        }
-      } else {
-        s.classList.remove('active');
+    // Find active sentence index
+    var activeIdx = -1;
+    for(var i = 0; i < sentences.length; i++){
+      var start = parseFloat(sentences[i].getAttribute('data-start'));
+      var end = parseFloat(sentences[i].getAttribute('data-end'));
+      if(t >= start && t < end){ activeIdx = i; break; }
+    }
+
+    // Update visibility: show active + 1 neighbor on each side
+    sentences.forEach(function(s, idx){
+      s.classList.remove('active','visible','pre-active');
+      if(idx === activeIdx){
+        s.classList.add('active');
+      } else if(idx === activeIdx - 1){
+        s.classList.add('visible');
+      } else if(idx === activeIdx + 1){
+        s.classList.add('pre-active');
       }
     });
   });
 
-  // Click to seek
+  // Click to seek on track
   track.addEventListener('click',function(e){
     var rect = track.getBoundingClientRect();
     var pct = (e.clientX - rect.left)/rect.width;
