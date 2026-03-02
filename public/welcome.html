@@ -74,22 +74,21 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 
 /* ─── ABOUT / EXPLAINER ─── */
 #about{
-  background:var(--navy);padding:100px 40px;text-align:center;position:relative;color:#ffffff;
+  background:var(--sky);padding:100px 40px;text-align:center;position:relative;color:var(--text);
 }
 .about-accent{
   width:48px;height:3px;background:var(--mint);border-radius:3px;margin:0 auto 32px;
 }
 #about p{
-  max-width:640px;margin:0 auto;font-size:1.15rem;line-height:1.7;color:rgba(255,255,255,.8);
+  max-width:640px;margin:0 auto;font-size:1.15rem;line-height:1.7;color:var(--gray);
 }
-#about p.scroll-hint{margin-top:24px;font-weight:600;color:#ffffff}
+#about p.scroll-hint{margin-top:24px;font-weight:600;color:var(--text)}
 
 /* ─── CAROUSEL SECTION ─── */
 #carousel{
-  background:var(--carousel-bg);padding:80px 40px 120px;position:relative;min-height:80vh;
-
-  min-height:100vh;scroll-snap-align:start;
-  display:flex;align-items:center;justify-content:center;
+  background:var(--navy);padding:80px 40px 120px;position:relative;color:#ffffff;
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;align-items:center;justify-content:center;
 }
 .carousel-wrap{
   max-width:780px;margin:0 auto;position:relative;
@@ -190,9 +189,12 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── FEATURES SHOWCASE ─── */
 #features{
   background:var(--sky);padding:100px 40px;position:relative;
-
-  min-height:100vh;scroll-snap-align:start;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
+
+  min-height:100vh;scroll-snap-align:start;
+
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
 }
 #features h2{
   text-align:center;font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:12px;
@@ -231,14 +233,13 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 
 /* ─── FAQ ─── */
 #faq{
-  background:linear-gradient(135deg,#001D4E,#002766);padding:80px 40px;position:relative;overflow:hidden;color:#ffffff;
-
-  min-height:100vh;scroll-snap-align:start;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--sky);padding:80px 40px;position:relative;overflow:hidden;color:var(--text);
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 /* Diagonal decorative shapes */
 #faq::before,#faq::after{
-  content:'';position:absolute;background:rgba(0,81,194,.08);
+  content:'';position:absolute;background:rgba(0,81,194,.04);
 }
 #faq::before{
   width:400px;height:400px;top:-50px;right:-80px;
@@ -249,7 +250,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transform:rotate(-10deg);
 }
 #faq h2{
-  text-align:center;font-size:1.5rem;font-weight:900;color:#ffffff;margin-bottom:40px;
+  text-align:center;font-size:1.5rem;font-weight:900;color:var(--navy);margin-bottom:40px;
   position:relative;z-index:1;
 }
 .faq-card{
@@ -279,9 +280,12 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── CTA ─── */
 #cta{
   background:var(--navy);padding:80px 40px;color:#ffffff;
-
-  min-height:100vh;scroll-snap-align:start;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
+
+  min-height:100vh;scroll-snap-align:start;
+
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
 }
 .cta-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:700px;margin:0 auto;
@@ -303,9 +307,12 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── PODCAST SECTION ─── */
 #podcast{
   background:var(--navy);padding:80px 40px;color:#ffffff;
-
-  min-height:100vh;scroll-snap-align:start;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
+
+  min-height:100vh;scroll-snap-align:start;
+
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+
 }
 #podcast h2{
   text-align:center;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;
@@ -410,7 +417,8 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 @media(max-width:768px){
   .features-grid{grid-template-columns:repeat(2,1fr) !important;gap:12px}
   .feature-card{padding:16px 12px}
-}
+}
+
 @media(max-width:640px){
   .hero-content{padding:40px 20px}
   .hero-content h1{font-size:1.8rem}
