@@ -801,6 +801,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
     if (lb.myRank) {
       document.getElementById('sidebarRank').textContent = 'Rank #' + lb.myRank + ' of ' + lb.totalReps;
       document.getElementById('hLv').textContent = '#' + lb.myRank;
+      document.getElementById('hXP').textContent = lb.myScore || 0;
     }
   } catch(e) {}
 })();

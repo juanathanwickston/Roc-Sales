@@ -166,6 +166,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
         rank: parseInt(r.rank)
       })),
       myRank: myRank ? parseInt(myRank.rank) : null,
+      myScore: myRank ? parseInt(myRank.power_score) || 0 : 0,
       totalReps: result.rows.length
     });
   } catch (err) {
