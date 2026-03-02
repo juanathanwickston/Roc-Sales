@@ -94,12 +94,11 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   max-width:780px;margin:0 auto;position:relative;
 }
 
-/* Step badge */
+/* Step label */
 .step-badge{
-  width:36px;height:36px;border-radius:8px;background:var(--mint);
-  color:var(--navy);font-weight:900;font-size:1rem;
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 16px;
+  font-size:.75rem;font-weight:600;color:rgba(255,255,255,.4);
+  text-align:center;margin:0 auto 14px;
+  letter-spacing:.5px;
 }
 
 /* Card */
@@ -125,34 +124,29 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   font-style:italic;font-weight:600;font-size:.88rem;color:#2a2a3a;
 }
 
-/* Nav arrows (large circles) */
+/* Nav arrows */
 .nav-arrow{
   position:absolute;top:50%;transform:translateY(-50%);z-index:10;
-  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;transition:all .25s;
+  font-size:1.4rem;transition:all .2s;
+  background:transparent;color:rgba(255,255,255,.5);
 }
-.nav-arrow.left{left:-80px}
-.nav-arrow.right{right:-80px}
-.nav-arrow.active{background:var(--nav-active);color:#ffffff;box-shadow:0 4px 16px rgba(0,29,78,.2)}
-.nav-arrow.active:hover{background:var(--cobalt);transform:translateY(-50%) scale(1.06)}
-.nav-arrow.disabled{background:var(--nav-disabled);color:#ffffff;cursor:default;opacity:.5}
+.nav-arrow.left{left:-64px}
+.nav-arrow.right{right:-64px}
+.nav-arrow.active:hover{color:rgba(255,255,255,1)}
+.nav-arrow.disabled{color:rgba(255,255,255,.12);cursor:default}
 
-/* Bottom pagination */
+/* Bottom pagination dots */
 .carousel-pagination{
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  margin-top:16px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:20px;
 }
-.pag-item{
-  width:28px;height:28px;border-radius:50%;border:2px solid #ccc;
-  display:flex;align-items:center;justify-content:center;
-  font-size:.75rem;font-weight:700;color:#999;background:transparent;
-  cursor:default;transition:all .2s;
+.pag-dot{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);
+  transition:all .25s;border:none;padding:0;
 }
-.pag-item.active{border-color:var(--cobalt);color:var(--cobalt)}
-.pag-item.chevron{border:none;font-size:1rem;color:#999}
-.pag-item.check{border:none;font-size:1rem;color:#999}
-.pag-item.check.done{color:var(--mint)}
+.pag-dot.active{background:rgba(255,255,255,.9);transform:scale(1.15)}
 
 /* Start gate */
 .start-gate{text-align:center}
@@ -174,17 +168,8 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 }
 .start-again:hover{color:var(--cobalt-hover)}
 
-/* In-carousel exit arrow */
-.carousel-exit{
-  display:flex;align-items:center;justify-content:center;margin-top:20px;
-}
-.carousel-exit button{
-  width:44px;height:44px;border-radius:50%;border:2px solid var(--nav-active);
-  background:var(--card-bg);color:var(--nav-active);cursor:pointer;
-  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
-  transition:all .25s;
-}
-.carousel-exit button:hover{background:var(--nav-active);color:var(--white)}
+/* In-carousel exit arrow — hidden, floating ↓ handles navigation */
+.carousel-exit{display:none !important}
 
 /* ─── FEATURES SHOWCASE ─── */
 #features{
@@ -506,12 +491,10 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
       <!-- Content injected by JS -->
     </div>
 
-    <!-- Bottom pagination -->
+    <!-- Pagination dots -->
     <div class="carousel-pagination">
-      <span class="pag-item chevron" id="pagChevron">›</span>
-      <span class="pag-item" id="pag1">1</span>
-      <span class="pag-item" id="pag2">2</span>
-      <span class="pag-item check" id="pagCheck">✓</span>
+      <span class="pag-dot" id="pagDot0"></span>
+      <span class="pag-dot" id="pagDot1"></span>
     </div>
 
     <!-- Exit arrow -->
@@ -783,9 +766,9 @@ function renderCarousel() {
   const step = TUTORIAL.steps[mainStep];
   const panel = step.panels[subStep];
 
-  // Badge
-  badge.style.display = 'flex';
-  badge.textContent = step.badge;
+  // Badge - show step label
+  badge.style.display = 'block';
+  badge.textContent = 'Step ' + step.badge + ' of ' + TUTORIAL.steps.length;
 
   // Card content
   let extra = '';
@@ -821,11 +804,10 @@ function renderCarousel() {
 }
 
 function updatePagination(activeStep) {
-  document.getElementById('pag1').className = 'pag-item' + (activeStep === 0 ? ' active' : '');
-  document.getElementById('pag2').className = 'pag-item' + (activeStep === 1 ? ' active' : '');
-  const isComplete = tutorialStarted && mainStep === TUTORIAL.steps.length - 1 &&
-                     subStep === TUTORIAL.steps[mainStep].panels.length - 1;
-  document.getElementById('pagCheck').className = 'pag-item check' + (isComplete ? ' done' : '');
+  var dot0 = document.getElementById('pagDot0');
+  var dot1 = document.getElementById('pagDot1');
+  if(dot0) dot0.className = 'pag-dot' + (activeStep === 0 ? ' active' : '');
+  if(dot1) dot1.className = 'pag-dot' + (activeStep === 1 ? ' active' : '');
 }
 
 function updateProgress(activeStep) {
