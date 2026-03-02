@@ -23,7 +23,7 @@
   --carousel-bg:#EDF0F5;--card-bg:#ffffff;
   --nav-active:#001D4E;--nav-disabled:#b0b8c8;
 }
-html{font-size:16px;scroll-behavior:smooth}
+html{font-size:16px;scroll-behavior:smooth;scroll-snap-type:y mandatory;overflow-y:scroll;height:100%}
 body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:hidden}
 
 /* ─── HERO ─── */
@@ -87,6 +87,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── CAROUSEL SECTION ─── */
 #carousel{
   background:var(--carousel-bg);padding:80px 40px 120px;position:relative;min-height:80vh;
+
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;align-items:center;justify-content:center;
 }
 .carousel-wrap{
   max-width:780px;margin:0 auto;position:relative;
@@ -187,6 +190,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── FEATURES SHOWCASE ─── */
 #features{
   background:var(--sky);padding:100px 40px;position:relative;
+
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 #features h2{
   text-align:center;font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:12px;
@@ -204,9 +210,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   box-shadow:0 1px 3px rgba(0,29,78,.08);transition:all .3s;
 }
 .feature-card:hover{border-color:rgba(0,81,194,.2);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,29,78,.1)}
-.feature-icon{font-size:2rem;margin-bottom:12px}
-.feature-card h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px}
-.feature-card p{font-size:.85rem;color:var(--gray);line-height:1.5}
+.feature-icon{font-size:1.5rem;margin-bottom:8px}
+.feature-card h3{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.feature-card p{font-size:.75rem;color:var(--gray);line-height:1.4}
 
 /* Media embed slots */
 .media-slots{
@@ -226,6 +232,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── FAQ ─── */
 #faq{
   background:linear-gradient(135deg,#001D4E,#002766);padding:80px 40px;position:relative;overflow:hidden;color:#ffffff;
+
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 /* Diagonal decorative shapes */
 #faq::before,#faq::after{
@@ -270,6 +279,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── CTA ─── */
 #cta{
   background:var(--navy);padding:80px 40px;color:#ffffff;
+
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .cta-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:700px;margin:0 auto;
@@ -291,6 +303,9 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* ─── PODCAST SECTION ─── */
 #podcast{
   background:var(--navy);padding:80px 40px;color:#ffffff;
+
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 #podcast h2{
   text-align:center;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;
@@ -391,6 +406,11 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   .cta-grid{grid-template-columns:1fr}
   .media-slots{grid-template-columns:1fr}
 }
+
+@media(max-width:768px){
+  .features-grid{grid-template-columns:repeat(2,1fr) !important;gap:12px}
+  .feature-card{padding:16px 12px}
+}
 @media(max-width:640px){
   .hero-content{padding:40px 20px}
   .hero-content h1{font-size:1.8rem}
@@ -812,7 +832,7 @@ function goPrev() {
 }
 
 // ─── SCROLL NAVIGATION ───
-const SECTIONS = ['#hero', '#about', '#carousel', '#features', '#faq', '#cta'];
+const SECTIONS = ['#hero', '#about', '#carousel', '#features', '#podcast', '#faq', '#cta'];
 
 function scrollToSection(selector) {
   const el = document.querySelector(selector);
@@ -821,13 +841,19 @@ function scrollToSection(selector) {
 
 function scrollToNext() {
   const scrollY = window.scrollY;
-  for (const sel of SECTIONS) {
-    const el = document.querySelector(sel);
-    if (el && el.offsetTop > scrollY + 20) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
+  const vh = window.innerHeight;
+  // Find which section we're currently in
+  let currentIdx = 0;
+  for (let i = 0; i < SECTIONS.length; i++) {
+    const el = document.querySelector(SECTIONS[i]);
+    if (el && el.offsetTop <= scrollY + vh * 0.5) {
+      currentIdx = i;
     }
   }
+  // Go to next section
+  const nextIdx = Math.min(currentIdx + 1, SECTIONS.length - 1);
+  const nextEl = document.querySelector(SECTIONS[nextIdx]);
+  if (nextEl) nextEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ─── FLOATING CONTROLS ───
