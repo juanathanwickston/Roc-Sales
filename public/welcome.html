@@ -105,7 +105,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* Card */
 .carousel-card{
   background:var(--card-bg);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.1);
-  padding:48px 48px 40px;min-height:420px;position:relative;
+  padding:28px 32px 24px;position:relative;
   transition:opacity .3s ease;
 }
 .carousel-card h2{
@@ -113,13 +113,13 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 }
 .carousel-card .card-img{
   width:100%;border-radius:var(--r-sm);background:var(--sky);
-  aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
-  color:var(--gray);font-size:.9rem;margin-bottom:20px;overflow:hidden;
+  aspect-ratio:3/1;display:flex;align-items:center;justify-content:center;
+  color:var(--gray);font-size:.85rem;margin-bottom:16px;overflow:hidden;
   border:1px solid var(--light-border);
 }
 .carousel-card .card-img img{width:100%;height:100%;object-fit:cover;display:block}
 .carousel-card .card-body{
-  font-size:.95rem;line-height:1.65;color:#3a3a4a;margin-bottom:16px;
+  font-size:.88rem;line-height:1.55;color:#3a3a4a;margin-bottom:12px;
 }
 .carousel-card .card-instruction{
   font-style:italic;font-weight:600;font-size:.88rem;color:#2a2a3a;
@@ -141,7 +141,7 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 /* Bottom pagination */
 .carousel-pagination{
   display:flex;align-items:center;justify-content:center;gap:12px;
-  margin-top:24px;
+  margin-top:16px;
 }
 .pag-item{
   width:28px;height:28px;border-radius:50%;border:2px solid #ccc;
@@ -168,15 +168,15 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 
 /* Start again link */
 .start-again{
-  display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
   background:none;border:none;color:var(--cobalt);font-family:var(--font);
-  font-size:.85rem;font-weight:700;cursor:pointer;text-decoration:underline;
+  font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:underline;
 }
 .start-again:hover{color:var(--cobalt-hover)}
 
 /* In-carousel exit arrow */
 .carousel-exit{
-  display:flex;align-items:center;justify-content:center;margin-top:32px;
+  display:flex;align-items:center;justify-content:center;margin-top:20px;
 }
 .carousel-exit button{
   width:44px;height:44px;border-radius:50%;border:2px solid var(--nav-active);
