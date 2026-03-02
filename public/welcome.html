@@ -706,6 +706,7 @@ const TUTORIAL = {
       panels: [{
         title: 'One Hub for All Training',
         imgAlt: 'ROC Academy Dashboard',
+        img: '/img/dashboard.png',
         body: 'ROC Academy organizes training into structured learner pathways. Phase 1 covers your first 30 days: product knowledge, the sales process, and compensation basics. Content is curated from existing platforms and organized into a clear, guided sequence so reps always know what to do next.',
         instruction: 'When you\'re done, click the arrow → to advance to the next step.'
       }]
@@ -716,12 +717,14 @@ const TUTORIAL = {
         {
           title: 'Learn by Doing, Not Just Watching',
           imgAlt: 'Feature Factory game',
+          img: '/img/feature factory.png',
           body: 'No more doom scrolling through slide decks or passively watching training videos. ROC Academy uses interactive games to build real muscle memory. Feature Factory tests product knowledge. Objection Blitz sharpens responses under pressure. The AI Sales Coach provides on-demand guidance whenever you need it.',
           instruction: 'Click the arrow → to see how your progress is tracked.'
         },
         {
           title: 'Visibility for Reps and Leaders',
           imgAlt: 'Leaderboard and Readiness Index',
+          img: '/img/readiness index.png',
           body: 'Every game, quiz, and activity feeds into your Readiness Index, a six-skill competency score showing exactly where you stand. The leaderboard lets you compete with your team. Managers get real-time visibility into readiness, so they know who needs support and who\'s leading the pack.',
           instruction: 'When you\'re ready to exit this carousel, click the arrow ↓ below to scroll to the next section.',
           showStartAgain: true
@@ -751,7 +754,7 @@ function renderCarousel() {
     card.innerHTML = `
       <div class="start-gate">
         <h2>${TUTORIAL.intro.title}</h2>
-        <div class="card-img"><span>${TUTORIAL.steps[0].panels[0].imgAlt}</span></div>
+        <div class="card-img"><img src="${TUTORIAL.steps[0].panels[0].img}" alt="${TUTORIAL.steps[0].panels[0].imgAlt}"></div>
         <div class="card-body">${TUTORIAL.intro.body}</div>
         <p class="card-instruction">${TUTORIAL.intro.instruction}</p>
         <button class="start-btn" onclick="startTutorial()">START ›</button>
@@ -778,7 +781,7 @@ function renderCarousel() {
   }
   card.innerHTML = `
     <h2>${panel.title}</h2>
-    <div class="card-img"><span>${panel.imgAlt}</span></div>
+    <div class="card-img"><img src="${panel.img}" alt="${panel.imgAlt}"></div>
     <div class="card-body">${panel.body}</div>
     <p class="card-instruction">${panel.instruction}</p>
     ${extra}
