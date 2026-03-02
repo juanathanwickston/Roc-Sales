@@ -336,10 +336,10 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 }
 .podcast-transcript{
   position:relative;max-width:700px;margin:0 auto;
-  height:220px;overflow:hidden;
+  height:260px;overflow:hidden;
 }
 .podcast-transcript::before,.podcast-transcript::after{
-  content:'';position:absolute;left:0;right:0;height:60px;z-index:2;pointer-events:none;
+  content:'';position:absolute;left:0;right:0;height:70px;z-index:2;pointer-events:none;
 }
 .podcast-transcript::before{
   top:0;background:linear-gradient(to bottom,var(--navy),transparent);
@@ -348,25 +348,22 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
   bottom:0;background:linear-gradient(to top,var(--navy),transparent);
 }
 #transcriptBody{
-  height:100%;overflow-y:auto;scroll-behavior:smooth;
-  padding:80px 20px;
+  height:100%;overflow-y:auto;
+  padding:100px 20px;
   -ms-overflow-style:none;scrollbar-width:none;
 }
 #transcriptBody::-webkit-scrollbar{display:none}
 .transcript-sentence{
-  display:block;text-align:center;padding:10px 0;
-  font-size:clamp(1rem,2.2vw,1.35rem);line-height:1.65;
-  color:rgba(255,255,255,.25);font-weight:600;
-  transition:color .4s ease,transform .4s ease;
-  cursor:pointer;
+  display:block;text-align:center;padding:8px 0;
+  font-size:clamp(1rem,2.2vw,1.3rem);line-height:1.6;
+  color:rgba(255,255,255,.18);font-weight:600;
+  transition:color .2s ease-out,opacity .2s ease-out;
+  cursor:pointer;opacity:1;
+}
+.transcript-sentence.upcoming{
+  color:rgba(255,255,255,.35);
 }
 .transcript-sentence.active{
-  color:#ffffff;transform:scale(1.05);
-}
-.tw{
-  transition:color .15s ease;
-}
-.tw.active-word{
   color:#00e0b8;
 }
 
@@ -543,19 +540,31 @@ body{font-family:var(--font);background:var(--sky);color:var(--text);overflow-x:
 
     <div class="podcast-transcript">
       <div id="transcriptBody">
-        <div class="transcript-sentence" data-start="0.0" data-end="2.7"><span class="tw" data-start="0.0" data-end="0.42">This</span> <span class="tw" data-start="0.42" data-end="0.62">is</span> <span class="tw" data-start="0.62" data-end="0.8">the</span> <span class="tw" data-start="0.8" data-end="1.04">brief</span> <span class="tw" data-start="1.04" data-end="1.52">on</span> <span class="tw" data-start="1.52" data-end="1.98">ROC</span> <span class="tw" data-start="2.26" data-end="2.88">Academy.</span></div>
-        <div class="transcript-sentence" data-start="2.7" data-end="14.5"><span class="tw" data-start="2.88" data-end="3.26">So</span> <span class="tw" data-start="3.26" data-end="3.78">Payroc</span> <span class="tw" data-start="3.78" data-end="4.06">just</span> <span class="tw" data-start="4.06" data-end="4.42">dropped</span> <span class="tw" data-start="4.42" data-end="4.86">this</span> <span class="tw" data-start="4.86" data-end="5.2">brand</span> <span class="tw" data-start="5.2" data-end="5.56">new</span> <span class="tw" data-start="5.56" data-end="5.9">sales</span> <span class="tw" data-start="5.9" data-end="6.34">training</span> <span class="tw" data-start="6.68" data-end="6.84">platform,</span> <span class="tw" data-start="6.84" data-end="6.98">and</span> <span class="tw" data-start="6.98" data-end="7.4">it's</span> <span class="tw" data-start="7.4" data-end="7.7">basically</span> <span class="tw" data-start="7.7" data-end="8.26">designed</span> <span class="tw" data-start="8.26" data-end="8.26">to</span> <span class="tw" data-start="8.26" data-end="8.82">rescue</span> <span class="tw" data-start="8.82" data-end="8.82">new</span> <span class="tw" data-start="8.82" data-end="9.04">reps</span> <span class="tw" data-start="9.04" data-end="9.4">from</span> <span class="tw" data-start="9.4" data-end="9.9">the</span> <span class="tw" data-start="9.9" data-end="10.34">absolute</span> <span class="tw" data-start="10.34" data-end="10.8">chaos</span> <span class="tw" data-start="10.8" data-end="10.98">of</span> <span class="tw" data-start="10.98" data-end="11.5">scattered</span> <span class="tw" data-start="11.5" data-end="12.04">materials</span> <span class="tw" data-start="12.04" data-end="12.2">and</span> <span class="tw" data-start="12.2" data-end="12.36">get</span> <span class="tw" data-start="12.36" data-end="12.56">them</span> <span class="tw" data-start="12.56" data-end="12.88">out</span> <span class="tw" data-start="12.88" data-end="13.14">there</span> <span class="tw" data-start="13.14" data-end="13.66">selling</span> <span class="tw" data-start="14.12" data-end="14.52">confidently.</span></div>
-        <div class="transcript-sentence" data-start="14.5" data-end="18.2"><span class="tw" data-start="14.52" data-end="14.74">First,</span> <span class="tw" data-start="14.74" data-end="15.2">it</span> <span class="tw" data-start="15.2" data-end="15.46">totally</span> <span class="tw" data-start="15.46" data-end="15.84">solves</span> <span class="tw" data-start="15.84" data-end="16.08">the</span> <span class="tw" data-start="16.08" data-end="16.36">massive</span> <span class="tw" data-start="16.36" data-end="16.76">headache</span> <span class="tw" data-start="16.76" data-end="17.24">of</span> <span class="tw" data-start="17.24" data-end="17.6">disorganized</span> <span class="tw" data-start="17.94" data-end="18.3">training.</span></div>
-        <div class="transcript-sentence" data-start="18.2" data-end="29.4"><span class="tw" data-start="18.3" data-end="18.4">You</span> <span class="tw" data-start="18.4" data-end="18.76">know</span> <span class="tw" data-start="18.76" data-end="18.76">the</span> <span class="tw" data-start="19.38" data-end="19.4">drill.</span> <span class="tw" data-start="19.4" data-end="19.62">Instead</span> <span class="tw" data-start="19.62" data-end="19.78">of</span> <span class="tw" data-start="19.78" data-end="20.04">making</span> <span class="tw" data-start="20.04" data-end="20.44">your</span> <span class="tw" data-start="20.44" data-end="20.5">new</span> <span class="tw" data-start="20.5" data-end="20.88">hires</span> <span class="tw" data-start="20.88" data-end="21.32">hunt</span> <span class="tw" data-start="21.32" data-end="21.72">across</span> <span class="tw" data-start="21.72" data-end="22.28">multiple</span> <span class="tw" data-start="22.92" data-end="22.98">platforms,</span> <span class="tw" data-start="22.98" data-end="23.4">shared</span> <span class="tw" data-start="23.58" data-end="23.9">drives,</span> <span class="tw" data-start="23.9" data-end="24.04">and</span> <span class="tw" data-start="24.04" data-end="24.34">random</span> <span class="tw" data-start="24.34" data-end="24.64">links</span> <span class="tw" data-start="24.64" data-end="24.9">with</span> <span class="tw" data-start="24.9" data-end="25.38">zero</span> <span class="tw" data-start="26.06" data-end="26.54">direction,</span> <span class="tw" data-start="26.54" data-end="26.92">ROC</span> <span class="tw" data-start="26.92" data-end="27.12">Academy</span> <span class="tw" data-start="27.12" data-end="27.62">gives</span> <span class="tw" data-start="27.62" data-end="28.16">them</span> <span class="tw" data-start="28.16" data-end="28.68">one</span> <span class="tw" data-start="29.06" data-end="29.38">centralized</span> <span class="tw" data-start="29.38" data-end="29.39">home</span> <span class="tw" data-start="29.39" data-end="29.4">base.</span></div>
-        <div class="transcript-sentence" data-start="29.4" data-end="36.9"><span class="tw" data-start="29.38" data-end="29.78">It</span> <span class="tw" data-start="29.78" data-end="29.94">hands</span> <span class="tw" data-start="29.94" data-end="30.22">reps</span> <span class="tw" data-start="30.22" data-end="30.54">a</span> <span class="tw" data-start="30.54" data-end="30.82">really</span> <span class="tw" data-start="31.4" data-end="31.4">clear,</span> <span class="tw" data-start="31.4" data-end="31.8">structured</span> <span class="tw" data-start="31.8" data-end="32.08">learning</span> <span class="tw" data-start="32.08" data-end="32.38">path</span> <span class="tw" data-start="32.38" data-end="32.56">right</span> <span class="tw" data-start="32.56" data-end="32.78">from</span> <span class="tw" data-start="32.78" data-end="33.06">day</span> <span class="tw" data-start="33.62" data-end="34.02">one,</span> <span class="tw" data-start="34.02" data-end="34.32">specifically</span> <span class="tw" data-start="34.32" data-end="34.6">kicking</span> <span class="tw" data-start="34.6" data-end="34.72">off</span> <span class="tw" data-start="34.72" data-end="34.92">with</span> <span class="tw" data-start="34.92" data-end="35.18">a</span> <span class="tw" data-start="35.18" data-end="35.4">30-day</span> <span class="tw" data-start="35.4" data-end="35.84">foundation</span> <span class="tw" data-start="35.84" data-end="36.3">phase.</span></div>
-        <div class="transcript-sentence" data-start="36.9" data-end="40.5"><span class="tw" data-start="37.0" data-end="37.32">Second,</span> <span class="tw" data-start="37.44" data-end="37.8">it</span> <span class="tw" data-start="37.8" data-end="38.34">completely</span> <span class="tw" data-start="38.34" data-end="38.58">flips</span> <span class="tw" data-start="38.58" data-end="38.84">the</span> <span class="tw" data-start="38.84" data-end="39.08">learning</span> <span class="tw" data-start="39.08" data-end="39.54">experience</span> <span class="tw" data-start="39.54" data-end="39.74">on</span> <span class="tw" data-start="39.74" data-end="39.9">its</span> <span class="tw" data-start="39.9" data-end="40.12">head.</span></div>
-        <div class="transcript-sentence" data-start="40.5" data-end="49.1"><span class="tw" data-start="40.5" data-end="40.58">It</span> <span class="tw" data-start="40.58" data-end="40.94">finally</span> <span class="tw" data-start="40.94" data-end="41.24">stops</span> <span class="tw" data-start="41.24" data-end="41.6">new</span> <span class="tw" data-start="41.6" data-end="41.74">reps</span> <span class="tw" data-start="41.74" data-end="42.0">from</span> <span class="tw" data-start="42.0" data-end="42.52">just</span> <span class="tw" data-start="42.52" data-end="42.7">passively</span> <span class="tw" data-start="42.7" data-end="43.22">doom-scrolling</span> <span class="tw" data-start="43.22" data-end="43.36">through</span> <span class="tw" data-start="43.36" data-end="43.8">incredibly</span> <span class="tw" data-start="43.8" data-end="44.46">boring</span> <span class="tw" data-start="44.46" data-end="44.82">training</span> <span class="tw" data-start="44.82" data-end="45.22">videos.</span> <span class="tw" data-start="45.22" data-end="45.58">Gone</span> <span class="tw" data-start="46.38" data-end="46.38">are</span> <span class="tw" data-start="46.38" data-end="46.52">the</span> <span class="tw" data-start="46.52" data-end="46.66">days</span> <span class="tw" data-start="46.66" data-end="46.88">of</span> <span class="tw" data-start="46.88" data-end="47.1">just</span> <span class="tw" data-start="47.1" data-end="47.5">clicking</span> <span class="tw" data-start="47.5" data-end="47.74">next</span> <span class="tw" data-start="47.74" data-end="48.24">for</span> <span class="tw" data-start="48.24" data-end="49.02">hours.</span></div>
-        <div class="transcript-sentence" data-start="49.1" data-end="57.1"><span class="tw" data-start="49.02" data-end="49.02">Instead,</span> <span class="tw" data-start="49.64" data-end="49.98">we're</span> <span class="tw" data-start="50.02" data-end="50.42">looking</span> <span class="tw" data-start="50.42" data-end="50.6">at</span> <span class="tw" data-start="50.6" data-end="50.98">interactive</span> <span class="tw" data-start="50.98" data-end="51.34">learning</span> <span class="tw" data-start="51.34" data-end="51.66">from</span> <span class="tw" data-start="51.66" data-end="52.0">multiple</span> <span class="tw" data-start="52.0" data-end="52.32">angles</span> <span class="tw" data-start="52.32" data-end="52.72">—</span> <span class="tw" data-start="53.52" data-end="53.52">quizzes,</span> <span class="tw" data-start="54.02" data-end="54.2">real-world</span> <span class="tw" data-start="54.2" data-end="54.4">scenarios,</span> <span class="tw" data-start="54.4" data-end="54.86">and</span> <span class="tw" data-start="54.98" data-end="55.54">awesome</span> <span class="tw" data-start="55.54" data-end="55.74">gamification.</span></div>
-        <div class="transcript-sentence" data-start="57.1" data-end="65.0"><span class="tw" data-start="57.02" data-end="57.34">Thanks</span> <span class="tw" data-start="57.34" data-end="57.52">to</span> <span class="tw" data-start="57.52" data-end="57.7">some</span> <span class="tw" data-start="57.7" data-end="58.0">healthy</span> <span class="tw" data-start="58.0" data-end="58.5">competition</span> <span class="tw" data-start="58.5" data-end="58.8">driven</span> <span class="tw" data-start="58.8" data-end="59.14">by</span> <span class="tw" data-start="59.14" data-end="59.6">leaderboards</span> <span class="tw" data-start="59.6" data-end="59.88">and</span> <span class="tw" data-start="59.88" data-end="60.14">an</span> <span class="tw" data-start="60.14" data-end="60.46">active</span> <span class="tw" data-start="60.46" data-end="60.88">recall</span> <span class="tw" data-start="60.88" data-end="61.2">game</span> <span class="tw" data-start="61.2" data-end="61.48">called</span> <span class="tw" data-start="61.48" data-end="61.8">Feature</span> <span class="tw" data-start="61.8" data-end="62.16">Factory,</span> <span class="tw" data-start="62.62" data-end="62.92">your</span> <span class="tw" data-start="62.92" data-end="62.92">reps</span> <span class="tw" data-start="62.92" data-end="63.5">actually</span> <span class="tw" data-start="63.5" data-end="63.82">stay</span> <span class="tw" data-start="63.82" data-end="64.26">fully</span> <span class="tw" data-start="64.26" data-end="64.64">engaged.</span></div>
-        <div class="transcript-sentence" data-start="65.0" data-end="72.0"><span class="tw" data-start="65.16" data-end="65.52">Finally,</span> <span class="tw" data-start="65.68" data-end="66.04">let's</span> <span class="tw" data-start="66.04" data-end="66.24">talk</span> <span class="tw" data-start="66.24" data-end="66.42">about</span> <span class="tw" data-start="66.42" data-end="66.64">the</span> <span class="tw" data-start="66.64" data-end="66.8">built-in</span> <span class="tw" data-start="66.8" data-end="67.0">accountability</span> <span class="tw" data-start="67.0" data-end="67.46">and</span> <span class="tw" data-start="67.46" data-end="67.92">manager</span> <span class="tw" data-start="67.92" data-end="68.22">visibility.</span> <span class="tw" data-start="68.22" data-end="68.74">Forget</span> <span class="tw" data-start="69.48" data-end="69.56">that</span> <span class="tw" data-start="69.56" data-end="70.14">vague,</span> <span class="tw" data-start="70.14" data-end="70.16">"how's</span> <span class="tw" data-start="70.52" data-end="70.58">it</span> <span class="tw" data-start="70.58" data-end="70.7">going?"</span> <span class="tw" data-start="70.7" data-end="70.98">guesswork.</span></div>
-        <div class="transcript-sentence" data-start="72.0" data-end="76.5"><span class="tw" data-start="71.96" data-end="72.48">Now,</span> <span class="tw" data-start="72.48" data-end="72.7">managers</span> <span class="tw" data-start="72.7" data-end="72.98">get</span> <span class="tw" data-start="72.98" data-end="73.46">real-time</span> <span class="tw" data-start="73.46" data-end="73.54">tracking</span> <span class="tw" data-start="73.54" data-end="73.9">through</span> <span class="tw" data-start="73.9" data-end="74.2">a</span> <span class="tw" data-start="74.2" data-end="74.44">data-driven</span> <span class="tw" data-start="74.44" data-end="74.64">readiness</span> <span class="tw" data-start="74.64" data-end="74.88">index.</span></div>
-        <div class="transcript-sentence" data-start="76.5" data-end="87.6"><span class="tw" data-start="76.58" data-end="77.14">This</span> <span class="tw" data-start="77.14" data-end="77.34">literally</span> <span class="tw" data-start="77.34" data-end="77.82">scores</span> <span class="tw" data-start="77.82" data-end="77.82">your</span> <span class="tw" data-start="77.82" data-end="78.2">reps</span> <span class="tw" data-start="78.2" data-end="78.62">across</span> <span class="tw" data-start="78.62" data-end="78.94">six</span> <span class="tw" data-start="78.94" data-end="79.4">key</span> <span class="tw" data-start="80.02" data-end="80.18">competencies,</span> <span class="tw" data-start="80.18" data-end="80.52">like</span> <span class="tw" data-start="80.52" data-end="80.86">product</span> <span class="tw" data-start="81.2" data-end="81.56">knowledge,</span> <span class="tw" data-start="81.56" data-end="81.88">objection</span> <span class="tw" data-start="82.04" data-end="82.34">handling,</span> <span class="tw" data-start="82.34" data-end="82.46">and</span> <span class="tw" data-start="82.46" data-end="82.76">comp</span> <span class="tw" data-start="82.98" data-end="83.42">structure,</span> <span class="tw" data-start="83.42" data-end="83.74">so</span> <span class="tw" data-start="83.74" data-end="84.04">leadership</span> <span class="tw" data-start="84.04" data-end="84.7">knows</span> <span class="tw" data-start="84.7" data-end="84.94">exactly</span> <span class="tw" data-start="84.94" data-end="85.1">who</span> <span class="tw" data-start="85.1" data-end="85.58">is</span> <span class="tw" data-start="85.58" data-end="85.58">on</span> <span class="tw" data-start="85.58" data-end="85.94">track</span> <span class="tw" data-start="85.94" data-end="86.08">and</span> <span class="tw" data-start="86.08" data-end="86.36">who</span> <span class="tw" data-start="86.36" data-end="86.54">really</span> <span class="tw" data-start="86.54" data-end="86.8">needs</span> <span class="tw" data-start="86.8" data-end="87.04">some</span> <span class="tw" data-start="87.04" data-end="87.6">coaching.</span></div>
-        <div class="transcript-sentence" data-start="87.6" data-end="95.2"><span class="tw" data-start="87.56" data-end="87.66">By</span> <span class="tw" data-start="87.66" data-end="88.04">replacing</span> <span class="tw" data-start="88.04" data-end="88.44">scattered</span> <span class="tw" data-start="88.44" data-end="88.86">files</span> <span class="tw" data-start="88.86" data-end="89.12">and</span> <span class="tw" data-start="89.12" data-end="89.5">guesswork</span> <span class="tw" data-start="89.5" data-end="89.8">with</span> <span class="tw" data-start="89.8" data-end="90.1">structure</span> <span class="tw" data-start="90.1" data-end="90.42">and</span> <span class="tw" data-start="90.42" data-end="90.9">accountability,</span> <span class="tw" data-start="91.5" data-end="91.54">ROC</span> <span class="tw" data-start="91.54" data-end="91.9">Academy</span> <span class="tw" data-start="91.9" data-end="92.16">gives</span> <span class="tw" data-start="92.16" data-end="92.44">reps</span> <span class="tw" data-start="92.44" data-end="92.78">a</span> <span class="tw" data-start="92.78" data-end="93.02">clear,</span> <span class="tw" data-start="93.5" data-end="93.5">engaging</span> <span class="tw" data-start="93.5" data-end="93.78">path</span> <span class="tw" data-start="93.78" data-end="94.06">to</span> <span class="tw" data-start="94.06" data-end="94.38">success</span> <span class="tw" data-start="94.38" data-end="94.74">from</span> <span class="tw" data-start="94.74" data-end="94.94">day</span> <span class="tw" data-start="94.94" data-end="95.1">one.</span></div>
+        <div class="transcript-sentence" data-start="0.0" data-end="2.7">This is the brief on ROC Academy.</div>
+        <div class="transcript-sentence" data-start="2.7" data-end="6.8">So Payroc just dropped this brand new sales training platform,</div>
+        <div class="transcript-sentence" data-start="6.8" data-end="10.9">and it’s basically designed to rescue new reps</div>
+        <div class="transcript-sentence" data-start="10.9" data-end="14.5">from the absolute chaos of scattered materials and get them out there selling confidently.</div>
+        <div class="transcript-sentence" data-start="14.5" data-end="18.2">First, it totally solves the massive headache of disorganized training.</div>
+        <div class="transcript-sentence" data-start="18.2" data-end="19.4">You know the drill.</div>
+        <div class="transcript-sentence" data-start="19.4" data-end="24.0">Instead of making your new hires hunt across multiple platforms, shared drives,</div>
+        <div class="transcript-sentence" data-start="24.0" data-end="29.4">and random links with zero direction, ROC Academy gives them one centralized home base.</div>
+        <div class="transcript-sentence" data-start="29.4" data-end="34.3">It hands reps a really clear, structured learning path right from day one,</div>
+        <div class="transcript-sentence" data-start="34.3" data-end="36.9">specifically kicking off with a 30-day foundation phase.</div>
+        <div class="transcript-sentence" data-start="36.9" data-end="40.5">Second, it completely flips the learning experience on its head.</div>
+        <div class="transcript-sentence" data-start="40.5" data-end="46.3">It finally stops new reps from just passively doom-scrolling through incredibly boring training videos.</div>
+        <div class="transcript-sentence" data-start="46.3" data-end="49.1">Gone are the days of just clicking next for hours.</div>
+        <div class="transcript-sentence" data-start="49.1" data-end="54.4">Instead, we’re looking at interactive learning from multiple angles —</div>
+        <div class="transcript-sentence" data-start="54.4" data-end="57.1">quizzes, real-world scenarios, and awesome gamification.</div>
+        <div class="transcript-sentence" data-start="57.1" data-end="61.1">Thanks to some healthy competition driven by leaderboards and an active recall game</div>
+        <div class="transcript-sentence" data-start="61.1" data-end="65.0">called Feature Factory, your reps actually stay fully engaged.</div>
+        <div class="transcript-sentence" data-start="65.0" data-end="69.4">Finally, let’s talk about the built-in accountability and manager visibility.</div>
+        <div class="transcript-sentence" data-start="69.4" data-end="72.0">Forget that vague, “how’s it going?” guesswork.</div>
+        <div class="transcript-sentence" data-start="72.0" data-end="76.5">Now, managers get real-time tracking through a data-driven readiness index.</div>
+        <div class="transcript-sentence" data-start="76.5" data-end="81.0">This literally scores your reps across six key competencies, like product knowledge,</div>
+        <div class="transcript-sentence" data-start="81.0" data-end="85.9">objection handling, and comp structure, so leadership knows exactly who is on track</div>
+        <div class="transcript-sentence" data-start="85.9" data-end="87.6">and who really needs some coaching.</div>
+        <div class="transcript-sentence" data-start="87.6" data-end="91.9">By replacing scattered files and guesswork with structure and accountability,</div>
+        <div class="transcript-sentence" data-start="91.9" data-end="95.2">ROC Academy gives reps a clear, engaging path to success from day one.</div>
 </div>
     </div>
   </div>
@@ -933,7 +942,11 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
   var timeEl = document.getElementById('podTime');
   var track = document.getElementById('podTrack');
   var sentences = document.querySelectorAll('.transcript-sentence');
+  var scrollContainer = document.getElementById('transcriptBody');
   if(!audio || !playBtn) return;
+
+  var PRE_TRIGGER = 0.05; // 50ms early trigger
+  var activeIdx = -1;
 
   function fmt(s){
     var m = Math.floor(s/60);
@@ -941,10 +954,18 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
     return m+':'+(sec<10?'0':'')+sec;
   }
 
-  var scrollContainer = document.getElementById('transcriptBody');
+  // Set initial visual state
+  function setVisualState(idx){
+    sentences.forEach(function(s, i){
+      s.classList.remove('active','upcoming');
+      if(i === idx) s.classList.add('active');
+      else if(i > idx) s.classList.add('upcoming');
+      // past segments get no class = default (opacity .18)
+    });
+  }
 
-  // Show first sentence on load
-  if(sentences.length > 0) sentences[0].classList.add('active');
+  // Initialize: first segment active
+  setVisualState(0);
 
   playBtn.addEventListener('click',function(){
     if(audio.paused){audio.play();playBtn.textContent='\u23F8';}
@@ -953,49 +974,38 @@ document.getElementById('faqCard').addEventListener('click', function(e) {
 
   audio.addEventListener('ended',function(){
     playBtn.textContent='\u25B6';
-    sentences.forEach(function(s){s.classList.remove('active');});
+    activeIdx = -1;
+    sentences.forEach(function(s){s.classList.remove('active','upcoming');});
   });
 
   audio.addEventListener('timeupdate',function(){
-    var OFFSET = 0.25; // seconds ahead — compensates for Whisper lag
-
-    var t = audio.currentTime + OFFSET;
+    var t = audio.currentTime;
     var d = audio.duration || 1;
     fill.style.width = (t/d*100)+'%';
     timeEl.textContent = fmt(t)+' / '+fmt(d);
 
-    // Highlight active sentence and auto-scroll
-    sentences.forEach(function(s){
-      var start = parseFloat(s.getAttribute('data-start'));
-      var end = parseFloat(s.getAttribute('data-end'));
-      if(t >= start && t < end){
-        if(!s.classList.contains('active')){
-          s.classList.add('active');
-          var containerH = scrollContainer.clientHeight;
-          var scrollTarget = s.offsetTop - scrollContainer.offsetTop - (containerH/2) + (s.offsetHeight/2);
-          scrollContainer.scrollTop = scrollTarget;
-        }
-      } else {
-        s.classList.remove('active');
+    // Find active segment (pre-trigger 50ms early)
+    var newIdx = -1;
+    for(var i = 0; i < sentences.length; i++){
+      var start = parseFloat(sentences[i].getAttribute('data-start'));
+      var end = parseFloat(sentences[i].getAttribute('data-end'));
+      if((t + PRE_TRIGGER) >= start && t < end){
+        newIdx = i;
+        break;
       }
-    });
+    }
 
-    // Highlight active word within active sentence
-    var allWords = document.querySelectorAll('.tw');
-    allWords.forEach(function(w){
-      var ws = parseFloat(w.getAttribute('data-start'));
-      var we = parseFloat(w.getAttribute('data-end'));
-      if(t >= ws && t < we){
-        if(!w.classList.contains('active-word')) w.classList.add('active-word');
-        w.classList.remove('spoken-word');
-      } else if(t >= we && w.parentElement && w.parentElement.classList.contains('active')){
-        w.classList.remove('active-word');
-        w.classList.add('spoken-word');
-      } else {
-        w.classList.remove('active-word');
-        w.classList.remove('spoken-word');
-      }
-    });
+    // Only update DOM when active index changes
+    if(newIdx !== activeIdx && newIdx >= 0){
+      activeIdx = newIdx;
+      setVisualState(activeIdx);
+
+      // Smooth scroll to center active segment
+      var el = sentences[activeIdx];
+      var containerH = scrollContainer.clientHeight;
+      var scrollTarget = el.offsetTop - scrollContainer.offsetTop - (containerH/2) + (el.offsetHeight/2);
+      scrollContainer.scrollTo({top: scrollTarget, behavior: 'smooth'});
+    }
   });
 
   // Click to seek on track
