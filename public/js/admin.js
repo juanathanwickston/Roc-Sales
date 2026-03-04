@@ -31,20 +31,27 @@ const Admin = {
       return;
     }
 
-    let h = '<div class="admin-tabs">';
-    h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
-    h += '<div style="flex:1"></div>';
-    // Action toolbar (separated from nav tabs)
+    // Row 1: Title + Action buttons
+    let h = '<div class="admin-container">';
+    h += '<div class="admin-header-row">';
+    h += '<div><div class="admin-page-title">Admin Panel</div><div class="admin-page-sub">User & Team Management</div></div>';
     h += '<div class="admin-toolbar">';
-    h += '<button class="admin-toolbar-btn" onclick="Admin.showExportMenu(this)" title="Export data">📊 Export ▾</button>';
+    h += '<button class="admin-toolbar-btn" onclick="Admin.showExportMenu(this)" title="Export data">Export ▾</button>';
     if (Auth.hasRole('superuser')) {
-      h += '<button class="admin-toolbar-btn danger" onclick="Admin.resetScores()" title="Reset all data">🔄 Reset</button>';
+      h += '<button class="admin-toolbar-btn danger" onclick="Admin.resetScores()" title="Reset all data">Reset</button>';
     }
     h += '</div>';
     h += '</div>';
+
+    // Row 2: Tabs
+    h += '<div class="admin-tabs">';
+    h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
+    h += '</div>';
+
     h += '<div id="adminContent"></div>';
+    h += '</div>';
     container.innerHTML = h;
 
     if (this.currentTab === 'users') {
@@ -201,39 +208,35 @@ const Admin = {
       return va < vb ? -dir : va > vb ? dir : 0;
     });
 
-    // Build table
+    // Build table inside card container
     const arrow = c => this._sortCol === c ? (this._sortDir === 'asc' ? ' ↑' : ' ↓') : '';
-    let h = '<div class="admin-table-wrap"><table class="admin-table">';
+    let h = '<div class="admin-table-card">';
+    h += '<table class="admin-table">';
     h += '<thead><tr>';
-    h += `<th style="width:36px"></th>`;
-    h += `<th class="sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
-    h += '<th>Username</th>';
-    h += `<th class="sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
-    h += `<th class="sortable" onclick="Admin.sortBy('team')">Team${arrow('team')}</th>`;
-    h += '<th>Status</th>';
-    h += `<th class="sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
-    h += '<th style="width:50px"></th>';
+    h += `<th class="col-name sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
+    h += `<th class="col-role sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
+    h += `<th class="col-team sortable" onclick="Admin.sortBy('team')">Team${arrow('team')}</th>`;
+    h += '<th class="col-status">Status</th>';
+    h += `<th class="col-login sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
+    h += '<th class="col-actions"></th>';
     h += '</tr></thead><tbody>';
 
     users.forEach(u => {
       const fn = Admin.titleCase(u.firstName);
       const ln = Admin.titleCase(u.lastName);
-      const initials = (fn[0] || '') + (ln[0] || '');
       const status = u.isActive ? 'Active' : 'Inactive';
       const statusClass = u.isActive ? 'status-active' : 'status-inactive';
       const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
-      const lastLogin = u.lastLogin ? Admin.timeAgo(u.lastLogin) : '<span style="color:var(--gray);font-size:var(--fs-xs)">Never</span>';
-      const pwIndicator = u.mustChangePassword ? ' <span class="pw-badge" title="Must change password" style="font-size:var(--fs-2xs);color:var(--orange);font-weight:500">Reset</span>' : '';
+      const lastLogin = u.lastLogin ? Admin.timeAgo(u.lastLogin) : '<span class="text-muted">Never</span>';
+      const pwIndicator = u.mustChangePassword ? ' <span class="pw-reset-label">Reset</span>' : '';
 
       h += `<tr${rowStyle}>`;
-      h += `<td><div class="admin-avatar">${esc(initials)}</div></td>`;
-      h += `<td><strong>${esc(fn)} ${esc(ln)}</strong>${pwIndicator}</td>`;
-      h += `<td style="color:var(--gray)">${esc(u.username)}</td>`;
-      h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
-      h += `<td>${u.teamName ? esc(u.teamName) : '<span style="color:var(--gray)">—</span>'}</td>`;
-      h += `<td><span class="${statusClass}">${u.isActive ? '●' : '●'} ${status}</span></td>`;
-      h += `<td style="font-size:var(--fs-2xs)">${lastLogin}</td>`;
-      h += '<td>';
+      h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}${pwIndicator}</div><div class="cell-username">${esc(u.username)}</div></td>`;
+      h += `<td class="col-role"><span class="role-badge role-${u.role}">${u.role}</span></td>`;
+      h += `<td class="col-team">${u.teamName ? esc(u.teamName) : '<span class="text-muted">—</span>'}</td>`;
+      h += `<td class="col-status"><span class="${statusClass}">● ${status}</span></td>`;
+      h += `<td class="col-login">${lastLogin}</td>`;
+      h += '<td class="col-actions">';
       if (u.role !== 'superuser') {
         h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},${u.isActive},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
       }
@@ -241,8 +244,9 @@ const Admin = {
       h += '</tr>';
     });
 
-    h += '</tbody></table></div>';
+    h += '</tbody></table>';
     h += `<div class="admin-table-footer">Showing ${users.length} of ${this._usersCache.length} users</div>`;
+    h += '</div>';
     wrap.innerHTML = h;
   },
 
