@@ -149,7 +149,7 @@ const Admin = {
       // ── Toolbar: Search + Filters + Create ──
       const teamOptions = teamsData.teams.map(t => `<option value="${t.id}"${this._filterTeam == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
       h += '<div class="admin-toolbar-row">';
-      h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
+      h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" autocomplete="off" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
       h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
       h += `<select class="admin-filter" onchange="Admin._filterTeam=this.value;Admin.filterAndRenderTable()"><option value="">All Teams</option>${teamOptions}</select>`;
       h += `<select class="admin-filter" onchange="Admin._filterStatus=this.value;Admin.filterAndRenderTable()"><option value="active"${this._filterStatus==='active'?' selected':''}>Active</option><option value="inactive"${this._filterStatus==='inactive'?' selected':''}>Inactive</option><option value=""${this._filterStatus===''?' selected':''}>All</option></select>`;
@@ -224,7 +224,7 @@ const Admin = {
       const pwIndicator = u.mustChangePassword ? ' <span class="pw-reset-label">Reset</span>' : '';
 
       h += `<tr${rowStyle}>`;
-      h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}${pwIndicator}</div><div class="cell-username">${esc(u.username)}</div></td>`;
+      h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}</div><div class="cell-username">${esc(u.username)}</div></td>`;
       h += `<td class="col-role"><span class="role-badge role-${u.role}">${u.role}</span></td>`;
       h += `<td class="col-team">${u.teamName ? esc(u.teamName) : '<span class="text-muted">—</span>'}</td>`;
       h += `<td class="col-status"><span class="${statusClass}">● ${status}</span></td>`;
