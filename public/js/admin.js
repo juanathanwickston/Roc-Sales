@@ -16,6 +16,12 @@ const Admin = {
   _sortCol: 'name',
   _sortDir: 'asc',
 
+  /** Normalize a name to Title Case: "JOHN" → "John" */
+  titleCase(str) {
+    if (!str) return '';
+    return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  },
+
   /**
    * Render the admin panel.
    */
@@ -135,9 +141,9 @@ const Admin = {
 
       h += '<div class="admin-stats">';
       h += `<div class="admin-stat"><div class="admin-stat-val">${total}</div><div class="admin-stat-label">Total Users</div></div>`;
-      h += `<div class="admin-stat"><div class="admin-stat-val">${active}</div><div class="admin-stat-label">Active</div></div>`;
-      h += `<div class="admin-stat"><div class="admin-stat-val">${pendingPw}</div><div class="admin-stat-label">Pending PW</div></div>`;
-      h += `<div class="admin-stat"><div class="admin-stat-val">${recentLogins}</div><div class="admin-stat-label">Last 7d Logins</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${active}</div><div class="admin-stat-label">Active Users</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${pendingPw}</div><div class="admin-stat-label">Pending Reset</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${recentLogins}</div><div class="admin-stat-label">Recent Logins (7d)</div></div>`;
       h += '</div>';
 
       // ── Toolbar: Search + Filters + Create ──
@@ -210,15 +216,18 @@ const Admin = {
     h += '</tr></thead><tbody>';
 
     users.forEach(u => {
-      const initials = (u.firstName[0] || '') + (u.lastName[0] || '');
+      const fn = Admin.titleCase(u.firstName);
+      const ln = Admin.titleCase(u.lastName);
+      const initials = (fn[0] || '') + (ln[0] || '');
       const status = u.isActive ? 'Active' : 'Inactive';
       const statusClass = u.isActive ? 'status-active' : 'status-inactive';
       const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
       const lastLogin = u.lastLogin ? Admin.timeAgo(u.lastLogin) : '<span style="color:var(--gray);font-size:var(--fs-xs)">Never</span>';
+      const pwIndicator = u.mustChangePassword ? ' <span class="pw-badge" title="Must change password" style="font-size:var(--fs-2xs);color:var(--orange);font-weight:500">Reset</span>' : '';
 
       h += `<tr${rowStyle}>`;
       h += `<td><div class="admin-avatar">${esc(initials)}</div></td>`;
-      h += `<td><strong>${esc(u.firstName)} ${esc(u.lastName)}</strong>${u.mustChangePassword ? ' <span class="pw-badge" title="Must change password">🔑</span>' : ''}</td>`;
+      h += `<td><strong>${esc(fn)} ${esc(ln)}</strong>${pwIndicator}</td>`;
       h += `<td style="color:var(--gray)">${esc(u.username)}</td>`;
       h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
       h += `<td>${u.teamName ? esc(u.teamName) : '<span style="color:var(--gray)">—</span>'}</td>`;
