@@ -223,7 +223,7 @@ const Admin = {
       h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
       h += `<td>${u.teamName ? esc(u.teamName) : '<span style="color:var(--gray)">—</span>'}</td>`;
       h += `<td><span class="${statusClass}">${u.isActive ? '●' : '●'} ${status}</span></td>`;
-      h += `<td style="font-size:10px">${lastLogin}</td>`;
+      h += `<td style="font-size:var(--fs-2xs)">${lastLogin}</td>`;
       h += '<td>';
       if (u.role !== 'superuser') {
         h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},${u.isActive},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
