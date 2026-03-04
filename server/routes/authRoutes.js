@@ -58,6 +58,9 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     const token = auth.createToken(user.id, user.role, sessionHash);
 
+    // Track last login
+    await db.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+
     await logAudit(user.id, 'login', user.id, null);
 
     res.json({

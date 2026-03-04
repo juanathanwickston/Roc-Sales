@@ -29,7 +29,8 @@ router.get('/users', async (req, res) => {
     if (req.user.role === 'superuser' || req.query.all === '1') {
       users = await db.query(
         `SELECT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at
+                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at,
+                u.last_login, u.must_change_password
          FROM users u
          LEFT JOIN teams t ON t.id = u.team_id
          ORDER BY u.role, u.last_name`
@@ -38,7 +39,8 @@ router.get('/users', async (req, res) => {
       // Manager: only users on their teams
       users = await db.query(
         `SELECT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at
+                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at,
+                u.last_login, u.must_change_password
          FROM users u
          LEFT JOIN teams t ON t.id = u.team_id
          WHERE u.team_id IN (SELECT team_id FROM manager_teams WHERE manager_id = $1)
@@ -59,7 +61,9 @@ router.get('/users', async (req, res) => {
         teamId: u.team_id,
         teamName: u.team_name,
         isActive: u.is_active,
-        createdAt: u.created_at
+        createdAt: u.created_at,
+        lastLogin: u.last_login,
+        mustChangePassword: u.must_change_password
       }))
     });
   } catch (err) {
@@ -153,7 +157,7 @@ router.post('/users', async (req, res) => {
  */
 router.put('/users/:id', async (req, res) => {
   const targetId = parseInt(req.params.id);
-  const { firstName, lastName, email, nickname, teamId, isActive } = req.body;
+  const { firstName, lastName, email, nickname, teamId, isActive, role } = req.body;
 
   // Email validation
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -191,6 +195,23 @@ router.put('/users/:id', async (req, res) => {
     if (nickname !== undefined) { fields.push(`nickname = $${idx++}`); values.push(nickname ? nickname.trim() : null); }
     if (teamId !== undefined) { fields.push(`team_id = $${idx++}`); values.push(teamId || null); }
     if (isActive !== undefined) { fields.push(`is_active = $${idx++}`); values.push(!!isActive); }
+
+    // Role changes: superuser only, with safety guards
+    if (role !== undefined) {
+      if (req.user.role !== 'superuser') {
+        return res.status(403).json({ error: 'Only superuser can change roles' });
+      }
+      if (target.rows[0].role === 'superuser') {
+        return res.status(403).json({ error: 'Cannot change superuser role' });
+      }
+      if (targetId === req.user.id) {
+        return res.status(403).json({ error: 'Cannot change your own role' });
+      }
+      if (!['rep', 'manager'].includes(role)) {
+        return res.status(400).json({ error: 'Role must be rep or manager' });
+      }
+      fields.push(`role = $${idx++}`); values.push(role);
+    }
 
     if (fields.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });

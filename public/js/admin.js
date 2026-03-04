@@ -7,7 +7,14 @@
 const Admin = {
   currentTab: 'users',
   showInactive: false,
-  _editCache: null, // Stores module data for pre-filling edit forms
+  _editCache: null,
+  _usersCache: null,
+  _searchQuery: '',
+  _filterRole: '',
+  _filterTeam: '',
+  _filterStatus: 'active',
+  _sortCol: 'name',
+  _sortDir: 'asc',
 
   /**
    * Render the admin panel.
@@ -23,9 +30,13 @@ const Admin = {
     h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
     h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
     h += '<div style="flex:1"></div>';
-    h += '<button class="admin-tab" onclick="Admin.exportCSV(\'leaderboard\')" title="Download leaderboard CSV">📊 Export</button>';
-    h += '<button class="admin-tab" onclick="Admin.exportCSV(\'progress\')" title="Download progress CSV">📋 Progress</button>';
-    h += '<button class="admin-tab" onclick="Admin.resetScores()" title="Reset all scores and progress" style="color:#ff4466">🔄 Reset</button>';
+    // Action toolbar (separated from nav tabs)
+    h += '<div class="admin-toolbar">';
+    h += '<button class="admin-toolbar-btn" onclick="Admin.showExportMenu(this)" title="Export data">📊 Export ▾</button>';
+    if (Auth.hasRole('superuser')) {
+      h += '<button class="admin-toolbar-btn danger" onclick="Admin.resetScores()" title="Reset all data">🔄 Reset</button>';
+    }
+    h += '</div>';
     h += '</div>';
     h += '<div id="adminContent"></div>';
     container.innerHTML = h;
@@ -37,6 +48,27 @@ const Admin = {
     } else if (this.currentTab === 'content') {
       await this.renderContent();
     }
+  },
+
+  showExportMenu(btn) {
+    // Remove existing dropdown
+    const existing = document.getElementById('exportDropdown');
+    if (existing) { existing.remove(); return; }
+
+    const dd = document.createElement('div');
+    dd.id = 'exportDropdown';
+    dd.className = 'admin-dropdown';
+    dd.innerHTML = `
+      <button onclick="Admin.exportCSV('leaderboard');Admin.closeDropdown()">📊 Leaderboard CSV</button>
+      <button onclick="Admin.exportCSV('progress');Admin.closeDropdown()">📋 Progress CSV</button>`;
+    btn.style.position = 'relative';
+    btn.appendChild(dd);
+    setTimeout(() => document.addEventListener('click', Admin.closeDropdown, { once: true }), 10);
+  },
+
+  closeDropdown() {
+    const dd = document.getElementById('exportDropdown');
+    if (dd) dd.remove();
   },
 
   async switchTab(tab) {
@@ -90,60 +122,179 @@ const Admin = {
 
     try {
       const data = await API.getUsers(true);
+      const teamsData = await API.getTeams();
+      this._usersCache = data.users;
       let h = '';
 
-      // Create user button + show inactive toggle
-      h += '<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
-      h += '<button class="admin-action-btn" onclick="Admin.showCreateUser()">+ Create User</button>';
-      h += `<label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--gray);cursor:pointer"><input type="checkbox" ${this.showInactive ? 'checked' : ''} onchange="Admin.toggleInactive(this.checked)"> Show inactive</label>`;
+      // ── Summary Cards ──
+      const total = data.users.length;
+      const active = data.users.filter(u => u.isActive).length;
+      const pendingPw = data.users.filter(u => u.mustChangePassword && u.isActive).length;
+      const now = Date.now();
+      const recentLogins = data.users.filter(u => u.lastLogin && (now - new Date(u.lastLogin).getTime()) < 7 * 86400000).length;
+
+      h += '<div class="admin-stats">';
+      h += `<div class="admin-stat"><div class="admin-stat-val">${total}</div><div class="admin-stat-label">Total Users</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${active}</div><div class="admin-stat-label">Active</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${pendingPw}</div><div class="admin-stat-label">Pending PW</div></div>`;
+      h += `<div class="admin-stat"><div class="admin-stat-val">${recentLogins}</div><div class="admin-stat-label">Last 7d Logins</div></div>`;
       h += '</div>';
 
-      // Users table
-      h += '<div class="admin-table-wrap"><table class="admin-table">';
-      h += '<thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Team</th><th>Status</th><th>Actions</th></tr></thead>';
-      h += '<tbody>';
+      // ── Toolbar: Search + Filters + Create ──
+      const teamOptions = teamsData.teams.map(t => `<option value="${t.id}"${this._filterTeam == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+      h += '<div class="admin-toolbar-row">';
+      h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
+      h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
+      h += `<select class="admin-filter" onchange="Admin._filterTeam=this.value;Admin.filterAndRenderTable()"><option value="">All Teams</option>${teamOptions}</select>`;
+      h += `<select class="admin-filter" onchange="Admin._filterStatus=this.value;Admin.filterAndRenderTable()"><option value="active"${this._filterStatus==='active'?' selected':''}>Active</option><option value="inactive"${this._filterStatus==='inactive'?' selected':''}>Inactive</option><option value=""${this._filterStatus===''?' selected':''}>All</option></select>`;
+      h += '<div style="flex:1"></div>';
+      h += '<button class="admin-action-btn" onclick="Admin.showCreateUser()">+ Create User</button>';
+      h += '</div>';
 
-      data.users.forEach(u => {
-        // Filter inactive users unless checkbox is checked
-        if (!u.isActive && !this.showInactive) return;
+      // ── Table ──
+      h += '<div id="adminTableWrap"></div>';
 
-        const status = u.isActive ? 'Active' : 'Inactive';
-        const statusClass = u.isActive ? 'status-active' : 'status-inactive';
-        const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
-        h += `<tr${rowStyle}>`;
-        h += `<td>${u.firstName} ${u.lastName}</td>`;
-        h += `<td>${u.username}</td>`;
-        h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
-        h += `<td>${u.teamName || '-'}</td>`;
-        h += `<td><span class="${statusClass}">${status}</span></td>`;
-        h += '<td class="admin-actions">';
-        if (u.role !== 'superuser') {
-          h += `<button class="admin-btn" onclick="Admin.showEditUser(${u.id})">Edit</button>`;
-          h += `<button class="admin-btn" onclick="Admin.showResetPassword(${u.id})">Reset PW</button>`;
-          h += `<button class="admin-btn" onclick="Admin.showUserProgress(${u.id})">Progress</button>`;
-          // Deactivate / Reactivate (can't deactivate self)
-          if (u.id !== Auth.user.id) {
-            if (u.isActive) {
-              h += `<button class="admin-btn" style="color:#ff4466" onclick="Admin.confirmDeactivate(${u.id},'${u.firstName} ${u.lastName}')">🗑</button>`;
-            } else {
-              h += `<button class="admin-btn" style="color:var(--green)" onclick="Admin.reactivateUser(${u.id})">↩</button>`;
-            }
-          }
-        }
-        h += '</td>';
-        h += '</tr>';
-      });
-
-      h += '</tbody></table></div>';
       content.innerHTML = h;
+      this.filterAndRenderTable();
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
     }
   },
 
-  toggleInactive(checked) {
-    this.showInactive = checked;
-    this.renderUsers();
+  filterAndRenderTable() {
+    if (!this._usersCache) return;
+    const wrap = document.getElementById('adminTableWrap');
+    if (!wrap) return;
+
+    let users = this._usersCache.slice();
+
+    // Search
+    if (this._searchQuery) {
+      const q = this._searchQuery.toLowerCase();
+      users = users.filter(u => {
+        const searchStr = `${u.firstName} ${u.lastName} ${u.username} ${u.email || ''}`.toLowerCase();
+        return searchStr.includes(q);
+      });
+    }
+
+    // Filters
+    if (this._filterRole) users = users.filter(u => u.role === this._filterRole);
+    if (this._filterTeam) users = users.filter(u => u.teamId == this._filterTeam);
+    if (this._filterStatus === 'active') users = users.filter(u => u.isActive);
+    else if (this._filterStatus === 'inactive') users = users.filter(u => !u.isActive);
+
+    // Sort
+    const dir = this._sortDir === 'asc' ? 1 : -1;
+    users.sort((a, b) => {
+      let va, vb;
+      if (this._sortCol === 'name') { va = `${a.lastName} ${a.firstName}`; vb = `${b.lastName} ${b.firstName}`; }
+      else if (this._sortCol === 'role') { va = a.role; vb = b.role; }
+      else if (this._sortCol === 'team') { va = a.teamName || 'zzz'; vb = b.teamName || 'zzz'; }
+      else if (this._sortCol === 'lastLogin') { va = a.lastLogin || ''; vb = b.lastLogin || ''; }
+      else { va = a.username; vb = b.username; }
+      return va < vb ? -dir : va > vb ? dir : 0;
+    });
+
+    // Build table
+    const arrow = c => this._sortCol === c ? (this._sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+    let h = '<div class="admin-table-wrap"><table class="admin-table">';
+    h += '<thead><tr>';
+    h += `<th style="width:36px"></th>`;
+    h += `<th class="sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
+    h += '<th>Username</th>';
+    h += `<th class="sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
+    h += `<th class="sortable" onclick="Admin.sortBy('team')">Team${arrow('team')}</th>`;
+    h += '<th>Status</th>';
+    h += `<th class="sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
+    h += '<th style="width:50px"></th>';
+    h += '</tr></thead><tbody>';
+
+    users.forEach(u => {
+      const initials = (u.firstName[0] || '') + (u.lastName[0] || '');
+      const status = u.isActive ? 'Active' : 'Inactive';
+      const statusClass = u.isActive ? 'status-active' : 'status-inactive';
+      const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
+      const lastLogin = u.lastLogin ? Admin.timeAgo(u.lastLogin) : '<span style="color:var(--gray);font-size:var(--fs-xs)">Never</span>';
+
+      h += `<tr${rowStyle}>`;
+      h += `<td><div class="admin-avatar">${esc(initials)}</div></td>`;
+      h += `<td><strong>${esc(u.firstName)} ${esc(u.lastName)}</strong>${u.mustChangePassword ? ' <span class="pw-badge" title="Must change password">🔑</span>' : ''}</td>`;
+      h += `<td style="color:var(--gray)">${esc(u.username)}</td>`;
+      h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
+      h += `<td>${u.teamName ? esc(u.teamName) : '<span style="color:var(--gray)">—</span>'}</td>`;
+      h += `<td><span class="${statusClass}">${status}</span></td>`;
+      h += `<td style="font-size:var(--fs-xs)">${lastLogin}</td>`;
+      h += '<td>';
+      if (u.role !== 'superuser') {
+        h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},${u.isActive},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
+      }
+      h += '</td>';
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+    h += `<div class="admin-table-footer">Showing ${users.length} of ${this._usersCache.length} users</div>`;
+    wrap.innerHTML = h;
+  },
+
+  sortBy(col) {
+    if (this._sortCol === col) {
+      this._sortDir = this._sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this._sortCol = col;
+      this._sortDir = 'asc';
+    }
+    this.filterAndRenderTable();
+  },
+
+  showOverflowMenu(event, id, isActive, name) {
+    event.stopPropagation();
+    // Remove existing menu
+    const existing = document.getElementById('adminOverflow');
+    if (existing) existing.remove();
+
+    const menu = document.createElement('div');
+    menu.id = 'adminOverflow';
+    menu.className = 'admin-overflow';
+    let items = '';
+    items += `<button onclick="Admin.showEditUser(${id});Admin.closeOverflow()">✏️ Edit</button>`;
+    items += `<button onclick="Admin.showResetPassword(${id});Admin.closeOverflow()">🔑 Reset Password</button>`;
+    items += `<button onclick="Admin.showUserProgress(${id});Admin.closeOverflow()">📊 View Progress</button>`;
+    if (id !== Auth.user.id) {
+      if (isActive) {
+        items += `<div class="admin-overflow-divider"></div>`;
+        items += `<button class="danger" onclick="Admin.confirmDeactivate(${id},'${name}');Admin.closeOverflow()">🗑 Deactivate</button>`;
+      } else {
+        items += `<div class="admin-overflow-divider"></div>`;
+        items += `<button onclick="Admin.reactivateUser(${id});Admin.closeOverflow()">↩ Reactivate</button>`;
+      }
+    }
+    menu.innerHTML = items;
+
+    // Position near the button
+    const rect = event.target.getBoundingClientRect();
+    menu.style.top = rect.bottom + 4 + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    document.body.appendChild(menu);
+
+    setTimeout(() => document.addEventListener('click', Admin.closeOverflow, { once: true }), 10);
+  },
+
+  closeOverflow() {
+    const m = document.getElementById('adminOverflow');
+    if (m) m.remove();
+  },
+
+  timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(dateStr).toLocaleDateString();
   },
 
   confirmDeactivate(id, name) {
@@ -240,7 +391,12 @@ const Admin = {
     if (modal) modal.remove();
   },
 
-  showCreateUser() {
+  async showCreateUser() {
+    let teamOpts = '';
+    try {
+      const td = await API.getTeams();
+      teamOpts = td.teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    } catch(e) {}
     const body = `
       <div class="modal-field"><label>Username</label><input type="text" id="cuUsername"></div>
       <div class="modal-field"><label>First Name</label><input type="text" id="cuFirst"></div>
@@ -251,6 +407,12 @@ const Admin = {
         <select id="cuRole">
           <option value="rep">Rep</option>
           ${Auth.hasRole('superuser') ? '<option value="manager">Manager</option>' : ''}
+        </select>
+      </div>
+      <div class="modal-field"><label>Team</label>
+        <select id="cuTeam">
+          <option value="">No team</option>
+          ${teamOpts}
         </select>
       </div>
       <div id="cuError" class="modal-error"></div>
@@ -267,7 +429,8 @@ const Admin = {
         lastName: document.getElementById('cuLast').value,
         email: document.getElementById('cuEmail').value,
         password: document.getElementById('cuPass').value,
-        role: document.getElementById('cuRole').value
+        role: document.getElementById('cuRole').value,
+        teamId: document.getElementById('cuTeam').value || null
       });
       this.closeModal();
       await this.renderUsers();
@@ -278,13 +441,21 @@ const Admin = {
   },
 
   showEditUser(id) {
+    // Find user from cache for pre-fill
+    const u = (this._usersCache || []).find(x => x.id === id) || {};
+    const isSuperuser = Auth.hasRole('superuser');
+    const roleSelect = isSuperuser && u.role !== 'superuser' && id !== Auth.user.id
+      ? `<div class="modal-field"><label>Role</label><select id="euRole"><option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option></select></div>`
+      : '';
+
     const body = `
-      <div class="modal-field"><label>First Name</label><input type="text" id="euFirst"></div>
-      <div class="modal-field"><label>Last Name</label><input type="text" id="euLast"></div>
-      <div class="modal-field"><label>Nickname</label><input type="text" id="euNick"></div>
-      <div class="modal-field"><label>Email</label><input type="email" id="euEmail"></div>
+      <div class="modal-field"><label>First Name</label><input type="text" id="euFirst" value="${esc(u.firstName || '')}"></div>
+      <div class="modal-field"><label>Last Name</label><input type="text" id="euLast" value="${esc(u.lastName || '')}"></div>
+      <div class="modal-field"><label>Nickname</label><input type="text" id="euNick" value="${esc(u.nickname || '')}"></div>
+      <div class="modal-field"><label>Email</label><input type="email" id="euEmail" value="${esc(u.email || '')}"></div>
+      ${roleSelect}
       <div class="modal-field">
-        <label><input type="checkbox" id="euActive" checked> Active</label>
+        <label><input type="checkbox" id="euActive" ${u.isActive !== false ? 'checked' : ''}> Active</label>
       </div>
       <div id="euError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.editUser(${id})">Save Changes</button>`;
@@ -294,13 +465,18 @@ const Admin = {
   async editUser(id) {
     const errorEl = document.getElementById('euError');
     try {
-      await API.updateUser(id, {
+      const data = {
         firstName: document.getElementById('euFirst').value,
         lastName: document.getElementById('euLast').value,
         nickname: document.getElementById('euNick').value,
         email: document.getElementById('euEmail').value,
         isActive: document.getElementById('euActive').checked
-      });
+      };
+      // Include role if the dropdown exists
+      const roleEl = document.getElementById('euRole');
+      if (roleEl) data.role = roleEl.value;
+
+      await API.updateUser(id, data);
       this.closeModal();
       await this.renderUsers();
     } catch (err) {
