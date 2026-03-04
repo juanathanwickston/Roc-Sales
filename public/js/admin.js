@@ -222,8 +222,8 @@ const Admin = {
       h += `<td style="color:var(--gray)">${esc(u.username)}</td>`;
       h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
       h += `<td>${u.teamName ? esc(u.teamName) : '<span style="color:var(--gray)">—</span>'}</td>`;
-      h += `<td><span class="${statusClass}">${status}</span></td>`;
-      h += `<td style="font-size:var(--fs-xs)">${lastLogin}</td>`;
+      h += `<td><span class="${statusClass}">${u.isActive ? '●' : '●'} ${status}</span></td>`;
+      h += `<td style="font-size:10px">${lastLogin}</td>`;
       h += '<td>';
       if (u.role !== 'superuser') {
         h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},${u.isActive},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
@@ -440,10 +440,18 @@ const Admin = {
     }
   },
 
-  showEditUser(id) {
+  async showEditUser(id) {
     // Find user from cache for pre-fill
     const u = (this._usersCache || []).find(x => x.id === id) || {};
     const isSuperuser = Auth.hasRole('superuser');
+
+    // Fetch teams for dropdown
+    let teamOpts = '';
+    try {
+      const td = await API.getTeams();
+      teamOpts = td.teams.map(t => `<option value="${t.id}"${u.teamId == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+    } catch(e) {}
+
     const roleSelect = isSuperuser && u.role !== 'superuser' && id !== Auth.user.id
       ? `<div class="modal-field"><label>Role</label><select id="euRole"><option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option></select></div>`
       : '';
@@ -454,6 +462,12 @@ const Admin = {
       <div class="modal-field"><label>Nickname</label><input type="text" id="euNick" value="${esc(u.nickname || '')}"></div>
       <div class="modal-field"><label>Email</label><input type="email" id="euEmail" value="${esc(u.email || '')}"></div>
       ${roleSelect}
+      <div class="modal-field"><label>Team</label>
+        <select id="euTeam">
+          <option value="">No team</option>
+          ${teamOpts}
+        </select>
+      </div>
       <div class="modal-field">
         <label><input type="checkbox" id="euActive" ${u.isActive !== false ? 'checked' : ''}> Active</label>
       </div>
@@ -475,6 +489,9 @@ const Admin = {
       // Include role if the dropdown exists
       const roleEl = document.getElementById('euRole');
       if (roleEl) data.role = roleEl.value;
+      // Include team
+      const teamEl = document.getElementById('euTeam');
+      if (teamEl) data.teamId = teamEl.value || null;
 
       await API.updateUser(id, data);
       this.closeModal();
