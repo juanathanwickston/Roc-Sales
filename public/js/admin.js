@@ -364,7 +364,7 @@ const Admin = {
         h += `<td>${p.isActive ? '<span class="status-active">● Active</span>' : '<span class="status-inactive">● Inactive</span>'}</td>`;
         h += `<td>${new Date(p.createdAt).toLocaleDateString()}</td>`;
         if (Auth.hasRole('ld_manager')) {
-          h += `<td><button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button></td>`;
+          h += `<td><button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button> <button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button></td>`;
         }
         h += '</tr>';
       });
@@ -606,6 +606,125 @@ const Admin = {
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
+    }
+  },
+
+  // ─── PATHWAY BUILDER ───
+
+  async showPathwayBuilder(pathwayId) {
+    this.showModal('Build Pathway', '<div class="admin-loading">Loading modules...</div>');
+    // Widen modal for two-column builder layout
+    const card = document.querySelector('#adminModal .modal-card');
+    if (card) card.style.maxWidth = '720px';
+
+    try {
+      const data = await API.getPathwayModules(pathwayId);
+
+      // Store state for reorder/save
+      this._builderPathwayId = pathwayId;
+      this._builderAssigned = data.assigned.map(m => m.id);
+      this._builderModules = {};
+      data.assigned.forEach(m => { this._builderModules[m.id] = m; });
+      data.available.forEach(m => { this._builderModules[m.id] = m; });
+
+      this._renderBuilderBody(data.pathwayName);
+    } catch (err) {
+      const body = document.querySelector('.modal-body');
+      if (body) body.innerHTML = `<div class="admin-error">Unable to load modules: ${esc(err.message)}</div>`;
+    }
+  },
+
+  _renderBuilderBody(pathwayName) {
+    const assigned = this._builderAssigned;
+    const allIds = Object.keys(this._builderModules);
+    const availableIds = allIds.filter(id => !assigned.includes(id));
+
+    let h = `<div class="builder-title">${esc(pathwayName)}</div>`;
+    h += '<div class="builder-columns">';
+
+    // Left: Available
+    h += '<div class="builder-col">';
+    h += '<div class="builder-col-header">Available Modules</div>';
+    h += '<div class="builder-list" id="builderAvailable">';
+    if (availableIds.length === 0) {
+      h += '<div class="builder-empty">All modules assigned</div>';
+    } else {
+      availableIds.forEach(id => {
+        const m = this._builderModules[id];
+        h += `<div class="builder-item">`;
+        h += `<span class="builder-item-icon">${m.icon || '📘'}</span>`;
+        h += `<span class="builder-item-title">${esc(m.title)}</span>`;
+        h += `<button class="builder-item-btn" onclick="Admin._builderAdd('${esc(id)}')" title="Add to pathway">→</button>`;
+        h += `</div>`;
+      });
+    }
+    h += '</div></div>';
+
+    // Right: Assigned
+    h += '<div class="builder-col">';
+    h += '<div class="builder-col-header">Pathway Modules (in order)</div>';
+    h += '<div class="builder-list" id="builderAssigned">';
+    if (assigned.length === 0) {
+      h += '<div class="builder-empty">No modules assigned yet.<br>Add modules from the left panel.</div>';
+    } else {
+      assigned.forEach((id, i) => {
+        const m = this._builderModules[id];
+        h += `<div class="builder-item assigned">`;
+        h += `<span class="builder-item-order">${i + 1}</span>`;
+        h += `<span class="builder-item-icon">${m.icon || '📘'}</span>`;
+        h += `<span class="builder-item-title">${esc(m.title)}</span>`;
+        h += `<span class="builder-item-actions">`;
+        if (i > 0) h += `<button class="builder-item-btn" onclick="Admin._builderMove(${i}, ${i - 1})" title="Move up">↑</button>`;
+        if (i < assigned.length - 1) h += `<button class="builder-item-btn" onclick="Admin._builderMove(${i}, ${i + 1})" title="Move down">↓</button>`;
+        h += `<button class="builder-item-btn remove" onclick="Admin._builderRemove('${esc(id)}')" title="Remove from pathway">←</button>`;
+        h += `</span></div>`;
+      });
+    }
+    h += '</div></div>';
+
+    h += '</div>';
+    h += '<div class="builder-footer">';
+    h += `<span class="builder-count">${assigned.length} module${assigned.length !== 1 ? 's' : ''} assigned</span>`;
+    h += `<button class="admin-action-btn" id="builderSaveBtn" onclick="Admin.savePathwayModules()">Save Module Assignments</button>`;
+    h += '</div>';
+
+    const body = document.querySelector('.modal-body');
+    if (body) body.innerHTML = h;
+  },
+
+  _builderAdd(moduleId) {
+    if (!this._builderAssigned.includes(moduleId)) {
+      this._builderAssigned.push(moduleId);
+      this._renderBuilderBody(this._builderModules[this._builderAssigned[0]]?.title ? document.querySelector('.builder-title')?.textContent : '');
+    }
+  },
+
+  _builderRemove(moduleId) {
+    this._builderAssigned = this._builderAssigned.filter(id => id !== moduleId);
+    const titleEl = document.querySelector('.builder-title');
+    this._renderBuilderBody(titleEl?.textContent || '');
+  },
+
+  _builderMove(fromIdx, toIdx) {
+    const arr = this._builderAssigned;
+    const item = arr.splice(fromIdx, 1)[0];
+    arr.splice(toIdx, 0, item);
+    const titleEl = document.querySelector('.builder-title');
+    this._renderBuilderBody(titleEl?.textContent || '');
+  },
+
+  async savePathwayModules() {
+    const btn = document.getElementById('builderSaveBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+    try {
+      await API.updatePathwayModules(this._builderPathwayId, this._builderAssigned);
+      this.closeModal();
+      if (typeof toast === 'function') toast('Module assignments saved');
+      await this.renderPathways();
+    } catch (err) {
+      if (typeof toast === 'function') toast(err.message, 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Module Assignments'; }
     }
   },
 

@@ -537,6 +537,136 @@ router.put('/user-pathways', requireRole('ld_manager'), async (req, res) => {
   }
 });
 
+// ─── PATHWAY MODULE MANAGEMENT ───
+
+/**
+ * GET /api/admin/pathways/:id/modules
+ * Returns assigned modules (ordered) and available modules for pathway builder.
+ * LD Manager / Superuser only.
+ */
+router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) => {
+  const pathwayId = parseInt(req.params.id);
+  if (isNaN(pathwayId)) {
+    return res.status(400).json({ error: 'Valid pathway ID is required' });
+  }
+
+  try {
+    // Verify pathway exists
+    const pathway = await db.query('SELECT id, name FROM pathways WHERE id = $1', [pathwayId]);
+    if (pathway.rows.length === 0) {
+      return res.status(404).json({ error: 'Pathway not found' });
+    }
+
+    // Assigned modules — ordered by sort_order
+    const assigned = await db.query(
+      `SELECT cm.id, cm.title, cm.icon, cm.phase, pm.sort_order AS sort_order
+       FROM pathway_modules pm
+       JOIN cms_modules cm ON cm.id = pm.module_id
+       WHERE pm.pathway_id = $1
+       ORDER BY pm.sort_order`,
+      [pathwayId]
+    );
+
+    // Available modules — active modules NOT assigned to this pathway
+    const available = await db.query(
+      `SELECT cm.id, cm.title, cm.icon, cm.phase
+       FROM cms_modules cm
+       WHERE cm.is_active = TRUE
+         AND cm.id NOT IN (SELECT module_id FROM pathway_modules WHERE pathway_id = $1)
+       ORDER BY cm.phase, cm.sort_order`,
+      [pathwayId]
+    );
+
+    res.json({
+      pathwayId,
+      pathwayName: pathway.rows[0].name,
+      assigned: assigned.rows.map(m => ({
+        id: m.id,
+        title: m.title,
+        icon: m.icon,
+        phase: m.phase,
+        sortOrder: m.sort_order
+      })),
+      available: available.rows.map(m => ({
+        id: m.id,
+        title: m.title,
+        icon: m.icon,
+        phase: m.phase
+      }))
+    });
+  } catch (err) {
+    console.error('[ADMIN] Get pathway modules error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PUT /api/admin/pathways/:id/modules
+ * Replace all module assignments for a pathway.
+ * Body: { moduleIds: ['m1', 'm3', 'm5'] } — array order = sort_order.
+ * LD Manager / Superuser only. Transactional + audit-logged.
+ */
+router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) => {
+  const pathwayId = parseInt(req.params.id);
+  const { moduleIds } = req.body;
+
+  if (isNaN(pathwayId)) {
+    return res.status(400).json({ error: 'Valid pathway ID is required' });
+  }
+  if (!Array.isArray(moduleIds)) {
+    return res.status(400).json({ error: 'moduleIds must be an array' });
+  }
+
+  try {
+    // Verify pathway exists
+    const pathway = await db.query('SELECT id FROM pathways WHERE id = $1', [pathwayId]);
+    if (pathway.rows.length === 0) {
+      return res.status(404).json({ error: 'Pathway not found' });
+    }
+
+    // Validate all module IDs exist in cms_modules
+    if (moduleIds.length > 0) {
+      const valid = await db.query(
+        'SELECT id FROM cms_modules WHERE id = ANY($1)',
+        [moduleIds]
+      );
+      const validIds = new Set(valid.rows.map(r => r.id));
+      const invalid = moduleIds.filter(id => !validIds.has(id));
+      if (invalid.length > 0) {
+        return res.status(400).json({ error: `Invalid module IDs: ${invalid.join(', ')}` });
+      }
+    }
+
+    // Transaction: delete all → re-insert in order
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM pathway_modules WHERE pathway_id = $1', [pathwayId]);
+
+      for (let i = 0; i < moduleIds.length; i++) {
+        await client.query(
+          'INSERT INTO pathway_modules (pathway_id, module_id, sort_order) VALUES ($1, $2, $3)',
+          [pathwayId, moduleIds[i], i]
+        );
+      }
+
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    await logAudit(req.user.id, 'pathway_modules_updated', pathwayId, { moduleIds });
+
+    res.json({ message: 'Pathway modules updated' });
+  } catch (err) {
+    console.error('[ADMIN] Update pathway modules error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ─── RESET SCORES / PROGRESS (superuser only) ───
 
 /**

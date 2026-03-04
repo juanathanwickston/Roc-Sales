@@ -233,6 +233,14 @@ const API = {
     return this.request('PUT', '/admin/user-pathways', { userId, pathwayIds });
   },
 
+  async getPathwayModules(pathwayId) {
+    return this.request('GET', `/admin/pathways/${pathwayId}/modules`);
+  },
+
+  async updatePathwayModules(pathwayId, moduleIds) {
+    return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { moduleIds });
+  },
+
   // ─── CMS (Content Management) ───
 
   async getModules() {

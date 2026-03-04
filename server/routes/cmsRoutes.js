@@ -13,14 +13,56 @@ const router = express.Router();
 const db = require('../db');
 const requireAuth = require('../middleware/requireAuth');
 const requireRole = require('../middleware/requireRole');
+const { verifyToken } = require('../auth');
 
-// ─── PUBLIC: Full content tree ───
+// ─── PUBLIC: Full content tree (pathway-aware) ───
 
 router.get('/modules', async (req, res) => {
   try {
+    // Optional auth: if token present, identify user for pathway filtering
+    let userId = null;
+    let userRole = null;
+    const header = req.headers.authorization;
+    if (header && header.startsWith('Bearer ')) {
+      const payload = verifyToken(header.slice(7));
+      if (payload) {
+        const userCheck = await db.query(
+          'SELECT id, role FROM users WHERE id = $1 AND is_active = TRUE',
+          [payload.userId]
+        );
+        if (userCheck.rows.length > 0) {
+          userId = userCheck.rows[0].id;
+          userRole = userCheck.rows[0].role;
+        }
+      }
+    }
+
+    // Determine if this user should see pathway-filtered modules
+    let moduleFilter = '';
+    let filterParams = [];
+
+    if (userId && (userRole === 'rep' || userRole === 'manager')) {
+      // Check if user has any pathway assignments
+      const pathwayCheck = await db.query(
+        'SELECT pathway_id FROM user_pathways WHERE user_id = $1', [userId]
+      );
+
+      if (pathwayCheck.rows.length > 0) {
+        // User has pathways — only show modules assigned to those pathways
+        const pathwayIds = pathwayCheck.rows.map(r => r.pathway_id);
+        moduleFilter = `AND cm.id IN (
+          SELECT module_id FROM pathway_modules WHERE pathway_id = ANY($1)
+        )`;
+        filterParams = [pathwayIds];
+      }
+    }
+    // Superuser, ld_manager, unauthenticated, or users without pathways → all modules
+
     const modules = await db.query(
       `SELECT id, phase, title, description, icon, game_id, game_title, game_desc, sort_order
-       FROM cms_modules WHERE is_active = TRUE ORDER BY sort_order, phase`
+       FROM cms_modules cm WHERE cm.is_active = TRUE ${moduleFilter}
+       ORDER BY sort_order, phase`,
+      filterParams
     );
 
     // Batch-load all child data

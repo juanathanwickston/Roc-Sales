@@ -634,6 +634,26 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .modal-field textarea{width:100%;padding:10px 14px;background:var(--navy);border:1px solid var(--gb);border-radius:var(--r-sm);color:var(--white);font-family:var(--font);font-size:var(--fs-md);outline:none;transition:border-color .25s;resize:vertical}
 .modal-field textarea:focus{border-color:rgba(59,130,246,.4)}
 
+/* PATHWAY BUILDER */
+.builder-title{font-size:var(--fs-md);font-weight:600;margin-bottom:16px;color:var(--white)}
+.builder-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:320px}
+.builder-col{display:flex;flex-direction:column}
+.builder-col-header{font-size:var(--fs-xs);font-weight:500;color:var(--gray);letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px}
+.builder-list{flex:1;background:var(--navy);border:1px solid var(--gb);border-radius:var(--rs);padding:8px;overflow-y:auto;max-height:400px;display:flex;flex-direction:column;gap:4px}
+.builder-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--r-sm);transition:all .15s}
+.builder-item:hover{border-color:rgba(59,130,246,.3)}
+.builder-item.assigned{border-color:rgba(59,130,246,.15);background:rgba(59,130,246,.04)}
+.builder-item-order{width:20px;font-size:var(--fs-xs);font-weight:600;color:var(--blue);text-align:center;flex-shrink:0}
+.builder-item-icon{font-size:var(--fs-md);flex-shrink:0}
+.builder-item-title{flex:1;font-size:var(--fs-sm);font-weight:400;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.builder-item-actions{display:flex;gap:4px;flex-shrink:0}
+.builder-item-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--n4);border:1px solid var(--gb);border-radius:var(--r-sm);color:var(--gray);font-size:14px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.builder-item-btn:hover{border-color:var(--blue);color:var(--white)}
+.builder-item-btn.remove:hover{border-color:var(--red);color:var(--red)}
+.builder-empty{text-align:center;padding:32px 16px;color:var(--gray);font-size:var(--fs-sm);line-height:1.6}
+.builder-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--gb)}
+.builder-count{font-size:var(--fs-sm);color:var(--gray)}
+
 /* CMS EDITOR */
 .cms-content{padding:8px 0}
 .cms-modules-list{display:flex;flex-direction:column;gap:2px}
