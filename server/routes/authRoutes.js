@@ -83,7 +83,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
 /**
  * GET /api/auth/me
- * Returns current user profile with rank.
+ * Returns current user profile with pathway assignments.
  */
 router.get('/me', requireAuth, async (req, res) => {
   try {
@@ -100,7 +100,17 @@ router.get('/me', requireAuth, async (req, res) => {
 
     const user = result.rows[0];
 
-    // Get team name if assigned
+    // Get assigned pathways from junction table
+    const pathwaysResult = await db.query(
+      `SELECT p.id, p.name
+       FROM user_pathways up
+       JOIN pathways p ON p.id = up.pathway_id
+       WHERE up.user_id = $1
+       ORDER BY p.name`,
+      [req.user.id]
+    );
+
+    // Legacy: get team name for backward compat (remove after full migration)
     let teamName = null;
     if (user.team_id) {
       const team = await db.query('SELECT name FROM teams WHERE id = $1', [user.team_id]);
@@ -115,6 +125,9 @@ router.get('/me', requireAuth, async (req, res) => {
       nickname: user.nickname,
       email: user.email,
       role: user.role,
+      // New: pathway assignments
+      pathways: pathwaysResult.rows.map(p => ({ id: p.id, name: p.name })),
+      // Legacy: keep during migration
       teamId: user.team_id,
       teamName,
       pathwayId: user.pathway_id,

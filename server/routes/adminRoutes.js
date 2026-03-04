@@ -1,5 +1,5 @@
 /**
- * Admin routes: user CRUD, team CRUD, rep progress viewing.
+ * Admin routes: user CRUD, pathway CRUD, rep progress viewing.
  * All endpoints require manager or superuser role.
  */
 
@@ -19,34 +19,49 @@ router.use(requireRole('manager'));
 
 /**
  * GET /api/admin/users
- * Returns users scoped by manager's teams (or all for superuser).
- * Query: ?all=1 (managers can toggle to see all reps)
+ * Returns users with pathway assignments.
+ * Superuser/LD Manager: all users. Manager: scoped to shared pathways.
  */
 router.get('/users', async (req, res) => {
   try {
     let users;
 
-    if (req.user.role === 'superuser' || req.query.all === '1') {
+    if (req.user.role === 'superuser' || req.user.role === 'ld_manager' || req.query.all === '1') {
       users = await db.query(
         `SELECT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at,
-                u.last_login, u.must_change_password
+                u.role, u.is_active, u.created_at, u.last_login, u.must_change_password
          FROM users u
-         LEFT JOIN teams t ON t.id = u.team_id
          ORDER BY u.role, u.last_name`
       );
     } else {
-      // Manager: only users on their teams
+      // Manager: only users who share a pathway with them
       users = await db.query(
-        `SELECT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.team_id, t.name AS team_name, u.is_active, u.created_at,
-                u.last_login, u.must_change_password
+        `SELECT DISTINCT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
+                u.role, u.is_active, u.created_at, u.last_login, u.must_change_password
          FROM users u
-         LEFT JOIN teams t ON t.id = u.team_id
-         WHERE u.team_id IN (SELECT team_id FROM manager_teams WHERE manager_id = $1)
+         JOIN user_pathways up ON up.user_id = u.id
+         WHERE up.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)
          ORDER BY u.last_name`,
         [req.user.id]
       );
+    }
+
+    // Batch-load pathway assignments for all returned users
+    const userIds = users.rows.map(u => u.id);
+    let pathwayMap = {};
+    if (userIds.length > 0) {
+      const pathways = await db.query(
+        `SELECT up.user_id, p.id AS pathway_id, p.name AS pathway_name
+         FROM user_pathways up
+         JOIN pathways p ON p.id = up.pathway_id
+         WHERE up.user_id = ANY($1)
+         ORDER BY p.name`,
+        [userIds]
+      );
+      pathways.rows.forEach(row => {
+        if (!pathwayMap[row.user_id]) pathwayMap[row.user_id] = [];
+        pathwayMap[row.user_id].push({ id: row.pathway_id, name: row.pathway_name });
+      });
     }
 
     res.json({
@@ -58,8 +73,7 @@ router.get('/users', async (req, res) => {
         nickname: u.nickname,
         email: u.email,
         role: u.role,
-        teamId: u.team_id,
-        teamName: u.team_name,
+        pathways: pathwayMap[u.id] || [],
         isActive: u.is_active,
         createdAt: u.created_at,
         lastLogin: u.last_login,
@@ -74,11 +88,11 @@ router.get('/users', async (req, res) => {
 
 /**
  * POST /api/admin/users
- * Body: { username, firstName, lastName, email, password, role, teamId }
- * Creates a new user. Managers can only create reps. Superuser can create managers.
+ * Body: { username, firstName, lastName, email, password, role, pathwayIds }
+ * Creates a new user. Managers can only create reps. Superuser/LD Manager can create managers.
  */
 router.post('/users', async (req, res) => {
-  const { username, firstName, lastName, email, password, role, teamId } = req.body;
+  const { username, firstName, lastName, email, password, role, pathwayIds } = req.body;
 
   if (!username || !firstName || !lastName || !password) {
     return res.status(400).json({ error: 'username, firstName, lastName, and password are required' });
@@ -101,9 +115,14 @@ router.post('/users', async (req, res) => {
     return res.status(403).json({ error: 'Managers can only create rep accounts' });
   }
 
-  // Only superuser can create managers
-  if (targetRole === 'manager' && req.user.role !== 'superuser') {
-    return res.status(403).json({ error: 'Only superuser can create manager accounts' });
+  // Only superuser/ld_manager can create managers
+  if (targetRole === 'manager' && !['superuser', 'ld_manager'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Only superuser or LD Manager can create manager accounts' });
+  }
+
+  // Only superuser can create ld_manager accounts
+  if (targetRole === 'ld_manager' && req.user.role !== 'superuser') {
+    return res.status(403).json({ error: 'Only superuser can create LD Manager accounts' });
   }
 
   // Cannot create superuser accounts
@@ -123,28 +142,52 @@ router.post('/users', async (req, res) => {
 
     const hash = await auth.hashPassword(password);
 
-    const result = await db.query(
-      `INSERT INTO users (username, password_hash, first_name, last_name, email, role, team_id, must_change_password, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8)
-       RETURNING id`,
-      [
-        username.toLowerCase().trim(),
-        hash,
-        firstName.trim(),
-        lastName.trim(),
-        email ? email.trim().substring(0, 255) : null,
-        targetRole,
-        teamId || null,
-        req.user.id
-      ]
-    );
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
 
-    await logAudit(req.user.id, 'user_created', result.rows[0].id, {
-      username: username.toLowerCase().trim(),
-      role: targetRole
-    });
+      const result = await client.query(
+        `INSERT INTO users (username, password_hash, first_name, last_name, email, role, must_change_password, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)
+         RETURNING id`,
+        [
+          username.toLowerCase().trim(),
+          hash,
+          firstName.trim(),
+          lastName.trim(),
+          email ? email.trim().substring(0, 255) : null,
+          targetRole,
+          req.user.id
+        ]
+      );
 
-    res.status(201).json({ id: result.rows[0].id, message: 'User created' });
+      const newUserId = result.rows[0].id;
+
+      // Assign pathways via junction table
+      if (Array.isArray(pathwayIds) && pathwayIds.length > 0) {
+        for (const pid of pathwayIds) {
+          await client.query(
+            'INSERT INTO user_pathways (user_id, pathway_id) VALUES ($1, $2)',
+            [newUserId, pid]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      await logAudit(req.user.id, 'user_created', newUserId, {
+        username: username.toLowerCase().trim(),
+        role: targetRole,
+        pathwayIds
+      });
+
+      res.status(201).json({ id: newUserId, message: 'User created' });
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error('[ADMIN] Create user error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -153,11 +196,11 @@ router.post('/users', async (req, res) => {
 
 /**
  * PUT /api/admin/users/:id
- * Body: { firstName, lastName, email, nickname, teamId, isActive }
+ * Body: { firstName, lastName, email, nickname, pathwayIds, isActive }
  */
 router.put('/users/:id', async (req, res) => {
   const targetId = parseInt(req.params.id);
-  const { firstName, lastName, email, nickname, teamId, isActive, role } = req.body;
+  const { firstName, lastName, email, nickname, pathwayIds, isActive, role } = req.body;
 
   // Email validation
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -193,7 +236,7 @@ router.put('/users/:id', async (req, res) => {
     if (lastName !== undefined) { fields.push(`last_name = $${idx++}`); values.push(lastName.trim()); }
     if (email !== undefined) { fields.push(`email = $${idx++}`); values.push(email ? email.trim() : null); }
     if (nickname !== undefined) { fields.push(`nickname = $${idx++}`); values.push(nickname ? nickname.trim() : null); }
-    if (teamId !== undefined) { fields.push(`team_id = $${idx++}`); values.push(teamId || null); }
+    // Note: team_id is no longer used. Pathway assignment handled via junction table below.
     if (isActive !== undefined) { fields.push(`is_active = $${idx++}`); values.push(!!isActive); }
 
     // Role changes: superuser only, with safety guards
@@ -207,8 +250,8 @@ router.put('/users/:id', async (req, res) => {
       if (targetId === req.user.id) {
         return res.status(403).json({ error: 'Cannot change your own role' });
       }
-      if (!['rep', 'manager'].includes(role)) {
-        return res.status(400).json({ error: 'Role must be rep or manager' });
+      if (!['rep', 'manager', 'ld_manager'].includes(role)) {
+        return res.status(400).json({ error: 'Role must be rep, manager, or ld_manager' });
       }
       fields.push(`role = $${idx++}`); values.push(role);
     }
@@ -217,11 +260,34 @@ router.put('/users/:id', async (req, res) => {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    values.push(targetId);
-    await db.query(
-      `UPDATE users SET ${fields.join(', ')} WHERE id = $${idx}`,
-      values
-    );
+    if (fields.length > 0) {
+      values.push(targetId);
+      await db.query(
+        `UPDATE users SET ${fields.join(', ')} WHERE id = $${idx}`,
+        values
+      );
+    }
+
+    // Update pathway assignments if provided
+    if (Array.isArray(pathwayIds)) {
+      const client = await db.getClient();
+      try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM user_pathways WHERE user_id = $1', [targetId]);
+        for (const pid of pathwayIds) {
+          await client.query(
+            'INSERT INTO user_pathways (user_id, pathway_id) VALUES ($1, $2)',
+            [targetId, pid]
+          );
+        }
+        await client.query('COMMIT');
+      } catch (txErr) {
+        await client.query('ROLLBACK');
+        throw txErr;
+      } finally {
+        client.release();
+      }
+    }
 
     await logAudit(req.user.id, 'user_updated', targetId, { fields: Object.keys(req.body) });
 
@@ -293,22 +359,24 @@ router.get('/users/:id/progress', async (req, res) => {
   try {
     // Verify target exists
     const target = await db.query(
-      'SELECT id, first_name, last_name, nickname, team_id FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, nickname FROM users WHERE id = $1',
       [targetId]
     );
     if (target.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Manager team scoping
+    // Manager pathway scoping — can only view users who share a pathway
     if (req.user.role === 'manager') {
-      const managed = await db.query(
-        'SELECT team_id FROM manager_teams WHERE manager_id = $1',
-        [req.user.id]
+      const shared = await db.query(
+        `SELECT 1 FROM user_pathways up1
+         JOIN user_pathways up2 ON up1.pathway_id = up2.pathway_id
+         WHERE up1.user_id = $1 AND up2.user_id = $2
+         LIMIT 1`,
+        [req.user.id, targetId]
       );
-      const teamIds = managed.rows.map(r => r.team_id);
-      if (!teamIds.includes(target.rows[0].team_id)) {
-        return res.status(403).json({ error: 'User is not on your team' });
+      if (shared.rows.length === 0) {
+        return res.status(403).json({ error: 'User is not on your pathway' });
       }
     }
 
@@ -338,122 +406,117 @@ router.get('/users/:id/progress', async (req, res) => {
   }
 });
 
-// ─── TEAM MANAGEMENT (Superuser Only) ───
+// ─── PATHWAY MANAGEMENT (Superuser / LD Manager) ───
 
 /**
- * GET /api/admin/teams
+ * GET /api/admin/pathways
  */
-router.get('/teams', async (req, res) => {
+router.get('/pathways', async (req, res) => {
   try {
-    const teams = await db.query(
-      `SELECT t.id, t.name, t.created_at,
-              COUNT(DISTINCT u.id) FILTER (WHERE u.is_active = TRUE AND u.role = 'rep') AS rep_count
-       FROM teams t
-       LEFT JOIN users u ON u.team_id = t.id
-       GROUP BY t.id
-       ORDER BY t.name`
+    const pathways = await db.query(
+      `SELECT p.id, p.name, p.description, p.is_active, p.created_at,
+              COUNT(DISTINCT up.user_id) FILTER (
+                WHERE EXISTS (SELECT 1 FROM users u WHERE u.id = up.user_id AND u.is_active = TRUE AND u.role = 'rep')
+              ) AS rep_count
+       FROM pathways p
+       LEFT JOIN user_pathways up ON up.pathway_id = p.id
+       GROUP BY p.id
+       ORDER BY p.name`
     );
 
-    res.json({ teams: teams.rows.map(t => ({
-      id: t.id,
-      name: t.name,
-      repCount: parseInt(t.rep_count) || 0,
-      createdAt: t.created_at
+    res.json({ pathways: pathways.rows.map(p => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      isActive: p.is_active,
+      repCount: parseInt(p.rep_count) || 0,
+      createdAt: p.created_at
     }))});
   } catch (err) {
-    console.error('[ADMIN] List teams error:', err.message);
+    console.error('[ADMIN] List pathways error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * POST /api/admin/teams
- * Superuser only.
- * Body: { name }
+ * POST /api/admin/pathways
+ * Superuser / LD Manager only.
+ * Body: { name, description }
  */
-router.post('/teams', requireRole('superuser'), async (req, res) => {
-  const { name } = req.body;
+router.post('/pathways', requireRole('ld_manager'), async (req, res) => {
+  const { name, description } = req.body;
   if (!name || !name.trim()) {
-    return res.status(400).json({ error: 'Team name is required' });
+    return res.status(400).json({ error: 'Pathway name is required' });
   }
 
   try {
     const result = await db.query(
-      'INSERT INTO teams (name, created_by) VALUES ($1, $2) RETURNING id',
-      [name.trim(), req.user.id]
+      'INSERT INTO pathways (name, description) VALUES ($1, $2) RETURNING id',
+      [name.trim(), description || null]
     );
 
-    await logAudit(req.user.id, 'team_created', result.rows[0].id, { name: name.trim() });
+    await logAudit(req.user.id, 'pathway_created', result.rows[0].id, { name: name.trim() });
 
-    res.status(201).json({ id: result.rows[0].id, message: 'Team created' });
+    res.status(201).json({ id: result.rows[0].id, message: 'Pathway created' });
   } catch (err) {
-    console.error('[ADMIN] Create team error:', err.message);
+    console.error('[ADMIN] Create pathway error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * PUT /api/admin/teams/:id
- * Superuser only.
- * Body: { name }
+ * PUT /api/admin/pathways/:id
+ * Superuser / LD Manager only.
+ * Body: { name, description, isActive }
  */
-router.put('/teams/:id', requireRole('superuser'), async (req, res) => {
-  const teamId = parseInt(req.params.id);
-  const { name } = req.body;
+router.put('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
+  const pathwayId = parseInt(req.params.id);
+  const { name, description, isActive } = req.body;
 
-  if (isNaN(teamId) || !name || !name.trim()) {
-    return res.status(400).json({ error: 'Valid team ID and name are required' });
+  if (isNaN(pathwayId) || !name || !name.trim()) {
+    return res.status(400).json({ error: 'Valid pathway ID and name are required' });
   }
 
   try {
     const result = await db.query(
-      'UPDATE teams SET name = $1 WHERE id = $2 RETURNING id',
-      [name.trim(), teamId]
+      'UPDATE pathways SET name = $1, description = $2, is_active = $3 WHERE id = $4 RETURNING id',
+      [name.trim(), description || null, isActive !== false, pathwayId]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Team not found' });
+      return res.status(404).json({ error: 'Pathway not found' });
     }
 
-    res.json({ message: 'Team updated' });
-    await logAudit(req.user.id, 'team_updated', teamId, { name: name.trim() });
+    res.json({ message: 'Pathway updated' });
+    await logAudit(req.user.id, 'pathway_updated', pathwayId, { name: name.trim() });
   } catch (err) {
-    console.error('[ADMIN] Update team error:', err.message);
+    console.error('[ADMIN] Update pathway error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * PUT /api/admin/manager-teams
- * Superuser only.
- * Body: { managerId, teamIds: [1, 2, 3] }
+ * PUT /api/admin/user-pathways
+ * Superuser / LD Manager only.
+ * Body: { userId, pathwayIds: [1, 2, 3] }
  */
-router.put('/manager-teams', requireRole('superuser'), async (req, res) => {
-  const { managerId, teamIds } = req.body;
+router.put('/user-pathways', requireRole('ld_manager'), async (req, res) => {
+  const { userId, pathwayIds } = req.body;
 
-  if (!managerId || !Array.isArray(teamIds)) {
-    return res.status(400).json({ error: 'managerId and teamIds array are required' });
+  if (!userId || !Array.isArray(pathwayIds)) {
+    return res.status(400).json({ error: 'userId and pathwayIds array are required' });
   }
 
   try {
-    // Verify target is a manager
-    const target = await db.query(
-      'SELECT role FROM users WHERE id = $1',
-      [managerId]
-    );
-    if (target.rows.length === 0 || target.rows[0].role !== 'manager') {
-      return res.status(400).json({ error: 'Target user is not a manager' });
-    }
-
     const client = await db.getClient();
     try {
       await client.query('BEGIN');
-      await client.query('DELETE FROM manager_teams WHERE manager_id = $1', [managerId]);
+      await client.query('DELETE FROM user_pathways WHERE user_id = $1', [userId]);
 
-      for (const teamId of teamIds) {
+      for (const pathwayId of pathwayIds) {
         await client.query(
-          'INSERT INTO manager_teams (manager_id, team_id) VALUES ($1, $2)',
-          [managerId, teamId]
+          'INSERT INTO user_pathways (user_id, pathway_id) VALUES ($1, $2)',
+          [userId, pathwayId]
         );
       }
 
@@ -465,11 +528,11 @@ router.put('/manager-teams', requireRole('superuser'), async (req, res) => {
       client.release();
     }
 
-    await logAudit(req.user.id, 'manager_teams_updated', managerId, { teamIds });
+    await logAudit(req.user.id, 'user_pathways_updated', userId, { pathwayIds });
 
-    res.json({ message: 'Manager team assignments updated' });
+    res.json({ message: 'User pathway assignments updated' });
   } catch (err) {
-    console.error('[ADMIN] Manager teams error:', err.message);
+    console.error('[ADMIN] User pathways error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -3,7 +3,7 @@
  * Must be used after requireAuth.
  */
 
-const ROLE_HIERARCHY = { superuser: 3, manager: 2, rep: 1 };
+const ROLE_HIERARCHY = { superuser: 4, ld_manager: 3, manager: 2, rep: 1 };
 
 function requireRole(...allowedRoles) {
   return (req, res, next) => {

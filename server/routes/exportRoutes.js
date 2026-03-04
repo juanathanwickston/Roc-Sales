@@ -2,8 +2,8 @@
  * Export Routes — CSV data export for admin/managers.
  * Provides leaderboard and progress data as downloadable CSV files.
  * 
- * Managers export their team's data only.
- * Superusers export all data.
+ * Managers export data for users who share their pathways.
+ * Superusers/LD Managers export all data.
  */
 
 const express = require('express');
@@ -15,36 +15,43 @@ const requireRole = require('../middleware/requireRole');
 /**
  * GET /api/export/leaderboard
  * Export leaderboard data as CSV.
- * Managers: their teams only. Superusers: all.
+ * Managers: shared pathways only. Superusers/LD Managers: all.
  */
 router.get('/leaderboard', requireAuth, requireRole('manager'), async (req, res) => {
   try {
     let query;
     let params = [];
 
-    if (req.user.role === 'superuser') {
+    if (req.user.role === 'superuser' || req.user.role === 'ld_manager') {
       query = `
-        SELECT u.first_name, u.last_name, u.username, u.email, t.name AS team,
+        SELECT u.first_name, u.last_name, u.username, u.email,
+               STRING_AGG(DISTINCT p.name, ', ' ORDER BY p.name) AS pathways,
                COALESCE(SUM(s.best_score), 0) AS total_score,
                COUNT(DISTINCT s.activity_id) AS activities_completed
         FROM users u
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN user_pathways up ON up.user_id = u.id
+        LEFT JOIN pathways p ON p.id = up.pathway_id
         LEFT JOIN scores s ON s.user_id = u.id
         WHERE u.role = 'rep' AND u.is_active = TRUE
-        GROUP BY u.id, u.first_name, u.last_name, u.username, u.email, t.name
+        GROUP BY u.id, u.first_name, u.last_name, u.username, u.email
         ORDER BY total_score DESC`;
     } else {
-      // Manager: only their assigned teams
+      // Manager: only users who share a pathway
       query = `
-        SELECT u.first_name, u.last_name, u.username, u.email, t.name AS team,
+        SELECT u.first_name, u.last_name, u.username, u.email,
+               STRING_AGG(DISTINCT p.name, ', ' ORDER BY p.name) AS pathways,
                COALESCE(SUM(s.best_score), 0) AS total_score,
                COUNT(DISTINCT s.activity_id) AS activities_completed
         FROM users u
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN user_pathways up ON up.user_id = u.id
+        LEFT JOIN pathways p ON p.id = up.pathway_id
         LEFT JOIN scores s ON s.user_id = u.id
         WHERE u.role = 'rep' AND u.is_active = TRUE
-          AND u.team_id IN (SELECT team_id FROM manager_teams WHERE manager_id = $1)
-        GROUP BY u.id, u.first_name, u.last_name, u.username, u.email, t.name
+          AND u.id IN (
+            SELECT up2.user_id FROM user_pathways up2
+            WHERE up2.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)
+          )
+        GROUP BY u.id, u.first_name, u.last_name, u.username, u.email
         ORDER BY total_score DESC`;
       params = [req.user.id];
     }
@@ -52,12 +59,12 @@ router.get('/leaderboard', requireAuth, requireRole('manager'), async (req, res)
     const result = await db.query(query, params);
 
     // Build CSV
-    const headers = ['First Name', 'Last Name', 'Username', 'Email', 'Team', 'Total Score', 'Activities Completed'];
+    const headers = ['First Name', 'Last Name', 'Username', 'Email', 'Pathways', 'Total Score', 'Activities Completed'];
     let csv = headers.join(',') + '\n';
     result.rows.forEach(r => {
       csv += [
         csvEsc(r.first_name), csvEsc(r.last_name), csvEsc(r.username),
-        csvEsc(r.email || ''), csvEsc(r.team || 'Unassigned'),
+        csvEsc(r.email || ''), csvEsc(r.pathways || 'Unassigned'),
         r.total_score, r.activities_completed
       ].join(',') + '\n';
     });
@@ -74,43 +81,52 @@ router.get('/leaderboard', requireAuth, requireRole('manager'), async (req, res)
 /**
  * GET /api/export/progress
  * Export detailed progress data as CSV.
- * Managers: their teams only. Superusers: all.
+ * Managers: shared pathways only. Superusers/LD Managers: all.
  */
 router.get('/progress', requireAuth, requireRole('manager'), async (req, res) => {
   try {
     let query;
     let params = [];
 
-    if (req.user.role === 'superuser') {
+    if (req.user.role === 'superuser' || req.user.role === 'ld_manager') {
       query = `
-        SELECT u.first_name, u.last_name, u.username, t.name AS team,
+        SELECT u.first_name, u.last_name, u.username,
+               STRING_AGG(DISTINCT pw.name, ', ' ORDER BY pw.name) AS pathways,
                p.module_id, p.activity_type, p.status, p.completed_at
         FROM progress p
         JOIN users u ON p.user_id = u.id
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN user_pathways up ON up.user_id = u.id
+        LEFT JOIN pathways pw ON pw.id = up.pathway_id
         WHERE u.is_active = TRUE
+        GROUP BY u.id, u.first_name, u.last_name, u.username, p.module_id, p.activity_type, p.status, p.completed_at
         ORDER BY u.last_name, u.first_name, p.module_id, p.activity_type`;
     } else {
       query = `
-        SELECT u.first_name, u.last_name, u.username, t.name AS team,
+        SELECT u.first_name, u.last_name, u.username,
+               STRING_AGG(DISTINCT pw.name, ', ' ORDER BY pw.name) AS pathways,
                p.module_id, p.activity_type, p.status, p.completed_at
         FROM progress p
         JOIN users u ON p.user_id = u.id
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN user_pathways up ON up.user_id = u.id
+        LEFT JOIN pathways pw ON pw.id = up.pathway_id
         WHERE u.is_active = TRUE
-          AND u.team_id IN (SELECT team_id FROM manager_teams WHERE manager_id = $1)
+          AND u.id IN (
+            SELECT up2.user_id FROM user_pathways up2
+            WHERE up2.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)
+          )
+        GROUP BY u.id, u.first_name, u.last_name, u.username, p.module_id, p.activity_type, p.status, p.completed_at
         ORDER BY u.last_name, u.first_name, p.module_id, p.activity_type`;
       params = [req.user.id];
     }
 
     const result = await db.query(query, params);
 
-    const headers = ['First Name', 'Last Name', 'Username', 'Team', 'Module', 'Activity', 'Status', 'Completed At'];
+    const headers = ['First Name', 'Last Name', 'Username', 'Pathways', 'Module', 'Activity', 'Status', 'Completed At'];
     let csv = headers.join(',') + '\n';
     result.rows.forEach(r => {
       csv += [
         csvEsc(r.first_name), csvEsc(r.last_name), csvEsc(r.username),
-        csvEsc(r.team || 'Unassigned'), csvEsc(r.module_id),
+        csvEsc(r.pathways || 'Unassigned'), csvEsc(r.module_id),
         csvEsc(r.activity_type), csvEsc(r.status),
         r.completed_at ? new Date(r.completed_at).toISOString() : ''
       ].join(',') + '\n';

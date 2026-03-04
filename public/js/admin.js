@@ -1,7 +1,7 @@
 /**
  * Admin Panel UI for ROC Academy.
- * User management, team management, rep progress viewing.
- * Only accessible to manager and superuser roles.
+ * User management, pathway management, rep progress viewing.
+ * Only accessible to manager, ld_manager, and superuser roles.
  */
 
 const Admin = {
@@ -11,7 +11,7 @@ const Admin = {
   _usersCache: null,
   _searchQuery: '',
   _filterRole: '',
-  _filterTeam: '',
+  _filterPathway: '',
   _filterStatus: 'active',
   _sortCol: 'name',
   _sortDir: 'asc',
@@ -34,7 +34,7 @@ const Admin = {
     // Tabs + toolbar on one row (heading from static HTML in index.html)
     let h = '<div class="admin-tabs">';
     h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'pathways' ? ' active' : ''}" onclick="Admin.switchTab('pathways')">Pathways</button>`;
     h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
     h += '<div style="flex:1"></div>';
     h += '<div class="admin-toolbar">';
@@ -49,8 +49,8 @@ const Admin = {
 
     if (this.currentTab === 'users') {
       await this.renderUsers();
-    } else if (this.currentTab === 'teams') {
-      await this.renderTeams();
+    } else if (this.currentTab === 'pathways') {
+      await this.renderPathways();
     } else if (this.currentTab === 'content') {
       await this.renderContent();
     }
@@ -128,7 +128,7 @@ const Admin = {
 
     try {
       const data = await API.getUsers(true);
-      const teamsData = await API.getTeams();
+      const pathwaysData = await API.getPathways();
       this._usersCache = data.users;
       let h = '';
 
@@ -147,11 +147,11 @@ const Admin = {
       h += '</div>';
 
       // ── Toolbar: Search + Filters + Create ──
-      const teamOptions = teamsData.teams.map(t => `<option value="${t.id}"${this._filterTeam == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+      const pathwayOptions = pathwaysData.pathways.map(p => `<option value="${p.id}"${this._filterPathway == p.id ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
       h += '<div class="admin-toolbar-row">';
       h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" autocomplete="one-time-code" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
-      h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
-      h += `<select class="admin-filter" onchange="Admin._filterTeam=this.value;Admin.filterAndRenderTable()"><option value="">All Teams</option>${teamOptions}</select>`;
+      h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="ld_manager"${this._filterRole==='ld_manager'?' selected':''}>LD Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
+      h += `<select class="admin-filter" onchange="Admin._filterPathway=this.value;Admin.filterAndRenderTable()"><option value="">All Pathways</option>${pathwayOptions}</select>`;
       h += `<select class="admin-filter" onchange="Admin._filterStatus=this.value;Admin.filterAndRenderTable()"><option value="active"${this._filterStatus==='active'?' selected':''}>Active</option><option value="inactive"${this._filterStatus==='inactive'?' selected':''}>Inactive</option><option value=""${this._filterStatus===''?' selected':''}>All</option></select>`;
       h += '<div style="flex:1"></div>';
       h += '<button class="admin-action-btn" onclick="Admin.showCreateUser()">+ Create User</button>';
@@ -187,7 +187,7 @@ const Admin = {
 
     // Filters
     if (this._filterRole) users = users.filter(u => u.role === this._filterRole);
-    if (this._filterTeam) users = users.filter(u => u.teamId == this._filterTeam);
+    if (this._filterPathway) users = users.filter(u => (u.pathways || []).some(p => p.id == this._filterPathway));
     if (this._filterStatus === 'active') users = users.filter(u => u.isActive);
     else if (this._filterStatus === 'inactive') users = users.filter(u => !u.isActive);
 
@@ -197,7 +197,7 @@ const Admin = {
       let va, vb;
       if (this._sortCol === 'name') { va = `${a.lastName} ${a.firstName}`; vb = `${b.lastName} ${b.firstName}`; }
       else if (this._sortCol === 'role') { va = a.role; vb = b.role; }
-      else if (this._sortCol === 'team') { va = a.teamName || 'zzz'; vb = b.teamName || 'zzz'; }
+      else if (this._sortCol === 'pathway') { va = (a.pathways || [])[0]?.name || 'zzz'; vb = (b.pathways || [])[0]?.name || 'zzz'; }
       else if (this._sortCol === 'lastLogin') { va = a.lastLogin || ''; vb = b.lastLogin || ''; }
       else { va = a.username; vb = b.username; }
       return va < vb ? -dir : va > vb ? dir : 0;
@@ -210,7 +210,7 @@ const Admin = {
     h += '<thead><tr>';
     h += `<th class="col-name sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
     h += `<th class="col-role sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
-    h += `<th class="col-team sortable" onclick="Admin.sortBy('team')">Team${arrow('team')}</th>`;
+    h += `<th class="col-pathway sortable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
     h += '<th class="col-status">Status</th>';
     h += `<th class="col-login sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
     h += '<th class="col-actions"></th>';
@@ -228,7 +228,7 @@ const Admin = {
       h += `<tr${rowStyle}>`;
       h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}</div><div class="cell-username">${esc(u.username)}</div></td>`;
       h += `<td class="col-role"><span class="role-badge role-${u.role}">${u.role}</span></td>`;
-      h += `<td class="col-team">${u.teamName ? esc(u.teamName) : '<span class="text-muted">—</span>'}</td>`;
+      h += `<td class="col-pathway">${(u.pathways || []).length > 0 ? u.pathways.map(p => esc(p.name)).join(', ') : '<span class="text-muted">—</span>'}</td>`;
       h += `<td class="col-status"><span class="${statusClass}">● ${status}</span></td>`;
       h += `<td class="col-login">${lastLogin}</td>`;
       h += '<td class="col-actions">';
@@ -337,32 +337,34 @@ const Admin = {
     }
   },
 
-  // ─── TEAMS TAB ───
+  // ─── PATHWAYS TAB ───
 
-  async renderTeams() {
+  async renderPathways() {
     const content = document.getElementById('adminContent');
-    content.innerHTML = '<div class="admin-loading">Loading teams...</div>';
+    content.innerHTML = '<div class="admin-loading">Loading pathways...</div>';
 
     try {
-      const data = await API.getTeams();
+      const data = await API.getPathways();
       let h = '';
 
-      if (Auth.hasRole('superuser')) {
-        h += '<button class="admin-action-btn" onclick="Admin.showCreateTeam()">+ Create Team</button>';
+      if (Auth.hasRole('ld_manager')) {
+        h += '<button class="admin-action-btn" onclick="Admin.showCreatePathway()">+ Create Pathway</button>';
       }
 
       h += '<div class="admin-table-wrap"><table class="admin-table">';
-      h += '<thead><tr><th>Team Name</th><th>Reps</th><th>Created</th>';
-      if (Auth.hasRole('superuser')) h += '<th>Actions</th>';
+      h += '<thead><tr><th>Pathway Name</th><th>Description</th><th>Reps</th><th>Status</th><th>Created</th>';
+      if (Auth.hasRole('ld_manager')) h += '<th>Actions</th>';
       h += '</tr></thead><tbody>';
 
-      data.teams.forEach(t => {
+      data.pathways.forEach(p => {
         h += '<tr>';
-        h += `<td>${t.name}</td>`;
-        h += `<td>${t.repCount}</td>`;
-        h += `<td>${new Date(t.createdAt).toLocaleDateString()}</td>`;
-        if (Auth.hasRole('superuser')) {
-          h += `<td><button class="admin-btn" onclick="Admin.showEditTeam(${t.id}, '${t.name}')">Edit</button></td>`;
+        h += `<td>${esc(p.name)}</td>`;
+        h += `<td>${esc(p.description || '')}</td>`;
+        h += `<td>${p.repCount}</td>`;
+        h += `<td>${p.isActive ? '<span class="status-active">● Active</span>' : '<span class="status-inactive">● Inactive</span>'}</td>`;
+        h += `<td>${new Date(p.createdAt).toLocaleDateString()}</td>`;
+        if (Auth.hasRole('ld_manager')) {
+          h += `<td><button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button></td>`;
         }
         h += '</tr>';
       });
@@ -400,11 +402,16 @@ const Admin = {
   },
 
   async showCreateUser() {
-    let teamOpts = '';
+    let pathwayOpts = '';
     try {
-      const td = await API.getTeams();
-      teamOpts = td.teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+      const pd = await API.getPathways();
+      pathwayOpts = pd.pathways.filter(p => p.isActive).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
     } catch(e) {}
+    const roleOpts = Auth.hasRole('superuser')
+      ? '<option value="rep">Rep</option><option value="manager">Manager</option><option value="ld_manager">LD Manager</option>'
+      : Auth.hasRole('ld_manager')
+        ? '<option value="rep">Rep</option><option value="manager">Manager</option>'
+        : '<option value="rep">Rep</option>';
     const body = `
       <div class="modal-field"><label>Username</label><input type="text" id="cuUsername"></div>
       <div class="modal-field"><label>First Name</label><input type="text" id="cuFirst"></div>
@@ -412,16 +419,13 @@ const Admin = {
       <div class="modal-field"><label>Email</label><input type="email" id="cuEmail"></div>
       <div class="modal-field"><label>Password</label><div class="pw-field" style="position:relative"><input type="password" id="cuPass" style="width:100%;padding-right:44px"><button type="button" class="pw-eye" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.5" onclick="togglePwVis('cuPass',this)">&#128065;</button></div></div>
       <div class="modal-field"><label>Role</label>
-        <select id="cuRole">
-          <option value="rep">Rep</option>
-          ${Auth.hasRole('superuser') ? '<option value="manager">Manager</option>' : ''}
-        </select>
+        <select id="cuRole">${roleOpts}</select>
       </div>
-      <div class="modal-field"><label>Team</label>
-        <select id="cuTeam">
-          <option value="">No team</option>
-          ${teamOpts}
+      <div class="modal-field"><label>Pathways</label>
+        <select id="cuPathways" multiple size="4" style="min-height:80px">
+          ${pathwayOpts}
         </select>
+        <div style="font-size:.75rem;color:var(--gray);margin-top:4px">Hold Ctrl/Cmd to select multiple</div>
       </div>
       <div id="cuError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.createUser()">Create User</button>`;
@@ -431,6 +435,8 @@ const Admin = {
   async createUser() {
     const errorEl = document.getElementById('cuError');
     try {
+      const pathwaySelect = document.getElementById('cuPathways');
+      const pathwayIds = Array.from(pathwaySelect.selectedOptions).map(o => parseInt(o.value));
       await API.createUser({
         username: document.getElementById('cuUsername').value,
         firstName: document.getElementById('cuFirst').value,
@@ -438,7 +444,7 @@ const Admin = {
         email: document.getElementById('cuEmail').value,
         password: document.getElementById('cuPass').value,
         role: document.getElementById('cuRole').value,
-        teamId: document.getElementById('cuTeam').value || null
+        pathwayIds
       });
       this.closeModal();
       await this.renderUsers();
@@ -452,16 +458,17 @@ const Admin = {
     // Find user from cache for pre-fill
     const u = (this._usersCache || []).find(x => x.id === id) || {};
     const isSuperuser = Auth.hasRole('superuser');
+    const userPathwayIds = (u.pathways || []).map(p => p.id);
 
-    // Fetch teams for dropdown
-    let teamOpts = '';
+    // Fetch pathways for multi-select
+    let pathwayOpts = '';
     try {
-      const td = await API.getTeams();
-      teamOpts = td.teams.map(t => `<option value="${t.id}"${u.teamId == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+      const pd = await API.getPathways();
+      pathwayOpts = pd.pathways.map(p => `<option value="${p.id}"${userPathwayIds.includes(p.id) ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
     } catch(e) {}
 
     const roleSelect = isSuperuser && u.role !== 'superuser' && id !== Auth.user.id
-      ? `<div class="modal-field"><label>Role</label><select id="euRole"><option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option></select></div>`
+      ? `<div class="modal-field"><label>Role</label><select id="euRole"><option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option><option value="ld_manager"${u.role==='ld_manager'?' selected':''}>LD Manager</option></select></div>`
       : '';
 
     const body = `
@@ -470,11 +477,11 @@ const Admin = {
       <div class="modal-field"><label>Nickname</label><input type="text" id="euNick" value="${esc(u.nickname || '')}"></div>
       <div class="modal-field"><label>Email</label><input type="email" id="euEmail" value="${esc(u.email || '')}"></div>
       ${roleSelect}
-      <div class="modal-field"><label>Team</label>
-        <select id="euTeam">
-          <option value="">No team</option>
-          ${teamOpts}
+      <div class="modal-field"><label>Pathways</label>
+        <select id="euPathways" multiple size="4" style="min-height:80px">
+          ${pathwayOpts}
         </select>
+        <div style="font-size:.75rem;color:var(--gray);margin-top:4px">Hold Ctrl/Cmd to select multiple</div>
       </div>
       <div class="modal-field">
         <label><input type="checkbox" id="euActive" ${u.isActive !== false ? 'checked' : ''}> Active</label>
@@ -487,19 +494,19 @@ const Admin = {
   async editUser(id) {
     const errorEl = document.getElementById('euError');
     try {
+      const pathwaySelect = document.getElementById('euPathways');
+      const pathwayIds = Array.from(pathwaySelect.selectedOptions).map(o => parseInt(o.value));
       const data = {
         firstName: document.getElementById('euFirst').value,
         lastName: document.getElementById('euLast').value,
         nickname: document.getElementById('euNick').value,
         email: document.getElementById('euEmail').value,
-        isActive: document.getElementById('euActive').checked
+        isActive: document.getElementById('euActive').checked,
+        pathwayIds
       };
       // Include role if the dropdown exists
       const roleEl = document.getElementById('euRole');
       if (roleEl) data.role = roleEl.value;
-      // Include team
-      const teamEl = document.getElementById('euTeam');
-      if (teamEl) data.teamId = teamEl.value || null;
 
       await API.updateUser(id, data);
       this.closeModal();
@@ -559,40 +566,43 @@ const Admin = {
     }
   },
 
-  showCreateTeam() {
+  showCreatePathway() {
     const body = `
-      <div class="modal-field"><label>Team Name</label><input type="text" id="ctName"></div>
-      <div id="ctError" class="modal-error"></div>
-      <button class="modal-submit" onclick="Admin.createTeam()">Create Team</button>`;
-    this.showModal('Create Team', body);
+      <div class="modal-field"><label>Pathway Name</label><input type="text" id="cpName"></div>
+      <div class="modal-field"><label>Description</label><textarea id="cpDesc" rows="3"></textarea></div>
+      <div id="cpError" class="modal-error"></div>
+      <button class="modal-submit" onclick="Admin.createPathway()">Create Pathway</button>`;
+    this.showModal('Create Pathway', body);
   },
 
-  async createTeam() {
-    const errorEl = document.getElementById('ctError');
+  async createPathway() {
+    const errorEl = document.getElementById('cpError');
     try {
-      await API.createTeam(document.getElementById('ctName').value);
+      await API.createPathway(document.getElementById('cpName').value, document.getElementById('cpDesc').value);
       this.closeModal();
-      await this.renderTeams();
+      await this.renderPathways();
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
     }
   },
 
-  showEditTeam(id, currentName) {
+  showEditPathway(id, currentName, currentDesc, isActive) {
     const body = `
-      <div class="modal-field"><label>Team Name</label><input type="text" id="etName" value="${esc(currentName)}"></div>
-      <div id="etError" class="modal-error"></div>
-      <button class="modal-submit" onclick="Admin.editTeam(${id})">Save</button>`;
-    this.showModal('Edit Team', body);
+      <div class="modal-field"><label>Pathway Name</label><input type="text" id="epName" value="${esc(currentName)}"></div>
+      <div class="modal-field"><label>Description</label><textarea id="epDesc" rows="3">${esc(currentDesc)}</textarea></div>
+      <div class="modal-field"><label><input type="checkbox" id="epActive" ${isActive ? 'checked' : ''}> Active</label></div>
+      <div id="epError" class="modal-error"></div>
+      <button class="modal-submit" onclick="Admin.editPathway(${id})">Save</button>`;
+    this.showModal('Edit Pathway', body);
   },
 
-  async editTeam(id) {
-    const errorEl = document.getElementById('etError');
+  async editPathway(id) {
+    const errorEl = document.getElementById('epError');
     try {
-      await API.updateTeam(id, document.getElementById('etName').value);
+      await API.updatePathway(id, document.getElementById('epName').value, document.getElementById('epDesc').value, document.getElementById('epActive').checked);
       this.closeModal();
-      await this.renderTeams();
+      await this.renderPathways();
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';

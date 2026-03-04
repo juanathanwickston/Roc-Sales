@@ -133,7 +133,7 @@ router.get('/quizzes', async (req, res) => {
 // ─── MODULE CRUD ───
 
 // Get single module with all children (for editing)
-router.get('/modules/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.get('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     const mod = await db.query('SELECT * FROM cms_modules WHERE id = $1', [req.params.id]);
     if (mod.rows.length === 0) return res.status(404).json({ error: 'Module not found' });
@@ -157,7 +157,7 @@ router.get('/modules/:id', requireAuth, requireRole('manager'), async (req, res)
 });
 
 // Update module metadata
-router.put('/modules/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { title, description, icon, phase, game_id, game_title, game_desc, sort_order } = req.body;
   if (!title || title.trim().length === 0) {
     return res.status(400).json({ error: 'Title is required' });
@@ -201,7 +201,7 @@ router.post('/modules', requireAuth, requireRole('superuser'), async (req, res) 
 
 // ─── VIDEO CRUD ───
 
-router.post('/videos', requireAuth, requireRole('manager'), async (req, res) => {
+router.post('/videos', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { module_id, title, url, description, icon } = req.body;
   if (!module_id || !title) return res.status(400).json({ error: 'module_id and title are required' });
   try {
@@ -219,7 +219,7 @@ router.post('/videos', requireAuth, requireRole('manager'), async (req, res) => 
   }
 });
 
-router.put('/videos/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/videos/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { title, url, description, icon } = req.body;
   if (!title) return res.status(400).json({ error: 'Title is required' });
   try {
@@ -236,7 +236,7 @@ router.put('/videos/:id', requireAuth, requireRole('manager'), async (req, res) 
   }
 });
 
-router.delete('/videos/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.delete('/videos/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     // Prevent deleting the last video
     const video = await db.query('SELECT module_id FROM cms_videos WHERE id = $1', [req.params.id]);
@@ -258,7 +258,7 @@ router.delete('/videos/:id', requireAuth, requireRole('manager'), async (req, re
 
 // ─── DOC SECTION CRUD ───
 
-router.post('/docs', requireAuth, requireRole('manager'), async (req, res) => {
+router.post('/docs', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { module_id, heading, body } = req.body;
   if (!module_id || !heading || !body) return res.status(400).json({ error: 'module_id, heading, and body are required' });
   try {
@@ -275,7 +275,7 @@ router.post('/docs', requireAuth, requireRole('manager'), async (req, res) => {
   }
 });
 
-router.put('/docs/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/docs/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { heading, body } = req.body;
   if (!heading || !body) return res.status(400).json({ error: 'Heading and body are required' });
   try {
@@ -292,7 +292,7 @@ router.put('/docs/:id', requireAuth, requireRole('manager'), async (req, res) =>
   }
 });
 
-router.delete('/docs/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.delete('/docs/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     const doc = await db.query('SELECT module_id FROM cms_doc_sections WHERE id = $1', [req.params.id]);
     if (doc.rows.length === 0) return res.status(404).json({ error: 'Doc section not found' });
@@ -313,7 +313,7 @@ router.delete('/docs/:id', requireAuth, requireRole('manager'), async (req, res)
 
 // ─── APPLY ITEM CRUD ───
 
-router.post('/apply-items', requireAuth, requireRole('manager'), async (req, res) => {
+router.post('/apply-items', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { module_id, text, item_type, url, icon } = req.body;
   if (!module_id || !text) return res.status(400).json({ error: 'module_id and text are required' });
   try {
@@ -330,7 +330,7 @@ router.post('/apply-items', requireAuth, requireRole('manager'), async (req, res
   }
 });
 
-router.put('/apply-items/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/apply-items/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { text, item_type, url, icon } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
   try {
@@ -347,7 +347,7 @@ router.put('/apply-items/:id', requireAuth, requireRole('manager'), async (req, 
   }
 });
 
-router.delete('/apply-items/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.delete('/apply-items/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     const item = await db.query('SELECT module_id FROM cms_apply_items WHERE id = $1', [req.params.id]);
     if (item.rows.length === 0) return res.status(404).json({ error: 'Apply item not found' });
@@ -368,7 +368,7 @@ router.delete('/apply-items/:id', requireAuth, requireRole('manager'), async (re
 
 // ─── QUIZ QUESTION CRUD ───
 
-router.get('/quizzes/admin', requireAuth, requireRole('manager'), async (req, res) => {
+router.get('/quizzes/admin', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM cms_quiz_questions ORDER BY pool, sort_order');
     res.json(result.rows);
@@ -378,7 +378,7 @@ router.get('/quizzes/admin', requireAuth, requireRole('manager'), async (req, re
   }
 });
 
-router.post('/quizzes', requireAuth, requireRole('manager'), async (req, res) => {
+router.post('/quizzes', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { pool, question, options, correct_index, explanation } = req.body;
   if (!pool || !question || !options || correct_index === undefined || !explanation) {
     return res.status(400).json({ error: 'pool, question, options, correct_index, and explanation are required' });
@@ -403,7 +403,7 @@ router.post('/quizzes', requireAuth, requireRole('manager'), async (req, res) =>
   }
 });
 
-router.put('/quizzes/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/quizzes/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { question, options, correct_index, explanation } = req.body;
   if (!question || !options || correct_index === undefined || !explanation) {
     return res.status(400).json({ error: 'question, options, correct_index, and explanation are required' });
@@ -422,7 +422,7 @@ router.put('/quizzes/:id', requireAuth, requireRole('manager'), async (req, res)
   }
 });
 
-router.delete('/quizzes/:id', requireAuth, requireRole('manager'), async (req, res) => {
+router.delete('/quizzes/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
   try {
     const q = await db.query('SELECT pool FROM cms_quiz_questions WHERE id = $1', [req.params.id]);
     if (q.rows.length === 0) return res.status(404).json({ error: 'Question not found' });
@@ -444,7 +444,7 @@ router.delete('/quizzes/:id', requireAuth, requireRole('manager'), async (req, r
 
 // ─── REORDER ENDPOINTS ───
 
-router.put('/reorder/:type', requireAuth, requireRole('manager'), async (req, res) => {
+router.put('/reorder/:type', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { items } = req.body; // array of { id, sort_order }
   if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
 

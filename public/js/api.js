@@ -217,20 +217,20 @@ const API = {
     return this.request('GET', `/admin/users/${id}/progress`);
   },
 
-  async getTeams() {
-    return this.request('GET', '/admin/teams');
+  async getPathways() {
+    return this.request('GET', '/admin/pathways');
   },
 
-  async createTeam(name) {
-    return this.request('POST', '/admin/teams', { name });
+  async createPathway(name, description) {
+    return this.request('POST', '/admin/pathways', { name, description });
   },
 
-  async updateTeam(id, name) {
-    return this.request('PUT', `/admin/teams/${id}`, { name });
+  async updatePathway(id, name, description, isActive) {
+    return this.request('PUT', `/admin/pathways/${id}`, { name, description, isActive });
   },
 
-  async updateManagerTeams(managerId, teamIds) {
-    return this.request('PUT', '/admin/manager-teams', { managerId, teamIds });
+  async updateUserPathways(userId, pathwayIds) {
+    return this.request('PUT', '/admin/user-pathways', { userId, pathwayIds });
   },
 
   // ─── CMS (Content Management) ───

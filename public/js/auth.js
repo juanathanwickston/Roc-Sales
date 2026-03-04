@@ -39,7 +39,7 @@ const Auth = {
    */
   hasRole(role) {
     if (!this.user) return false;
-    const hierarchy = { superuser: 3, manager: 2, rep: 1 };
+    const hierarchy = { superuser: 4, ld_manager: 3, manager: 2, rep: 1 };
     return (hierarchy[this.user.role] || 0) >= (hierarchy[role] || 0);
   },
 
