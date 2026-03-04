@@ -149,7 +149,7 @@ const Admin = {
       // ── Toolbar: Search + Filters + Create ──
       const teamOptions = teamsData.teams.map(t => `<option value="${t.id}"${this._filterTeam == t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
       h += '<div class="admin-toolbar-row">';
-      h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" autocomplete="off" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
+      h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" autocomplete="one-time-code" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
       h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
       h += `<select class="admin-filter" onchange="Admin._filterTeam=this.value;Admin.filterAndRenderTable()"><option value="">All Teams</option>${teamOptions}</select>`;
       h += `<select class="admin-filter" onchange="Admin._filterStatus=this.value;Admin.filterAndRenderTable()"><option value="active"${this._filterStatus==='active'?' selected':''}>Active</option><option value="inactive"${this._filterStatus==='inactive'?' selected':''}>Inactive</option><option value=""${this._filterStatus===''?' selected':''}>All</option></select>`;
@@ -161,6 +161,8 @@ const Admin = {
       h += '<div id="adminTableWrap"></div>';
 
       content.innerHTML = h;
+      // Defeat browser autofill — force empty if no active search
+      if (!this._searchQuery) { const el = document.getElementById('adminSearch'); if (el) el.value = ''; }
       this.filterAndRenderTable();
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
