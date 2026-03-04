@@ -162,6 +162,17 @@
             text-align: center;
         }
 
+        .pw-field { position: relative; }
+        .pw-field input { padding-right: 44px !important; }
+        .pw-eye-login {
+            position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            width: 44px; height: 44px; background: none; border: none;
+            color: #9ca3af; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: .4; transition: opacity .2s;
+        }
+        .pw-eye-login:hover { opacity: .8; }
+
         .error-msg.visible {
             display: block;
             animation: fadeIn 0.3s ease;
@@ -214,7 +225,10 @@
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" autocomplete="current-password" required>
+                <div class="pw-field">
+                    <input type="password" class="form-control" id="password" autocomplete="current-password" required>
+                    <button type="button" class="pw-eye-login" onclick="togglePwVis('password',this)">&#128065;</button>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100" id="loginBtn">Sign In</button>
@@ -263,6 +277,20 @@
             btn.textContent = 'Sign In';
         }
     });
+
+    function togglePwVis(id, btn) {
+        var inp = document.getElementById(id);
+        if (!inp) return;
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            btn.innerHTML = '&#128064;';
+            btn.style.opacity = '.8';
+        } else {
+            inp.type = 'password';
+            btn.innerHTML = '&#128065;';
+            btn.style.opacity = '.4';
+        }
+    }
 
     // ── Star field (identical to TCM login) ──
     (function() {

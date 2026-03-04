@@ -6,6 +6,7 @@
 
 const Admin = {
   currentTab: 'users',
+  showInactive: false,
   _editCache: null, // Stores module data for pre-filling edit forms
 
   /**
@@ -91,8 +92,11 @@ const Admin = {
       const data = await API.getUsers(true);
       let h = '';
 
-      // Create user button
+      // Create user button + show inactive toggle
+      h += '<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
       h += '<button class="admin-action-btn" onclick="Admin.showCreateUser()">+ Create User</button>';
+      h += `<label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--gray);cursor:pointer"><input type="checkbox" ${this.showInactive ? 'checked' : ''} onchange="Admin.toggleInactive(this.checked)"> Show inactive</label>`;
+      h += '</div>';
 
       // Users table
       h += '<div class="admin-table-wrap"><table class="admin-table">';
@@ -100,9 +104,13 @@ const Admin = {
       h += '<tbody>';
 
       data.users.forEach(u => {
+        // Filter inactive users unless checkbox is checked
+        if (!u.isActive && !this.showInactive) return;
+
         const status = u.isActive ? 'Active' : 'Inactive';
         const statusClass = u.isActive ? 'status-active' : 'status-inactive';
-        h += '<tr>';
+        const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
+        h += `<tr${rowStyle}>`;
         h += `<td>${u.firstName} ${u.lastName}</td>`;
         h += `<td>${u.username}</td>`;
         h += `<td><span class="role-badge role-${u.role}">${u.role}</span></td>`;
@@ -112,7 +120,15 @@ const Admin = {
         if (u.role !== 'superuser') {
           h += `<button class="admin-btn" onclick="Admin.showEditUser(${u.id})">Edit</button>`;
           h += `<button class="admin-btn" onclick="Admin.showResetPassword(${u.id})">Reset PW</button>`;
-          h += `<button class="admin-btn" onclick="Admin.showUserProgress(${u.id})"">Progress</button>`;
+          h += `<button class="admin-btn" onclick="Admin.showUserProgress(${u.id})">Progress</button>`;
+          // Deactivate / Reactivate (can't deactivate self)
+          if (u.id !== Auth.user.id) {
+            if (u.isActive) {
+              h += `<button class="admin-btn" style="color:#ff4466" onclick="Admin.confirmDeactivate(${u.id},'${u.firstName} ${u.lastName}')">🗑</button>`;
+            } else {
+              h += `<button class="admin-btn" style="color:var(--green)" onclick="Admin.reactivateUser(${u.id})">↩</button>`;
+            }
+          }
         }
         h += '</td>';
         h += '</tr>';
@@ -122,6 +138,43 @@ const Admin = {
       content.innerHTML = h;
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
+    }
+  },
+
+  toggleInactive(checked) {
+    this.showInactive = checked;
+    this.renderUsers();
+  },
+
+  confirmDeactivate(id, name) {
+    const body = `
+      <div style="text-align:center;padding:8px 0">
+        <div style="font-size:var(--fs-base);margin-bottom:12px">Deactivate <strong>${name}</strong>?</div>
+        <div style="font-size:var(--fs-xs);color:var(--gray);margin-bottom:20px">They will no longer be able to log in. This can be reversed.</div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="admin-btn" onclick="Admin.closeModal()">Cancel</button>
+          <button class="modal-submit" style="background:#ff4466" onclick="Admin.deactivateUser(${id})">Deactivate</button>
+        </div>
+      </div>`;
+    this.showModal('Confirm Deactivation', body);
+  },
+
+  async deactivateUser(id) {
+    try {
+      await API.updateUser(id, { isActive: false });
+      this.closeModal();
+      await this.renderUsers();
+    } catch (err) {
+      alert('Deactivation failed: ' + err.message);
+    }
+  },
+
+  async reactivateUser(id) {
+    try {
+      await API.updateUser(id, { isActive: true });
+      await this.renderUsers();
+    } catch (err) {
+      alert('Reactivation failed: ' + err.message);
     }
   },
 
@@ -193,7 +246,7 @@ const Admin = {
       <div class="modal-field"><label>First Name</label><input type="text" id="cuFirst"></div>
       <div class="modal-field"><label>Last Name</label><input type="text" id="cuLast"></div>
       <div class="modal-field"><label>Email</label><input type="email" id="cuEmail"></div>
-      <div class="modal-field"><label>Password</label><input type="password" id="cuPass"></div>
+      <div class="modal-field"><label>Password</label><div class="pw-field" style="position:relative"><input type="password" id="cuPass" style="width:100%;padding-right:44px"><button type="button" class="pw-eye" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.5" onclick="togglePwVis('cuPass',this)">&#128065;</button></div></div>
       <div class="modal-field"><label>Role</label>
         <select id="cuRole">
           <option value="rep">Rep</option>
@@ -258,7 +311,7 @@ const Admin = {
 
   showResetPassword(id) {
     const body = `
-      <div class="modal-field"><label>New Password (min 8 chars)</label><input type="password" id="rpPass"></div>
+      <div class="modal-field"><label>New Password (min 8 chars)</label><div class="pw-field" style="position:relative"><input type="password" id="rpPass" style="width:100%;padding-right:44px"><button type="button" class="pw-eye" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.5" onclick="togglePwVis('rpPass',this)">&#128065;</button></div></div>
       <div id="rpError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.resetPassword(${id})">Reset Password</button>`;
     this.showModal('Reset Password', body);

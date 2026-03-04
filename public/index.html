@@ -576,6 +576,12 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .pw-title{font-size:var(--fs-lg);font-weight:700;margin-bottom:4px}
 .pw-sub{font-size:var(--fs-sm);color:var(--gray);margin-bottom:24px}
 
+/* PASSWORD VISIBILITY TOGGLE */
+.pw-field{position:relative}
+.pw-field input{padding-right:44px}
+.pw-eye{position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s}
+.pw-eye:hover{opacity:.9}
+
 /* MOBILE TOP BAR */
 .mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:var(--n2);border-bottom:1px solid var(--gb);z-index:var(--z-header);align-items:center;justify-content:space-between;padding:0 16px}
 .mob-hamburger{background:none;border:none;color:var(--white);font-size:1.4rem;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--rs);transition:background .2s}
@@ -746,14 +752,13 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 </div>
 </div><!-- /main-content -->
 
-<!-- PASSWORD CHANGE MODAL (shown on forced first login) -->
 <div id="pwChangeModal" class="pw-modal" style="display:none">
   <div class="pw-card">
     <div class="pw-title">Change Your Password</div>
     <div class="pw-sub">You must set a new password before continuing.</div>
-    <input type="password" class="profile-input" id="pwCurrent" placeholder="Current password">
-    <input type="password" class="profile-input" id="pwNew" placeholder="New password (min 8 chars, upper+lower+number)">
-    <input type="password" class="profile-input" id="pwConfirm" placeholder="Confirm new password">
+    <div class="pw-field"><input type="password" class="profile-input" id="pwCurrent" placeholder="Current password"><button type="button" class="pw-eye" onclick="togglePwVis('pwCurrent',this)">&#128065;</button></div>
+    <div class="pw-field"><input type="password" class="profile-input" id="pwNew" placeholder="New password (min 8 chars, upper+lower+number)"><button type="button" class="pw-eye" onclick="togglePwVis('pwNew',this)">&#128065;</button></div>
+    <div class="pw-field"><input type="password" class="profile-input" id="pwConfirm" placeholder="Confirm new password"><button type="button" class="pw-eye" onclick="togglePwVis('pwConfirm',this)">&#128065;</button></div>
     <div id="pwError" class="profile-msg error"></div>
     <button class="profile-btn" style="width:100%" onclick="handlePasswordChange()">Set New Password</button>
   </div>
@@ -908,6 +913,21 @@ async function handlePasswordChange() {
     window.location.reload();
   } catch(err) {
     errorEl.textContent = err.message;
+  }
+}
+
+// ─── PASSWORD VISIBILITY TOGGLE ───
+function togglePwVis(inputId, btn) {
+  var inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.innerHTML = '&#128064;';
+    btn.style.opacity = '.9';
+  } else {
+    inp.type = 'password';
+    btn.innerHTML = '&#128065;';
+    btn.style.opacity = '.5';
   }
 }
 
