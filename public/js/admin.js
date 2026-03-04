@@ -31,10 +31,12 @@ const Admin = {
       return;
     }
 
-    // Row 1: Title + Action buttons
-    let h = '<div class="admin-container">';
-    h += '<div class="admin-header-row">';
-    h += '<div><div class="admin-page-title">Admin Panel</div><div class="admin-page-sub">User & Team Management</div></div>';
+    // Tabs + toolbar on one row (heading from static HTML in index.html)
+    let h = '<div class="admin-tabs">';
+    h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
+    h += '<div style="flex:1"></div>';
     h += '<div class="admin-toolbar">';
     h += '<button class="admin-toolbar-btn" onclick="Admin.showExportMenu(this)" title="Export data">Export ▾</button>';
     if (Auth.hasRole('superuser')) {
@@ -42,16 +44,7 @@ const Admin = {
     }
     h += '</div>';
     h += '</div>';
-
-    // Row 2: Tabs
-    h += '<div class="admin-tabs">';
-    h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'teams' ? ' active' : ''}" onclick="Admin.switchTab('teams')">Teams</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Content</button>`;
-    h += '</div>';
-
     h += '<div id="adminContent"></div>';
-    h += '</div>';
     container.innerHTML = h;
 
     if (this.currentTab === 'users') {

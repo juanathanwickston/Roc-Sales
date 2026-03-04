@@ -44,7 +44,8 @@ body{font-family:var(--font);background:var(--navy);color:var(--white);min-heigh
 body::before,body::after{content:'';position:fixed;border-radius:var(--r-full,50%);z-index:0;pointer-events:none;filter:blur(120px)}
 body::before{width:500px;height:500px;top:-100px;left:-100px;background:rgba(59,130,246,.06)}
 body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(167,139,250,.05)}
-.app{position:relative;z-index:var(--z-base);max-width:540px;margin:0 auto;padding:24px 18px 120px;min-height:100vh}
+.app{position:relative;z-index:var(--z-base);margin:0 auto;padding:24px 18px 120px;min-height:100vh}
+.screen{max-width:540px;margin:0 auto}
 
 /* TOP BAR */
 .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
@@ -499,16 +500,11 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 /* ADMIN PANEL */
 /* ═══ ADMIN PANEL — SaaS Design System ═══ */
 
-/* Container */
-.admin-container{max-width:1200px;margin:0 auto;padding:32px}
+/* Override .screen's 540px max-width for admin panel */
+#admin.screen{max-width:1000px;padding:0}
 
-/* Header Row: Title (left) + Actions (right) */
-.admin-header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-.admin-page-title{font-size:var(--fs-xl);font-weight:700;letter-spacing:-.01em}
-.admin-page-sub{font-size:var(--fs-sm);font-weight:400;color:var(--gray);margin-top:4px}
-
-/* Tabs Row */
-.admin-tabs{display:flex;gap:4px;margin-bottom:32px}
+/* Tabs + Toolbar Row */
+.admin-tabs{display:flex;align-items:center;gap:4px;margin-bottom:24px}
 .admin-tab{padding:8px 16px;border-radius:var(--rs);background:transparent;border:1px solid transparent;color:var(--gray);font-family:var(--font);font-size:var(--fs-sm);font-weight:500;cursor:pointer;transition:all .2s}
 .admin-tab:hover{color:var(--white)}
 .admin-tab.active{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--white)}
