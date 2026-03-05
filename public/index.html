@@ -731,6 +731,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
   <div class="sidebar-user">
     <div class="sidebar-user-name" id="sidebarName">-</div>
     <div class="sidebar-user-rank" id="sidebarRank">-</div>
+    <div class="sidebar-user-rank" id="sidebarPathway" style="margin-top:2px"></div>
   </div>
   <div class="sidebar-nav">
     <div class="nav-item active" onclick="navigate('home')" id="navHome"><span class="nav-item-icon">📊</span> <span>Dashboard</span></div>
@@ -888,7 +889,13 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 
   // Update sidebar
   document.getElementById('sidebarName').textContent = Auth.displayName();
-  document.getElementById('homeWelcome').textContent = 'Welcome, ' + user.firstName;
+
+  // Set pathway display
+  var pathwayNames = (user.pathways || []).map(function(p) { return p.name; }).join(', ');
+  document.getElementById('homeWelcome').textContent = pathwayNames
+    ? 'Welcome, ' + user.firstName + ' · ' + pathwayNames
+    : 'Welcome, ' + user.firstName;
+  document.getElementById('sidebarPathway').textContent = pathwayNames || '';
 
   // Update mobile avatar initials
   var initials = (user.firstName||'').charAt(0) + (user.lastName||'').charAt(0);
