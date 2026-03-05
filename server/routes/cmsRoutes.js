@@ -59,7 +59,7 @@ router.get('/modules', async (req, res) => {
     // Superuser, ld_manager, unauthenticated, or users without pathways → all modules
 
     const modules = await db.query(
-      `SELECT id, phase, title, description, icon, game_id, game_title, game_desc, sort_order
+      `SELECT id, phase, title, description, icon, game_id, game_title, game_desc, sort_order, track
        FROM cms_modules cm WHERE cm.is_active = TRUE ${moduleFilter}
        ORDER BY sort_order, phase`,
       filterParams
@@ -84,6 +84,7 @@ router.get('/modules', async (req, res) => {
       title: m.title,
       desc: m.description,
       icon: m.icon,
+      track: m.track || 'onboarding',
       video: {
         title: (videosByMod[m.id] || []).length === 1
           ? videosByMod[m.id][0].title
@@ -200,15 +201,15 @@ router.get('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, r
 
 // Update module metadata
 router.put('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
-  const { title, description, icon, phase, game_id, game_title, game_desc, sort_order } = req.body;
+  const { title, description, icon, phase, game_id, game_title, game_desc, sort_order, track } = req.body;
   if (!title || title.trim().length === 0) {
     return res.status(400).json({ error: 'Title is required' });
   }
   try {
     const result = await db.query(
-      `UPDATE cms_modules SET title=$1, description=$2, icon=$3, phase=$4, game_id=$5, game_title=$6, game_desc=$7, sort_order=$8, updated_by=$9, updated_at=NOW()
+      `UPDATE cms_modules SET title=$1, description=$2, icon=$3, phase=$4, game_id=$5, game_title=$6, game_desc=$7, sort_order=$8, updated_by=$9, updated_at=NOW(), track=$11
        WHERE id = $10 RETURNING *`,
-      [title.trim(), description, icon, phase, game_id, game_title, game_desc, sort_order, req.user.id, req.params.id]
+      [title.trim(), description, icon, phase, game_id, game_title, game_desc, sort_order, req.user.id, req.params.id, track || 'onboarding']
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Module not found' });
 
@@ -222,15 +223,15 @@ router.put('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, r
 
 // Create module (ld_manager+)
 router.post('/modules', requireAuth, requireRole('ld_manager'), async (req, res) => {
-  const { id, title, description, icon, phase, game_id, game_title, game_desc } = req.body;
+  const { id, title, description, icon, phase, game_id, game_title, game_desc, track } = req.body;
   if (!id || !title) return res.status(400).json({ error: 'ID and title are required' });
   if (!/^[a-z0-9_]+$/.test(id)) return res.status(400).json({ error: 'ID must be lowercase alphanumeric with underscores' });
   try {
     const maxOrder = await db.query('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM cms_modules');
     const result = await db.query(
-      `INSERT INTO cms_modules (id, phase, title, description, icon, game_id, game_title, game_desc, sort_order, updated_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [id, phase || 1, title.trim(), description, icon, game_id, game_title, game_desc, maxOrder.rows[0].next, req.user.id]
+      `INSERT INTO cms_modules (id, phase, title, description, icon, game_id, game_title, game_desc, sort_order, updated_by, track)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [id, phase || 1, title.trim(), description, icon, game_id, game_title, game_desc, maxOrder.rows[0].next, req.user.id, track || 'onboarding']
     );
     await auditLog(req.user.id, 'cms_module_create', null, { module_id: id });
     res.status(201).json(result.rows[0]);
@@ -509,6 +510,40 @@ router.put('/reorder/:type', requireAuth, requireRole('ld_manager'), async (req,
     res.json({ message: 'Reordered' });
   } catch (err) {
     console.error('[CMS] Reorder error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── GAME & CHATBOT LIBRARIES ───
+
+/**
+ * GET /api/cms/games
+ * Returns all active games for the game library.
+ */
+router.get('/games', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id, title, description, skill_area, icon, is_active, created_at FROM cms_games WHERE is_active = TRUE ORDER BY title'
+    );
+    res.json({ games: result.rows });
+  } catch (err) {
+    console.error('[CMS] Games list error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/cms/chatbots
+ * Returns all active chatbots for the chatbot library.
+ */
+router.get('/chatbots', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id, title, description, category, icon, is_active, created_at FROM cms_chatbots WHERE is_active = TRUE ORDER BY title'
+    );
+    res.json({ chatbots: result.rows });
+  } catch (err) {
+    console.error('[CMS] Chatbots list error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

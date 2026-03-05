@@ -563,7 +563,7 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
 
     // Assigned modules — ordered by sort_order
     const assigned = await db.query(
-      `SELECT cm.id, cm.title, cm.icon, cm.phase, pm.sort_order AS sort_order
+      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track, pm.sort_order AS sort_order, pm.is_required
        FROM pathway_modules pm
        JOIN cms_modules cm ON cm.id = pm.module_id
        WHERE pm.pathway_id = $1
@@ -573,7 +573,7 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
 
     // Available modules — active modules NOT assigned to this pathway
     const available = await db.query(
-      `SELECT cm.id, cm.title, cm.icon, cm.phase
+      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track
        FROM cms_modules cm
        WHERE cm.is_active = TRUE
          AND cm.id NOT IN (SELECT module_id FROM pathway_modules WHERE pathway_id = $1)
@@ -589,13 +589,16 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
         title: m.title,
         icon: m.icon,
         phase: m.phase,
-        sortOrder: m.sort_order
+        track: m.track || 'onboarding',
+        sortOrder: m.sort_order,
+        isRequired: m.is_required !== false
       })),
       available: available.rows.map(m => ({
         id: m.id,
         title: m.title,
         icon: m.icon,
-        phase: m.phase
+        phase: m.phase,
+        track: m.track || 'onboarding'
       }))
     });
   } catch (err) {
@@ -607,18 +610,27 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
 /**
  * PUT /api/admin/pathways/:id/modules
  * Replace all module assignments for a pathway.
- * Body: { moduleIds: ['m1', 'm3', 'm5'] } — array order = sort_order.
+ * Body: { modules: [{id:'m1', isRequired:true}, {id:'m3', isRequired:false}] }
+ *   OR: { moduleIds: ['m1', 'm3', 'm5'] } (backwards compat — all required)
+ * Array order = sort_order.
  * LD Manager / Superuser only. Transactional + audit-logged.
  */
 router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) => {
   const pathwayId = parseInt(req.params.id);
-  const { moduleIds } = req.body;
+  const { moduleIds, modules } = req.body;
+
+  // Support both old format (string array) and new format (object array)
+  let moduleEntries;
+  if (Array.isArray(modules)) {
+    moduleEntries = modules.map(m => ({ id: m.id, isRequired: m.isRequired !== false }));
+  } else if (Array.isArray(moduleIds)) {
+    moduleEntries = moduleIds.map(id => ({ id, isRequired: true }));
+  } else {
+    return res.status(400).json({ error: 'modules (array of objects) or moduleIds (array of strings) is required' });
+  }
 
   if (isNaN(pathwayId)) {
     return res.status(400).json({ error: 'Valid pathway ID is required' });
-  }
-  if (!Array.isArray(moduleIds)) {
-    return res.status(400).json({ error: 'moduleIds must be an array' });
   }
 
   try {
@@ -629,13 +641,14 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
     }
 
     // Validate all module IDs exist in cms_modules
-    if (moduleIds.length > 0) {
+    const entryIds = moduleEntries.map(e => e.id);
+    if (entryIds.length > 0) {
       const valid = await db.query(
         'SELECT id FROM cms_modules WHERE id = ANY($1)',
-        [moduleIds]
+        [entryIds]
       );
       const validIds = new Set(valid.rows.map(r => r.id));
-      const invalid = moduleIds.filter(id => !validIds.has(id));
+      const invalid = entryIds.filter(id => !validIds.has(id));
       if (invalid.length > 0) {
         return res.status(400).json({ error: `Invalid module IDs: ${invalid.join(', ')}` });
       }
@@ -647,10 +660,10 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
       await client.query('BEGIN');
       await client.query('DELETE FROM pathway_modules WHERE pathway_id = $1', [pathwayId]);
 
-      for (let i = 0; i < moduleIds.length; i++) {
+      for (let i = 0; i < moduleEntries.length; i++) {
         await client.query(
-          'INSERT INTO pathway_modules (pathway_id, module_id, sort_order) VALUES ($1, $2, $3)',
-          [pathwayId, moduleIds[i], i]
+          'INSERT INTO pathway_modules (pathway_id, module_id, sort_order, is_required) VALUES ($1, $2, $3, $4)',
+          [pathwayId, moduleEntries[i].id, i, moduleEntries[i].isRequired]
         );
       }
 
@@ -760,10 +773,10 @@ router.post('/pathways/:id/duplicate', requireRole('ld_manager'), async (req, re
       );
       const newId = newPathway.rows[0].id;
 
-      // Copy module assignments
+      // Copy module assignments (including is_required)
       await client.query(
-        `INSERT INTO pathway_modules (pathway_id, module_id, sort_order)
-         SELECT $1, module_id, sort_order
+        `INSERT INTO pathway_modules (pathway_id, module_id, sort_order, is_required)
+         SELECT $1, module_id, sort_order, is_required
          FROM pathway_modules WHERE pathway_id = $2`,
         [newId, sourceId]
       );

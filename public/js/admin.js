@@ -774,7 +774,7 @@ const Admin = {
       data.forEach((m, i) => {
         h += `<div class="cms-module-card" onclick="Admin.editModule('${m.id}')">`;
         h += `<span class="cms-mod-icon">${m.icon || '📋'}</span>`;
-        h += `<div class="cms-mod-info"><strong>${m.title}</strong><span class="cms-mod-phase">Phase ${m.phase}</span></div>`;
+        h += `<div class="cms-mod-info"><strong>${m.title}</strong><span class="cms-mod-phase">${m.track === 'upskilling' ? '🟠' : '🟢'} Phase ${m.phase}</span></div>`;
         h += '<span class="cms-mod-arrow">›</span>';
         h += '</div>';
       });
@@ -804,6 +804,7 @@ const Admin = {
       body += `<div class="modal-field"><label>Description</label><textarea id="cmDesc" rows="3">${this.esc(m.description || '')}</textarea></div>`;
       body += `<div class="modal-field"><label>Icon (emoji)</label><input type="text" id="cmIcon" value="${m.icon || ''}" style="width:60px"></div>`;
       body += `<div class="modal-field"><label>Phase</label><select id="cmPhase"><option value="1"${m.phase===1?' selected':''}>1 - Foundation</option><option value="2"${m.phase===2?' selected':''}>2 - Applied</option><option value="3"${m.phase===3?' selected':''}>3 - Validation</option></select></div>`;
+      body += `<div class="modal-field"><label>Track</label><select id="cmTrack"><option value="onboarding"${(m.track||'onboarding')==='onboarding'?' selected':''}>🟢 Onboarding</option><option value="upskilling"${m.track==='upskilling'?' selected':''}>🟠 Upskilling</option></select></div>`;
       body += `<div class="modal-field"><label>Game ID</label><input type="text" id="cmGameId" value="${m.game_id || ''}"></div>`;
       body += `<div class="modal-field"><label>Game Title</label><input type="text" id="cmGameTitle" value="${this.esc(m.game_title || '')}"></div>`;
       body += `<div class="modal-field"><label>Game Description</label><textarea id="cmGameDesc" rows="2">${this.esc(m.game_desc || '')}</textarea></div>`;
@@ -855,6 +856,7 @@ const Admin = {
         description: document.getElementById('cmDesc').value,
         icon: document.getElementById('cmIcon').value,
         phase: parseInt(document.getElementById('cmPhase').value),
+        track: document.getElementById('cmTrack').value,
         game_id: document.getElementById('cmGameId').value,
         game_title: document.getElementById('cmGameTitle').value,
         game_desc: document.getElementById('cmGameDesc').value

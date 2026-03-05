@@ -249,10 +249,23 @@ const API = {
     return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { moduleIds });
   },
 
+  /** New format: modules as objects with isRequired flag */
+  async updatePathwayModulesWithRequired(pathwayId, modules) {
+    return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { modules });
+  },
+
   // ─── CMS (Content Management) ───
 
   async getModules() {
     return this.request('GET', '/cms/modules');
+  },
+
+  async getGames() {
+    return this.request('GET', '/cms/games');
+  },
+
+  async getChatbots() {
+    return this.request('GET', '/cms/chatbots');
   },
 
   async getQuizPool(pool) {
