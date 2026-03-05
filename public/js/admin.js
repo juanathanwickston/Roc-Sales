@@ -820,13 +820,23 @@ const Admin = {
     const assigned = this._builderAssigned;
     const allIds = Object.keys(this._builderModules);
     const availableIds = allIds.filter(id => !assigned.includes(id));
-    const trackLabel = t => t === 'upskilling' ? 'Upskilling' : 'Onboarding';
 
     let h = `<div class="builder-title">${esc(pathwayName)}</div>`;
 
     // Toolbar: Sort + Create Module
     h += '<div class="builder-toolbar">';
     h += '<button class="builder-sort-btn" onclick="Admin._builderSort()" title="Sort: Onboarding → Upskilling, then by phase">⇅ Auto-Sort</button>';
+    h += '<button class="builder-sort-btn" onclick="Admin._builderShowCreateForm()">+ Create Module</button>';
+    h += '</div>';
+
+    // Inline create form (hidden by default)
+    h += '<div id="builderCreateForm" style="display:none;margin-bottom:12px;padding:12px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs)">';
+    h += '<div style="display:flex;gap:8px;align-items:flex-end">';
+    h += '<div class="modal-field" style="flex:0 0 140px;margin:0"><label style="font-size:var(--fs-xs)">Module ID</label><input type="text" id="bcmId" placeholder="e.g. m10" style="font-size:var(--fs-sm)"></div>';
+    h += '<div class="modal-field" style="flex:1;margin:0"><label style="font-size:var(--fs-xs)">Title</label><input type="text" id="bcmTitle" placeholder="Module title" style="font-size:var(--fs-sm)"></div>';
+    h += '<button class="admin-action-btn" style="padding:6px 12px;font-size:var(--fs-xs)" onclick="Admin._builderCreateModule()">Create & Add</button>';
+    h += '</div>';
+    h += '<div id="bcmError" class="modal-error" style="margin-top:4px"></div>';
     h += '</div>';
 
     h += '<div class="builder-columns">';
@@ -937,6 +947,29 @@ const Admin = {
       return (ma.phase || 1) - (mb.phase || 1);
     });
     this._renderBuilderBody(document.querySelector('.builder-title')?.textContent || '');
+  },
+
+  _builderShowCreateForm() {
+    const form = document.getElementById('builderCreateForm');
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  },
+
+  async _builderCreateModule() {
+    const id = document.getElementById('bcmId')?.value?.trim().toLowerCase();
+    const title = document.getElementById('bcmTitle')?.value?.trim();
+    const errorEl = document.getElementById('bcmError');
+    if (!id || !title) { errorEl.textContent = 'ID and title are required'; errorEl.style.display = 'block'; return; }
+    if (!/^[a-z0-9_]+$/.test(id)) { errorEl.textContent = 'ID must be lowercase letters, numbers, underscores'; errorEl.style.display = 'block'; return; }
+    try {
+      const result = await API.createModule({ id, title, phase: 1, track: 'onboarding' });
+      // Add to builder state and assign
+      this._builderModules[result.id] = { id: result.id, title: result.title, icon: result.icon || '📘', phase: result.phase || 1, track: result.track || 'onboarding', isRequired: true };
+      this._builderAssigned.push(result.id);
+      this._renderBuilderBody(document.querySelector('.builder-title')?.textContent || '');
+      toast(`Module "${title}" created and added`);
+    } catch (err) {
+      errorEl.textContent = err.message; errorEl.style.display = 'block';
+    }
   },
 
   async savePathwayModules() {
