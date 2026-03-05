@@ -403,6 +403,7 @@ const Admin = {
           h += '<div class="pathway-card-actions">';
           h += `<button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button>`;
           h += `<button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button>`;
+          h += `<button class="admin-btn" onclick="Admin.showAssignPathway(${p.id}, '${esc(p.name)}')">Assign</button>`;
           h += `<button class="admin-btn" onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
           if (p.isActive) {
             h += `<button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
@@ -638,23 +639,129 @@ const Admin = {
   },
 
   showCreatePathway() {
-    const body = `
-      <div class="modal-field"><label>Pathway Name</label><input type="text" id="cpName"></div>
-      <div class="modal-field"><label>Description</label><textarea id="cpDesc" rows="3"></textarea></div>
-      <div id="cpError" class="modal-error"></div>
-      <button class="modal-submit" onclick="Admin.createPathway()">Create Pathway</button>`;
+    let body = '';
+
+    // Mode toggle: Empty vs From Existing
+    body += '<div class="pathway-create-mode" style="display:flex;gap:8px;margin-bottom:16px">';
+    body += '<button class="pathway-filter-pill active" id="cpModeEmpty" onclick="Admin._setCreateMode(\'empty\')">Empty</button>';
+    body += '<button class="pathway-filter-pill" id="cpModeClone" onclick="Admin._setCreateMode(\'clone\')">From Existing</button>';
+    body += '</div>';
+
+    body += '<div class="modal-field"><label>Pathway Name</label><input type="text" id="cpName"></div>';
+    body += '<div class="modal-field"><label>Description</label><textarea id="cpDesc" rows="3"></textarea></div>';
+
+    // Clone source (hidden by default)
+    body += '<div id="cpCloneSection" style="display:none">';
+    body += '<div class="modal-field"><label>Clone From</label><select id="cpCloneSource">';
+    body += '<option value="">Select a pathway...</option>';
+    if (this._allPathways) {
+      this._allPathways.filter(p => p.isActive).forEach(p => {
+        body += `<option value="${p.id}">${esc(p.name)}</option>`;
+      });
+    }
+    body += '</select></div>';
+    body += '<div style="font-size:var(--fs-xs);color:var(--gray);margin-top:-8px;margin-bottom:16px">Module assignments will be copied from the selected pathway.</div>';
+    body += '</div>';
+
+    body += '<div id="cpError" class="modal-error"></div>';
+    body += '<button class="modal-submit" onclick="Admin.createPathway()">Create Pathway</button>';
     this.showModal('Create Pathway', body);
+    this._createMode = 'empty';
+  },
+
+  _setCreateMode(mode) {
+    this._createMode = mode;
+    const emptyBtn = document.getElementById('cpModeEmpty');
+    const cloneBtn = document.getElementById('cpModeClone');
+    const cloneSection = document.getElementById('cpCloneSection');
+    if (mode === 'empty') {
+      emptyBtn.classList.add('active');
+      cloneBtn.classList.remove('active');
+      cloneSection.style.display = 'none';
+    } else {
+      emptyBtn.classList.remove('active');
+      cloneBtn.classList.add('active');
+      cloneSection.style.display = 'block';
+    }
   },
 
   async createPathway() {
     const errorEl = document.getElementById('cpError');
     try {
-      await API.createPathway(document.getElementById('cpName').value, document.getElementById('cpDesc').value);
+      const result = await API.createPathway(document.getElementById('cpName').value, document.getElementById('cpDesc').value);
+
+      // If cloning, copy module assignments from source
+      if (this._createMode === 'clone') {
+        const sourceId = document.getElementById('cpCloneSource').value;
+        if (sourceId) {
+          const sourceData = await API.getPathwayModules(parseInt(sourceId));
+          const moduleIds = sourceData.assigned.map(m => m.id);
+          if (moduleIds.length > 0) {
+            await API.updatePathwayModules(result.id, moduleIds);
+          }
+        }
+      }
+
       this.closeModal();
       await this.renderPathways();
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
+    }
+  },
+
+  async showAssignPathway(pathwayId, pathwayName) {
+    this.showModal(`Assign Users to "${pathwayName}"`, '<div class="admin-loading">Loading users...</div>');
+    try {
+      const data = await API.getUsers();
+      const users = data.users.filter(u => u.isActive && (u.role === 'rep' || u.role === 'manager'));
+
+      let body = '<div style="font-size:var(--fs-sm);color:var(--gray);margin-bottom:16px">Select users to assign to this pathway.</div>';
+      body += '<div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">';
+
+      users.forEach(u => {
+        const isAssigned = (u.pathways || []).some(p => p.pathway_id === pathwayId);
+        body += `<label class="builder-item" style="cursor:pointer">`;
+        body += `<input type="checkbox" class="pathway-assign-cb" data-userid="${u.id}" ${isAssigned ? 'checked' : ''} style="margin-right:8px">`;
+        body += `<span class="builder-item-title">${esc(u.firstName)} ${esc(u.lastName)}</span>`;
+        body += `<span class="role-badge role-${u.role}" style="margin-left:auto">${u.role}</span>`;
+        body += '</label>';
+      });
+
+      body += '</div>';
+      body += `<button class="modal-submit" onclick="Admin.savePathwayAssignments(${pathwayId})">Save Assignments</button>`;
+
+      const modalBody = document.querySelector('.modal-body');
+      if (modalBody) modalBody.innerHTML = body;
+    } catch (err) {
+      const modalBody = document.querySelector('.modal-body');
+      if (modalBody) modalBody.innerHTML = `<div class="admin-error">${esc(err.message)}</div>`;
+    }
+  },
+
+  async savePathwayAssignments(pathwayId) {
+    const checkboxes = document.querySelectorAll('.pathway-assign-cb');
+    try {
+      for (const cb of checkboxes) {
+        const userId = parseInt(cb.dataset.userid);
+        const userData = await API.getUsers();
+        const user = userData.users.find(u => u.id === userId);
+        if (!user) continue;
+
+        const currentIds = (user.pathways || []).map(p => p.pathway_id);
+        const isCurrentlyAssigned = currentIds.includes(pathwayId);
+
+        if (cb.checked && !isCurrentlyAssigned) {
+          await API.updateUserPathways(userId, [...currentIds, pathwayId]);
+        } else if (!cb.checked && isCurrentlyAssigned) {
+          await API.updateUserPathways(userId, currentIds.filter(id => id !== pathwayId));
+        }
+      }
+      this.closeModal();
+      toast('Pathway assignments updated');
+      await this.renderPathways();
+    } catch (err) {
+      toast(err.message, 'error');
     }
   },
 
