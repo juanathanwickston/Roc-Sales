@@ -239,10 +239,12 @@ router.put('/users/:id', async (req, res) => {
     // Note: team_id is no longer used. Pathway assignment handled via junction table below.
     if (isActive !== undefined) { fields.push(`is_active = $${idx++}`); values.push(!!isActive); }
 
-    // Role changes: superuser only, with safety guards
+    // Role changes: superuser + ld_manager, with safety guards
     if (role !== undefined) {
-      if (req.user.role !== 'superuser') {
-        return res.status(403).json({ error: 'Only superuser can change roles' });
+      const isSuperuser = req.user.role === 'superuser';
+      const isLdManager = req.user.role === 'ld_manager';
+      if (!isSuperuser && !isLdManager) {
+        return res.status(403).json({ error: 'Only superuser or LD manager can change roles' });
       }
       if (target.rows[0].role === 'superuser') {
         return res.status(403).json({ error: 'Cannot change superuser role' });
@@ -250,8 +252,10 @@ router.put('/users/:id', async (req, res) => {
       if (targetId === req.user.id) {
         return res.status(403).json({ error: 'Cannot change your own role' });
       }
-      if (!['rep', 'manager', 'ld_manager'].includes(role)) {
-        return res.status(400).json({ error: 'Role must be rep, manager, or ld_manager' });
+      // LD managers can set rep or manager. Superuser can also set ld_manager.
+      const allowedRoles = isSuperuser ? ['rep', 'manager', 'ld_manager'] : ['rep', 'manager'];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: `Role must be one of: ${allowedRoles.join(', ')}` });
       }
       fields.push(`role = $${idx++}`); values.push(role);
     }
@@ -663,6 +667,128 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
     res.json({ message: 'Pathway modules updated' });
   } catch (err) {
     console.error('[ADMIN] Update pathway modules error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── DELETE (DEACTIVATE) PATHWAY ───
+
+/**
+ * DELETE /api/admin/pathways/:id
+ * Soft-deletes a pathway (sets is_active = false) and hard-unassigns all users.
+ * LD Manager / Superuser only. Audit-logged.
+ */
+router.delete('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
+  const pathwayId = parseInt(req.params.id);
+  if (isNaN(pathwayId)) {
+    return res.status(400).json({ error: 'Valid pathway ID is required' });
+  }
+
+  try {
+    const pathway = await db.query('SELECT id, name FROM pathways WHERE id = $1', [pathwayId]);
+    if (pathway.rows.length === 0) {
+      return res.status(404).json({ error: 'Pathway not found' });
+    }
+
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+
+      // Hard unassign all users from this pathway
+      const unassigned = await client.query(
+        'DELETE FROM user_pathways WHERE pathway_id = $1 RETURNING user_id',
+        [pathwayId]
+      );
+
+      // Soft delete the pathway
+      await client.query(
+        'UPDATE pathways SET is_active = FALSE WHERE id = $1',
+        [pathwayId]
+      );
+
+      await client.query('COMMIT');
+
+      await logAudit(req.user.id, 'pathway_deactivated', pathwayId, {
+        name: pathway.rows[0].name,
+        usersUnassigned: unassigned.rows.length
+      });
+
+      res.json({
+        message: 'Pathway deactivated',
+        usersUnassigned: unassigned.rows.length
+      });
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[ADMIN] Delete pathway error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── DUPLICATE PATHWAY ───
+
+/**
+ * POST /api/admin/pathways/:id/duplicate
+ * Clones a pathway (name + " (Copy)", description) and copies all module assignments.
+ * LD Manager / Superuser only. Audit-logged.
+ */
+router.post('/pathways/:id/duplicate', requireRole('ld_manager'), async (req, res) => {
+  const sourceId = parseInt(req.params.id);
+  if (isNaN(sourceId)) {
+    return res.status(400).json({ error: 'Valid pathway ID is required' });
+  }
+
+  try {
+    const source = await db.query('SELECT * FROM pathways WHERE id = $1', [sourceId]);
+    if (source.rows.length === 0) {
+      return res.status(404).json({ error: 'Source pathway not found' });
+    }
+
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+
+      // Create new pathway
+      const newPathway = await client.query(
+        `INSERT INTO pathways (name, description, is_active)
+         VALUES ($1, $2, TRUE) RETURNING id, name`,
+        [source.rows[0].name + ' (Copy)', source.rows[0].description]
+      );
+      const newId = newPathway.rows[0].id;
+
+      // Copy module assignments
+      await client.query(
+        `INSERT INTO pathway_modules (pathway_id, module_id, sort_order)
+         SELECT $1, module_id, sort_order
+         FROM pathway_modules WHERE pathway_id = $2`,
+        [newId, sourceId]
+      );
+
+      await client.query('COMMIT');
+
+      await logAudit(req.user.id, 'pathway_duplicated', newId, {
+        sourceId,
+        sourceName: source.rows[0].name,
+        newName: newPathway.rows[0].name
+      });
+
+      res.status(201).json({
+        id: newId,
+        name: newPathway.rows[0].name,
+        message: 'Pathway duplicated'
+      });
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[ADMIN] Duplicate pathway error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

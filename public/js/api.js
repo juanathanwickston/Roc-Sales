@@ -229,6 +229,14 @@ const API = {
     return this.request('PUT', `/admin/pathways/${id}`, { name, description, isActive });
   },
 
+  async deletePathway(id) {
+    return this.request('DELETE', `/admin/pathways/${id}`);
+  },
+
+  async duplicatePathway(id) {
+    return this.request('POST', `/admin/pathways/${id}/duplicate`);
+  },
+
   async updateUserPathways(userId, pathwayIds) {
     return this.request('PUT', '/admin/user-pathways', { userId, pathwayIds });
   },

@@ -364,7 +364,11 @@ const Admin = {
         h += `<td>${p.isActive ? '<span class="status-active">● Active</span>' : '<span class="status-inactive">● Inactive</span>'}</td>`;
         h += `<td>${new Date(p.createdAt).toLocaleDateString()}</td>`;
         if (Auth.hasRole('ld_manager')) {
-          h += `<td><button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button> <button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button></td>`;
+          h += `<td><button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button> <button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button> <button class="admin-btn" onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
+          if (p.isActive) {
+            h += ` <button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
+          }
+          h += `</td>`;
         }
         h += '</tr>';
       });
@@ -373,6 +377,27 @@ const Admin = {
       content.innerHTML = h;
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
+    }
+  },
+
+  async deactivatePathway(id, name) {
+    if (!confirm(`Deactivate "${name}"?\n\nThis will unassign all users from this pathway. Their progress data will be preserved but they will no longer see it.`)) return;
+    try {
+      const result = await API.deletePathway(id);
+      toast(`Pathway deactivated. ${result.usersUnassigned} user(s) unassigned.`);
+      await this.renderPathways();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  },
+
+  async duplicatePathway(id) {
+    try {
+      const result = await API.duplicatePathway(id);
+      toast(`Pathway duplicated as "${result.name}"`);
+      await this.renderPathways();
+    } catch (err) {
+      toast(err.message, 'error');
     }
   },
 
@@ -467,9 +492,15 @@ const Admin = {
       pathwayOpts = pd.pathways.map(p => `<option value="${p.id}"${userPathwayIds.includes(p.id) ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
     } catch(e) {}
 
-    const roleSelect = isSuperuser && u.role !== 'superuser' && id !== Auth.user.id
-      ? `<div class="modal-field"><label>Role</label><select id="euRole"><option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option><option value="ld_manager"${u.role==='ld_manager'?' selected':''}>LD Manager</option></select></div>`
-      : '';
+    const isLdManager = Auth.hasRole('ld_manager');
+    const canChangeRole = (isSuperuser || isLdManager) && u.role !== 'superuser' && id !== Auth.user.id;
+    let roleSelect = '';
+    if (canChangeRole) {
+      const roleOpts = isSuperuser
+        ? `<option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option><option value="ld_manager"${u.role==='ld_manager'?' selected':''}>LD Manager</option>`
+        : `<option value="rep"${u.role==='rep'?' selected':''}>Rep</option><option value="manager"${u.role==='manager'?' selected':''}>Manager</option>`;
+      roleSelect = `<div class="modal-field"><label>Role</label><select id="euRole">${roleOpts}</select></div>`;
+    }
 
     const body = `
       <div class="modal-field"><label>First Name</label><input type="text" id="euFirst" value="${esc(u.firstName || '')}"></div>

@@ -220,8 +220,8 @@ router.put('/modules/:id', requireAuth, requireRole('ld_manager'), async (req, r
   }
 });
 
-// Create module (superuser only)
-router.post('/modules', requireAuth, requireRole('superuser'), async (req, res) => {
+// Create module (ld_manager+)
+router.post('/modules', requireAuth, requireRole('ld_manager'), async (req, res) => {
   const { id, title, description, icon, phase, game_id, game_title, game_desc } = req.body;
   if (!id || !title) return res.status(400).json({ error: 'ID and title are required' });
   if (!/^[a-z0-9_]+$/.test(id)) return res.status(400).json({ error: 'ID must be lowercase alphanumeric with underscores' });
