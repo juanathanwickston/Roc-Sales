@@ -845,7 +845,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 
   <!-- ADMIN -->
   <div id="admin" class="screen">
-    <div class="top-bar"><div><div class="logo">Admin Panel</div><div class="logo-sub">User &amp; Team Management</div></div></div>
+    <div class="top-bar"><div><div class="logo">Admin Panel</div><div class="logo-sub">User &amp; Pathway Management</div></div></div>
     <div id="adminBody"></div>
   </div>
 
@@ -949,9 +949,11 @@ function renderProfile() {
   h += '<div class="profile-value">' + u.firstName + ' ' + u.lastName + '</div>';
   h += '<div class="profile-label">Role</div>';
   h += '<div class="profile-value">' + u.role + '</div>';
-  if (u.teamName) {
-    h += '<div class="profile-label">Team</div>';
-    h += '<div class="profile-value">' + u.teamName + '</div>';
+  h += '<div class="profile-label">Pathways</div>';
+  if (u.pathways && u.pathways.length > 0) {
+    h += '<div class="profile-value">' + u.pathways.map(function(p) { return esc(p.name); }).join(', ') + '</div>';
+  } else {
+    h += '<div class="profile-value" style="color:var(--gray)">No pathway assigned</div>';
   }
   h += '<div class="profile-label">Nickname</div>';
   h += '<input type="text" class="profile-input" id="profNick" value="' + (u.nickname || '') + '" placeholder="Set a nickname for the leaderboard">';

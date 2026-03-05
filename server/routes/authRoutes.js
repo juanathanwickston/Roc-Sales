@@ -89,7 +89,7 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, username, first_name, last_name, nickname, email, role,
-              team_id, pathway_id, must_change_password
+              must_change_password
        FROM users WHERE id = $1`,
       [req.user.id]
     );
@@ -110,13 +110,6 @@ router.get('/me', requireAuth, async (req, res) => {
       [req.user.id]
     );
 
-    // Legacy: get team name for backward compat (remove after full migration)
-    let teamName = null;
-    if (user.team_id) {
-      const team = await db.query('SELECT name FROM teams WHERE id = $1', [user.team_id]);
-      if (team.rows.length > 0) teamName = team.rows[0].name;
-    }
-
     res.json({
       id: user.id,
       username: user.username,
@@ -125,12 +118,7 @@ router.get('/me', requireAuth, async (req, res) => {
       nickname: user.nickname,
       email: user.email,
       role: user.role,
-      // New: pathway assignments
       pathways: pathwaysResult.rows.map(p => ({ id: p.id, name: p.name })),
-      // Legacy: keep during migration
-      teamId: user.team_id,
-      teamName,
-      pathwayId: user.pathway_id,
       mustChangePassword: user.must_change_password
     });
   } catch (err) {
