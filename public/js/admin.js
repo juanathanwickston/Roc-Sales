@@ -345,40 +345,80 @@ const Admin = {
 
     try {
       const data = await API.getPathways();
-      let h = '';
-
-      if (Auth.hasRole('ld_manager')) {
-        h += '<button class="admin-action-btn" onclick="Admin.showCreatePathway()">+ Create Pathway</button>';
-      }
-
-      h += '<div class="admin-table-wrap"><table class="admin-table">';
-      h += '<thead><tr><th>Pathway Name</th><th>Description</th><th>Reps</th><th>Status</th><th>Created</th>';
-      if (Auth.hasRole('ld_manager')) h += '<th>Actions</th>';
-      h += '</tr></thead><tbody>';
-
-      data.pathways.forEach(p => {
-        h += '<tr>';
-        h += `<td>${esc(p.name)}</td>`;
-        h += `<td>${esc(p.description || '')}</td>`;
-        h += `<td>${p.repCount}</td>`;
-        h += `<td>${p.isActive ? '<span class="status-active">● Active</span>' : '<span class="status-inactive">● Inactive</span>'}</td>`;
-        h += `<td>${new Date(p.createdAt).toLocaleDateString()}</td>`;
-        if (Auth.hasRole('ld_manager')) {
-          h += `<td><button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button> <button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button> <button class="admin-btn" onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
-          if (p.isActive) {
-            h += ` <button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
-          }
-          h += `</td>`;
-        }
-        h += '</tr>';
-      });
-
-      h += '</tbody></table></div>';
-      content.innerHTML = h;
+      this._allPathways = data.pathways;
+      this._pathwayFilter = this._pathwayFilter || 'active';
+      this._renderPathwayCards();
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
     }
   },
+
+  _renderPathwayCards() {
+    const content = document.getElementById('adminContent');
+    const filter = this._pathwayFilter;
+    const pathways = filter === 'active'
+      ? this._allPathways.filter(p => p.isActive)
+      : this._allPathways;
+
+    let h = '<div class="pathway-hub">';
+
+    // Toolbar: filter pills + create button
+    h += '<div class="pathway-toolbar">';
+    h += '<div class="pathway-filters">';
+    h += `<button class="pathway-filter-pill${filter === 'active' ? ' active' : ''}" onclick="Admin._pathwayFilter='active';Admin._renderPathwayCards()">Active</button>`;
+    h += `<button class="pathway-filter-pill${filter === 'all' ? ' active' : ''}" onclick="Admin._pathwayFilter='all';Admin._renderPathwayCards()">All</button>`;
+    h += '</div>';
+    if (Auth.hasRole('ld_manager')) {
+      h += '<button class="admin-action-btn" onclick="Admin.showCreatePathway()">+ Create Pathway</button>';
+    }
+    h += '</div>';
+
+    // Card grid
+    if (pathways.length === 0) {
+      h += '<div class="admin-loading">No pathways found.</div>';
+    } else {
+      h += '<div class="pathway-cards">';
+      pathways.forEach(p => {
+        h += `<div class="pathway-card${p.isActive ? '' : ' inactive'}">`;
+
+        // Header: name + status badge
+        h += '<div class="pathway-card-header">';
+        h += `<span class="pathway-card-name">${esc(p.name)}</span>`;
+        h += p.isActive
+          ? '<span class="role-badge role-rep">Active</span>'
+          : '<span class="role-badge" style="background:rgba(123,139,168,.12);color:var(--gray)">Inactive</span>';
+        h += '</div>';
+
+        // Description (2-line clamp)
+        h += `<div class="pathway-card-desc">${esc(p.description || 'No description')}</div>`;
+
+        // Meta row: reps + created date
+        h += '<div class="pathway-card-meta">';
+        h += `<span class="pathway-card-stat">👥 ${p.repCount} rep${p.repCount !== 1 ? 's' : ''}</span>`;
+        h += `<span class="pathway-card-stat">📅 ${new Date(p.createdAt).toLocaleDateString()}</span>`;
+        h += '</div>';
+
+        // Actions footer (LD Manager+ only)
+        if (Auth.hasRole('ld_manager')) {
+          h += '<div class="pathway-card-actions">';
+          h += `<button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button>`;
+          h += `<button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button>`;
+          h += `<button class="admin-btn" onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
+          if (p.isActive) {
+            h += `<button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
+          }
+          h += '</div>';
+        }
+
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+
+    h += '</div>';
+    content.innerHTML = h;
+  },
+
 
   async deactivatePathway(id, name) {
     if (!confirm(`Deactivate "${name}"?\n\nThis will unassign all users from this pathway. Their progress data will be preserved but they will no longer see it.`)) return;

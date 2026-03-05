@@ -634,6 +634,24 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .modal-field textarea{width:100%;padding:10px 14px;background:var(--navy);border:1px solid var(--gb);border-radius:var(--r-sm);color:var(--white);font-family:var(--font);font-size:var(--fs-md);outline:none;transition:border-color .25s;resize:vertical}
 .modal-field textarea:focus{border-color:rgba(59,130,246,.4)}
 
+/* PATHWAY CARDS */
+.pathway-hub{padding:4px 0}
+.pathway-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.pathway-filters{display:flex;align-items:center;gap:8px}
+.pathway-filter-pill{padding:4px 12px;border-radius:20px;background:var(--n3);border:1px solid var(--gb);color:var(--gray);font-family:var(--font);font-size:var(--fs-xs);font-weight:500;cursor:pointer;transition:all .2s}
+.pathway-filter-pill.active{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--white)}
+.pathway-filter-pill:hover{color:var(--white)}
+.pathway-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.pathway-card{background:var(--n3);border:1px solid var(--gb);border-radius:12px;padding:24px;transition:all .2s}
+.pathway-card:hover{border-color:rgba(59,130,246,.25)}
+.pathway-card.inactive{opacity:.6}
+.pathway-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pathway-card-name{font-size:var(--fs-md);font-weight:600;color:var(--white)}
+.pathway-card-desc{font-size:var(--fs-sm);color:var(--gray);line-height:var(--lh-normal);margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pathway-card-meta{display:flex;align-items:center;gap:16px;font-size:var(--fs-xs);color:var(--gray)}
+.pathway-card-stat{display:flex;align-items:center;gap:4px}
+.pathway-card-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gb)}
+
 /* PATHWAY BUILDER */
 .builder-title{font-size:var(--fs-md);font-weight:600;margin-bottom:16px;color:var(--white)}
 .builder-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:320px}
