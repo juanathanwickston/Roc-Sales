@@ -797,7 +797,7 @@ const Admin = {
     this.showModal('Build Pathway', '<div class="admin-loading">Loading modules...</div>');
     // Widen modal for two-column builder layout
     const card = document.querySelector('#adminModal .modal-card');
-    if (card) card.style.maxWidth = '720px';
+    if (card) card.style.maxWidth = '900px';
 
     try {
       const data = await API.getPathwayModules(pathwayId);
@@ -820,8 +820,15 @@ const Admin = {
     const assigned = this._builderAssigned;
     const allIds = Object.keys(this._builderModules);
     const availableIds = allIds.filter(id => !assigned.includes(id));
+    const trackLabel = t => t === 'upskilling' ? 'Upskilling' : 'Onboarding';
 
     let h = `<div class="builder-title">${esc(pathwayName)}</div>`;
+
+    // Toolbar: Sort + Create Module
+    h += '<div class="builder-toolbar">';
+    h += '<button class="builder-sort-btn" onclick="Admin._builderSort()" title="Sort: Onboarding → Upskilling, then by phase">⇅ Auto-Sort</button>';
+    h += '</div>';
+
     h += '<div class="builder-columns">';
 
     // Left: Available
@@ -833,9 +840,14 @@ const Admin = {
     } else {
       availableIds.forEach(id => {
         const m = this._builderModules[id];
+        const track = m.track || 'onboarding';
         h += `<div class="builder-item">`;
+        h += `<span class="builder-track-dot ${track}"></span>`;
         h += `<span class="builder-item-icon">${m.icon || '📘'}</span>`;
         h += `<span class="builder-item-title">${esc(m.title)}</span>`;
+        h += `<span class="builder-item-meta">`;
+        h += `<span class="builder-phase-pill">P${m.phase || 1}</span>`;
+        h += `</span>`;
         h += `<button class="builder-item-btn" onclick="Admin._builderAdd('${esc(id)}')" title="Add to pathway">→</button>`;
         h += `</div>`;
       });
@@ -851,10 +863,20 @@ const Admin = {
     } else {
       assigned.forEach((id, i) => {
         const m = this._builderModules[id];
+        const track = m.track || 'onboarding';
+        const isReq = m.isRequired !== false;
         h += `<div class="builder-item assigned">`;
         h += `<span class="builder-item-order">${i + 1}</span>`;
+        h += `<span class="builder-track-dot ${track}"></span>`;
         h += `<span class="builder-item-icon">${m.icon || '📘'}</span>`;
         h += `<span class="builder-item-title">${esc(m.title)}</span>`;
+        h += `<span class="builder-item-meta">`;
+        h += `<span class="builder-phase-pill">P${m.phase || 1}</span>`;
+        h += `<label class="builder-req-toggle" title="${isReq ? 'Required' : 'Optional'}">`;
+        h += `<input type="checkbox" ${isReq ? 'checked' : ''} onchange="Admin._builderToggleRequired('${esc(id)}')">`;
+        h += `${isReq ? 'Req' : 'Opt'}`;
+        h += `</label>`;
+        h += `</span>`;
         h += `<span class="builder-item-actions">`;
         if (i > 0) h += `<button class="builder-item-btn" onclick="Admin._builderMove(${i}, ${i - 1})" title="Move up">↑</button>`;
         if (i < assigned.length - 1) h += `<button class="builder-item-btn" onclick="Admin._builderMove(${i}, ${i + 1})" title="Move down">↓</button>`;
@@ -877,7 +899,9 @@ const Admin = {
   _builderAdd(moduleId) {
     if (!this._builderAssigned.includes(moduleId)) {
       this._builderAssigned.push(moduleId);
-      this._renderBuilderBody(this._builderModules[this._builderAssigned[0]]?.title ? document.querySelector('.builder-title')?.textContent : '');
+      // Default new modules to required
+      if (this._builderModules[moduleId]) this._builderModules[moduleId].isRequired = true;
+      this._renderBuilderBody(document.querySelector('.builder-title')?.textContent || '');
     }
   },
 
@@ -895,12 +919,37 @@ const Admin = {
     this._renderBuilderBody(titleEl?.textContent || '');
   },
 
+  _builderToggleRequired(moduleId) {
+    if (this._builderModules[moduleId]) {
+      this._builderModules[moduleId].isRequired = !this._builderModules[moduleId].isRequired;
+      this._renderBuilderBody(document.querySelector('.builder-title')?.textContent || '');
+    }
+  },
+
+  _builderSort() {
+    const trackOrder = { onboarding: 0, upskilling: 1 };
+    this._builderAssigned.sort((a, b) => {
+      const ma = this._builderModules[a];
+      const mb = this._builderModules[b];
+      const ta = trackOrder[ma.track || 'onboarding'] || 0;
+      const tb = trackOrder[mb.track || 'onboarding'] || 0;
+      if (ta !== tb) return ta - tb;
+      return (ma.phase || 1) - (mb.phase || 1);
+    });
+    this._renderBuilderBody(document.querySelector('.builder-title')?.textContent || '');
+  },
+
   async savePathwayModules() {
     const btn = document.getElementById('builderSaveBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
     try {
-      await API.updatePathwayModules(this._builderPathwayId, this._builderAssigned);
+      // Build modules array with isRequired from _builderModules
+      const modules = this._builderAssigned.map(id => ({
+        id,
+        isRequired: this._builderModules[id]?.isRequired !== false
+      }));
+      await API.updatePathwayModulesWithRequired(this._builderPathwayId, modules);
       this.closeModal();
       if (typeof toast === 'function') toast('Module assignments saved');
       await this.renderPathways();
