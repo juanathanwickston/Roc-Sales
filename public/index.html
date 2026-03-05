@@ -704,6 +704,18 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .admin-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(255,68,102,.06)}
 .admin-btn.add{width:100%;padding:8px;margin-top:6px;border-style:dashed;text-align:center;color:var(--gray)}
 .admin-btn.add:hover{color:var(--blue);border-color:var(--blue)}
+/* GAME & CHATBOT LIBRARIES */
+.library-section{margin-top:24px;padding-top:20px;border-top:1px solid var(--gb)}
+.library-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.library-section-title{font-size:var(--fs-md);font-weight:600;color:var(--white)}
+.library-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.library-card{display:flex;gap:12px;padding:16px;background:var(--n3);border:1px solid var(--gb);border-radius:12px;transition:all .2s}
+.library-card:hover{border-color:rgba(59,130,246,.25)}
+.library-card-icon{font-size:28px;flex-shrink:0;width:36px;text-align:center}
+.library-card-info{flex:1;min-width:0}
+.library-card-info strong{font-size:var(--fs-sm);font-weight:600;color:var(--white);display:block;margin-bottom:2px}
+.library-card-info p{font-size:var(--fs-xs);color:var(--gray);line-height:1.4;margin:0;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.library-card-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(59,130,246,.12);color:var(--blue);flex-shrink:0;align-self:flex-start}
 
 /* PASSWORD CHANGE MODAL */
 .pw-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:var(--z-pw);display:flex;align-items:center;justify-content:center}

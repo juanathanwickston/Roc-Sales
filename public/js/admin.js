@@ -999,7 +999,15 @@ const Admin = {
     content.innerHTML = '<div class="admin-loading">Loading content...</div>';
 
     try {
-      const data = await API.getModules();
+      const [data, gamesData, chatbotsData] = await Promise.all([
+        API.getModules(),
+        API.getGames(),
+        API.getChatbots()
+      ]);
+
+      // Cache games for module editor picker
+      this._gamesCache = gamesData.games || [];
+
       let h = '<div class="cms-content">';
 
       // Module list
@@ -1016,6 +1024,54 @@ const Admin = {
       // Quiz section
       h += '<div style="margin-top:24px">';
       h += '<button class="admin-action-btn" onclick="Admin.editQuizzes()">📝 Edit Quiz Questions</button>';
+      h += '</div>';
+
+      // ── Game Library ──
+      const games = gamesData.games || [];
+      h += '<div class="library-section">';
+      h += '<div class="library-section-header">';
+      h += `<span class="library-section-title">🎮 Game Library (${games.length})</span>`;
+      h += '</div>';
+      if (games.length === 0) {
+        h += '<div class="builder-empty">No games available.</div>';
+      } else {
+        h += '<div class="library-cards">';
+        games.forEach(g => {
+          h += '<div class="library-card">';
+          h += `<span class="library-card-icon">${g.icon || '🎮'}</span>`;
+          h += '<div class="library-card-info">';
+          h += `<strong>${esc(g.title)}</strong>`;
+          h += `<p>${esc(g.description || 'No description')}</p>`;
+          h += '</div>';
+          if (g.skill_area) h += `<span class="library-card-badge">${esc(g.skill_area)}</span>`;
+          h += '</div>';
+        });
+        h += '</div>';
+      }
+      h += '</div>';
+
+      // ── Chatbot Library ──
+      const chatbots = chatbotsData.chatbots || [];
+      h += '<div class="library-section">';
+      h += '<div class="library-section-header">';
+      h += `<span class="library-section-title">🤖 Chatbot Library (${chatbots.length})</span>`;
+      h += '</div>';
+      if (chatbots.length === 0) {
+        h += '<div class="builder-empty">No chatbots configured yet.</div>';
+      } else {
+        h += '<div class="library-cards">';
+        chatbots.forEach(c => {
+          h += '<div class="library-card">';
+          h += `<span class="library-card-icon">${c.icon || '🤖'}</span>`;
+          h += '<div class="library-card-info">';
+          h += `<strong>${esc(c.title)}</strong>`;
+          h += `<p>${esc(c.description || 'No description')}</p>`;
+          h += '</div>';
+          if (c.category) h += `<span class="library-card-badge">${esc(c.category)}</span>`;
+          h += '</div>';
+        });
+        h += '</div>';
+      }
       h += '</div>';
 
       h += '</div>';
@@ -1038,9 +1094,18 @@ const Admin = {
       body += `<div class="modal-field"><label>Icon (emoji)</label><input type="text" id="cmIcon" value="${m.icon || ''}" style="width:60px"></div>`;
       body += `<div class="modal-field"><label>Phase</label><select id="cmPhase"><option value="1"${m.phase===1?' selected':''}>1 - Foundation</option><option value="2"${m.phase===2?' selected':''}>2 - Applied</option><option value="3"${m.phase===3?' selected':''}>3 - Validation</option></select></div>`;
       body += `<div class="modal-field"><label>Track</label><select id="cmTrack"><option value="onboarding"${(m.track||'onboarding')==='onboarding'?' selected':''}>🟢 Onboarding</option><option value="upskilling"${m.track==='upskilling'?' selected':''}>🟠 Upskilling</option></select></div>`;
-      body += `<div class="modal-field"><label>Game ID</label><input type="text" id="cmGameId" value="${m.game_id || ''}"></div>`;
-      body += `<div class="modal-field"><label>Game Title</label><input type="text" id="cmGameTitle" value="${this.esc(m.game_title || '')}"></div>`;
-      body += `<div class="modal-field"><label>Game Description</label><textarea id="cmGameDesc" rows="2">${this.esc(m.game_desc || '')}</textarea></div>`;
+      // Game picker (dropdown from cms_games library)
+      body += '<div class="modal-field"><label>Game</label><select id="cmGameSelect" onchange="Admin._onGameSelect()">';
+      body += '<option value="">None (no game)</option>';
+      (this._gamesCache || []).forEach(g => {
+        const sel = (m.game_id === g.id) ? ' selected' : '';
+        body += `<option value="${g.id}" data-title="${this.esc(g.title)}" data-desc="${this.esc(g.description || '')}"${sel}>${g.icon || '🎮'} ${this.esc(g.title)}</option>`;
+      });
+      body += '</select></div>';
+      body += `<input type="hidden" id="cmGameId" value="${m.game_id || ''}">`;
+      body += `<input type="hidden" id="cmGameTitle" value="${this.esc(m.game_title || '')}">`;
+      body += `<input type="hidden" id="cmGameDesc" value="${this.esc(m.game_desc || '')}">`;
+      body += `<div id="cmGamePreview" style="font-size:var(--fs-xs);color:var(--gray);margin-top:-8px;margin-bottom:12px">${m.game_id ? m.game_title + ' — ' + (m.game_desc || '').substring(0, 80) : 'No game assigned'}</div>`;
       body += `<div id="cmError" class="modal-error"></div>`;
       body += `<button class="modal-submit" onclick="Admin.saveModule('${moduleId}')">Save Module</button>`;
       body += '</div>';
@@ -1079,6 +1144,19 @@ const Admin = {
     } catch (err) {
       this.showModal('Error', `<div class="modal-error" style="display:block">${err.message}</div>`);
     }
+  },
+
+  _onGameSelect() {
+    const sel = document.getElementById('cmGameSelect');
+    const opt = sel.options[sel.selectedIndex];
+    const id = sel.value;
+    const title = opt?.dataset?.title || '';
+    const desc = opt?.dataset?.desc || '';
+    document.getElementById('cmGameId').value = id;
+    document.getElementById('cmGameTitle').value = title;
+    document.getElementById('cmGameDesc').value = desc;
+    const preview = document.getElementById('cmGamePreview');
+    if (preview) preview.textContent = id ? title + ' — ' + desc.substring(0, 80) : 'No game assigned';
   },
 
   async saveModule(id) {
