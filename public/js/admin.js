@@ -742,10 +742,14 @@ const Admin = {
   async savePathwayAssignments(pathwayId) {
     const checkboxes = document.querySelectorAll('.pathway-assign-cb');
     try {
+      // Fetch users once, build lookup map
+      const userData = await API.getUsers();
+      const userMap = {};
+      userData.users.forEach(u => { userMap[u.id] = u; });
+
       for (const cb of checkboxes) {
         const userId = parseInt(cb.dataset.userid);
-        const userData = await API.getUsers();
-        const user = userData.users.find(u => u.id === userId);
+        const user = userMap[userId];
         if (!user) continue;
 
         const currentIds = (user.pathways || []).map(p => p.pathway_id);
