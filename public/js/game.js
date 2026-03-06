@@ -78,7 +78,17 @@ function saveSkill(gameId, pct, pts, maxPts){
   D.skills[key].attempts++;
   D.skills[key].lastDate = new Date().toISOString().split('T')[0];
   // Submit score to backend
-  API.submitScore('game', gameId, pts||Math.round(pct), maxPts||100, {skill:key,pct:pct}).catch(e=>console.warn('[GAME] Score submit failed:',e.message));
+  API.submitScore('game', gameId, pts||Math.round(pct), maxPts||100, {skill:key,pct:pct})
+    .then(() => {
+      // Refresh Power Score on dashboard after scoring
+      API.getLeaderboard().then(lb => {
+        if (lb.myRank) {
+          document.getElementById('hXP').textContent = lb.myScore || 0;
+          document.getElementById('hLv').textContent = '#' + lb.myRank;
+        }
+      }).catch(() => {});
+    })
+    .catch(e=>console.warn('[GAME] Score submit failed:',e.message));
 }
 
 // Proficiency levels (industry standard 5-tier model)
@@ -215,6 +225,14 @@ function renderHome(){
   // Stats — modules done count (X/Y format)
   const doneMods = MODULES.filter(m=>isModDone(m.id)).length;
   document.getElementById('hSk').textContent=doneMods+'/'+MODULES.length;
+
+  // Refresh Power Score + Rank from leaderboard API (always fresh per performance.md L102)
+  API.getLeaderboard().then(lb => {
+    if (lb.myRank) {
+      document.getElementById('hXP').textContent = lb.myScore || 0;
+      document.getElementById('hLv').textContent = '#' + lb.myRank;
+    }
+  }).catch(e => console.warn('[DASHBOARD] Power Score refresh failed:', e.message));
 
   // ─── PATHWAY TABS (multi-pathway users) ───
   const userPathways = (Auth.user && Auth.user.pathways) ? Auth.user.pathways : [];

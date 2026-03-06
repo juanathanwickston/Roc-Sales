@@ -1036,7 +1036,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
       document.getElementById('hLv').textContent = '#' + lb.myRank;
       document.getElementById('hXP').textContent = lb.myScore || 0;
     }
-  } catch(e) {}
+  } catch(e) { console.warn('[INIT] Leaderboard load failed:', e.message); }
 })();
 
 function navigate(screenId) {
