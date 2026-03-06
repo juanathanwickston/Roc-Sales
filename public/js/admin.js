@@ -214,11 +214,11 @@ const Admin = {
     let h = '<div class="admin-table-card">';
     h += '<table class="admin-table">';
     h += '<thead><tr>';
-    h += `<th class="col-name sortable resizable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
-    h += `<th class="col-role sortable resizable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
-    h += `<th class="col-pathway sortable resizable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
-    h += '<th class="col-status resizable">Status</th>';
-    h += `<th class="col-login sortable resizable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
+    h += `<th class="col-name sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
+    h += `<th class="col-role sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
+    h += `<th class="col-pathway sortable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
+    h += '<th class="col-status">Status</th>';
+    h += `<th class="col-login sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
     h += '<th class="col-actions"></th>';
     h += '</tr></thead><tbody>';
 

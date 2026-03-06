@@ -564,7 +564,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .admin-toolbar-row{display:flex;align-items:center;gap:8px;margin-bottom:24px}
 .admin-search{flex:0 0 200px;padding:8px 16px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs);color:var(--white);font-family:var(--font);font-size:var(--fs-sm);outline:none;transition:border-color .2s}
 .admin-search:focus{border-color:rgba(59,130,246,.4)}
-.admin-filter{padding:8px 16px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs);color:var(--white);font-family:var(--font);font-size:var(--fs-sm);cursor:pointer;outline:none}
+.admin-filter{padding:8px 28px 8px 16px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs);color:var(--white);font-family:var(--font);font-size:var(--fs-sm);cursor:pointer;outline:none;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237b8ba8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:10px 6px}
 
 /* ─── Table Card Container ─── */
 .admin-table-card{background:var(--n3);border:1px solid var(--gb);border-radius:12px;padding:0;overflow:hidden}
@@ -572,15 +572,13 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 /* Table */
 .admin-table{width:100%;border-collapse:collapse;table-layout:fixed}
 
-/* Column widths: comfortable defaults, resizable */
-.admin-table .col-name{width:22%}
-.admin-table .col-role{width:14%}
-.admin-table .col-pathway{width:28%}
+/* Column widths: Pathway widest for multiple assignments */
+.admin-table .col-name{width:20%}
+.admin-table .col-role{width:12%}
+.admin-table .col-pathway{width:35%}
 .admin-table .col-status{width:10%}
-.admin-table .col-login{width:14%}
-.admin-table .col-actions{width:60px;text-align:center}
-/* Resizable column headers */
-.admin-table th.resizable{overflow:hidden;resize:horizontal;min-width:60px}
+.admin-table .col-login{width:13%}
+.admin-table .col-actions{width:50px;text-align:center}
 
 /* Headers: uppercase, muted */
 .admin-table th{text-align:left;font-size:var(--fs-2xs);font-weight:500;color:rgba(123,139,168,.6);letter-spacing:.5px;text-transform:uppercase;padding:12px 16px 8px;border-bottom:1px solid var(--gb);white-space:nowrap}
@@ -967,7 +965,7 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 
   <!-- ADMIN -->
   <div id="admin" class="screen">
-    <div class="top-bar"><div><div class="logo">Admin Panel</div><div class="logo-sub">User &amp; Pathway Management</div></div></div>
+    <div class="top-bar"><div><div class="logo">Admin Panel</div></div></div>
     <div id="adminBody"></div>
   </div>
 
