@@ -1,0 +1,54 @@
+{
+  "id": "module1_identifying_customer",
+  "name": "Module 1: Identifying the Customer – Discovery Call",
+  "description": "Practice qualifying a suspect and navigating the sales funnel. A restaurant owner was referred to you but has done no research on Payroc. Prove you can identify the customer through proper discovery and qualification.",
+  "module": "Module 1 – Identifying the Customer",
+  "difficulty": "beginner",
+  "duration_minutes": 15,
+  "persona_id": "pa3f39ac095b",
+  "conversation_config": {
+    "conversation_name": "Module 1: Discovery Call Simulation",
+    "conversational_context": "The participant is a new Payroc sales rep practicing their discovery call skills. They need to qualify you as a suspect, identify your needs, and demonstrate proper BANT or CHAMP qualification. Start as a guarded restaurant owner who was referred by a colleague. Only open up when the rep asks good questions about your business. Do NOT make it easy — they need to earn your engagement.",
+    "custom_greeting": "Hey, yeah — my buddy Dave mentioned you might reach out. I've got about 15 minutes before I need to get back to the restaurant. What's this about?",
+    "properties": {
+      "max_call_duration": 1200,
+      "participant_left_timeout": 30,
+      "participant_absent_timeout": 120,
+      "enable_closed_captions": true
+    }
+  },
+  "rubric": {
+    "discovery_questions": {
+      "weight": 30,
+      "criteria": "Asked open-ended questions about the prospect's business, pain points, and current situation BEFORE presenting any Payroc solutions. Demonstrated customer-focused (not product-focused) selling."
+    },
+    "qualification_framework": {
+      "weight": 30,
+      "criteria": "Applied BANT (Budget, Authority, Need, Timeline) or CHAMP (Challenges, Authority, Money, Prioritization) framework. Asked about decision-makers, budget alignment, defined needs, and timeline/urgency."
+    },
+    "funnel_awareness": {
+      "weight": 20,
+      "criteria": "Treated the prospect appropriately for their funnel stage (suspect → lead → prospect). Did NOT assume the prospect was ready to buy. Properly identified engagement signals before advancing."
+    },
+    "next_step_close": {
+      "weight": 20,
+      "criteria": "Proposed a clear, low-commitment next step (e.g., demo with decision-makers present). Did NOT push for a close on the first call. Set expectations for follow-up."
+    }
+  },
+  "coaching_notes": {
+    "key_concepts": [
+      "Suspect = fits ICP but no proven interest",
+      "Lead = demonstrated interest through action",
+      "Prospect = qualified with confirmed need, budget, authority, timeline",
+      "Customer-focused reps ask before they tell",
+      "CHAMP leads with challenges — usually gets better engagement"
+    ],
+    "common_mistakes": [
+      "Feature-dumping before asking about the prospect's situation",
+      "Treating a suspect like a prospect from minute one",
+      "Not asking about other decision-makers (authority)",
+      "Failing to quantify pain points",
+      "Pushing for a close instead of a follow-up"
+    ]
+  }
+}

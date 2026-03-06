@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Call Simulator – ROC Academy</title>
+  <meta name="description" content="Practice sales calls with a realistic AI buyer. Powered by Tavus CVI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ─── ROC Academy Design System Tokens ─── */
+    :root {
+      /* Typography */
+      --font: 'Geist', sans-serif;
+      --fs-2xs: 11px; --fs-xs: 12px; --fs-sm: 13px; --fs-base: 14px;
+      --fs-md: 16px; --fs-lg: 18px; --fs-xl: 24px; --fs-2xl: 28px; --fs-3xl: 36px;
+      --fw-normal: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+      --lh-tight: 1.3; --lh-normal: 1.55; --lh-relaxed: 1.7;
+
+      /* Colors */
+      --navy: #0A1628;
+      --n2: #0F1B32;
+      --n3: #152240;
+      --n4: #1C2D4E;
+      --blue: #3B82F6;
+      --green: #00E0B8;
+      --red: #FF4466;
+      --orange: #FFB800;
+      --purple: #A78BFA;
+      --white: #EDF2FF;
+      --gray: #7B8BA8;
+      --gb: rgba(59,130,246,.12);
+
+      /* Spacing: 4, 8, 16, 24, 32, 48 only */
+      /* Border Radius */
+      --r-xs: 3px; --r-sm: 5px; --rs: 8px; --r: 12px;
+
+      /* Z-Index */
+      --z-base: 1; --z-sticky: 10; --z-popup: 150; --z-modal: 999; --z-toast: 9999;
+    }
+
+    /* ─── Reset ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--navy);
+      color: var(--white);
+      font-size: var(--fs-base);
+      line-height: var(--lh-normal);
+      min-height: 100vh;
+    }
+
+    /* ─── Screen Management ─── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ─── Header ─── */
+    .app-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--gb);
+      background: var(--n2);
+    }
+    .header-brand { display: flex; align-items: center; gap: 16px; }
+    .brand-icon { font-size: var(--fs-xl); }
+    .header-brand h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin: 0; }
+    .header-subtitle { color: var(--gray); font-size: var(--fs-xs); }
+
+    /* ─── Scenario Selection ─── */
+    .scenarios-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .scenarios-hero { text-align: center; margin-bottom: 32px; }
+    .scenarios-hero h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 8px; }
+    .scenarios-hero p { color: var(--gray); font-size: var(--fs-sm); max-width: 500px; margin: 0 auto; }
+
+    .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .scenario-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+
+    .scenario-card {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 24px;
+      cursor: pointer;
+      transition: border-color .2s;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      width: 100%;
+    }
+    .scenario-card:hover, .scenario-card:focus-visible {
+      border-color: rgba(59,130,246,.4);
+      outline: none;
+    }
+    .scenario-card-title {
+      font-size: var(--fs-md);
+      font-weight: var(--fw-semibold);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenario-card-desc { color: var(--gray); font-size: var(--fs-sm); line-height: var(--lh-normal); margin-bottom: 16px; }
+    .scenario-card-meta { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--gray); }
+
+    .difficulty-badge {
+      padding: 4px 8px;
+      border-radius: var(--r-sm);
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+    .difficulty-beginner { background: rgba(0,224,184,.12); color: var(--green); }
+    .difficulty-intermediate { background: rgba(59,130,246,.12); color: var(--blue); }
+    .difficulty-advanced { background: rgba(255,68,102,.12); color: var(--red); }
+
+    /* Loading & Empty States */
+    .scenario-loading, .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--gray);
+      grid-column: 1 / -1;
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state .empty-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--white); margin-bottom: 8px; }
+    .empty-state .empty-desc { font-size: var(--fs-sm); margin-bottom: 24px; }
+
+    .spinner {
+      width: 24px; height: 24px;
+      border: 3px solid var(--gb);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 8px;
+    }
+    .spinner-large { width: 48px; height: 48px; border-width: 4px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Lobby Screen ─── */
+    .lobby-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .lobby-card {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .lobby-icon { font-size: 48px; margin-bottom: 16px; }
+    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; }
+    .lobby-status { color: var(--gray); font-size: var(--fs-sm); margin-bottom: 24px; }
+    .lobby-spinner { margin-bottom: 24px; }
+    .lobby-tips {
+      text-align: left;
+      background: var(--n4);
+      border-radius: var(--rs);
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--blue); }
+    .lobby-tips ul { list-style: none; }
+    .lobby-tips li {
+      padding: 4px 0;
+      font-size: var(--fs-sm);
+      color: var(--gray);
+      position: relative;
+      padding-left: 16px;
+    }
+    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--green); }
+
+    /* ─── Call Screen ─── */
+    .call-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+    .call-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--n2);
+      border-bottom: 1px solid var(--gb);
+    }
+    .call-topbar-left { display: flex; align-items: center; gap: 8px; }
+    .call-indicator { animation: blink 1.5s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .call-scenario-label { font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+    .call-timer { font-size: var(--fs-md); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+    .call-status-badge {
+      padding: 4px 8px;
+      border-radius: var(--r-sm);
+      background: rgba(0,224,184,.12);
+      color: var(--green);
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+    }
+
+    .call-video-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .video-container {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16/9;
+      background: var(--navy);
+      border-radius: var(--rs);
+      overflow: hidden;
+      position: relative;
+    }
+    .video-container video { width: 100%; height: 100%; object-fit: cover; }
+    .video-name-tag {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      background: rgba(10,22,40,.8);
+      border-radius: var(--r-sm);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-medium);
+    }
+
+    .call-captions {
+      padding: 8px 16px;
+      min-height: 48px;
+      background: var(--n2);
+      text-align: center;
+    }
+    .captions-text { font-size: var(--fs-sm); color: var(--gray); }
+
+    .call-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: var(--n2);
+      border-top: 1px solid var(--gb);
+    }
+    .control-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      min-width: 64px;
+      min-height: 48px;
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--rs);
+      color: var(--white);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: var(--fs-xs);
+      transition: background .15s, border-color .15s;
+    }
+    .control-btn:hover, .control-btn:focus-visible {
+      background: var(--n4);
+      border-color: rgba(59,130,246,.4);
+      outline: none;
+    }
+    .control-btn.active { border-color: var(--blue); background: rgba(59,130,246,.12); }
+    .control-btn.muted { border-color: var(--red); background: rgba(255,68,102,.12); }
+    .control-icon { font-size: var(--fs-md); }
+    .control-label { font-size: var(--fs-2xs); color: var(--gray); }
+    .control-btn-end {
+      background: rgba(255,68,102,.15);
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .control-btn-end:hover { background: var(--red); color: #fff; }
+
+    /* ─── Debrief Screen ─── */
+    .debrief-main { flex: 1; padding: 32px 24px; max-width: 800px; margin: 0 auto; width: 100%; }
+    .debrief-loading { text-align: center; padding: 48px 0; }
+    .debrief-loading p { color: var(--gray); font-size: var(--fs-sm); margin-top: 16px; }
+
+    .score-hero { display: flex; align-items: center; gap: 32px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
+    .score-ring { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+    .score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-ring-bg { fill: none; stroke: var(--n3); stroke-width: 8; }
+    .score-ring-fill { fill: none; stroke: var(--green); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.5s ease; }
+    .score-ring-text {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-number { font-size: var(--fs-2xl); font-weight: var(--fw-bold); }
+    .score-label { font-size: var(--fs-xs); color: var(--gray); }
+    .score-hero-text { text-align: center; }
+    .score-verdict { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; }
+    .score-coaching-tip { color: var(--gray); font-size: var(--fs-sm); }
+
+    /* Category bars */
+    .score-categories { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    .category-row { display: flex; align-items: center; gap: 16px; }
+    .category-name { width: 140px; font-size: var(--fs-sm); font-weight: var(--fw-medium); flex-shrink: 0; }
+    .category-bar-wrap { flex: 1; height: 8px; background: var(--n3); border-radius: 4px; overflow: hidden; }
+    .category-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .category-score { width: 80px; text-align: right; font-size: var(--fs-sm); font-weight: var(--fw-semibold); flex-shrink: 0; }
+
+    /* Details grid */
+    .score-details-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+    @media (min-width: 768px) { .score-details-grid { grid-template-columns: 1fr 1fr; } }
+    .detail-card {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 24px;
+    }
+    .detail-card h3 { font-size: var(--fs-md); font-weight: var(--fw-semibold); margin-bottom: 16px; }
+    .detail-card ul { list-style: none; }
+    .detail-card li {
+      padding: 8px 0;
+      font-size: var(--fs-sm);
+      color: var(--gray);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      position: relative;
+      padding-left: 24px;
+    }
+    .detail-strengths li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: bold; }
+    .detail-improvements li::before { content: '→'; position: absolute; left: 0; color: var(--orange); }
+
+    /* Coaching notes */
+    .coaching-notes { margin-bottom: 32px; }
+    .coaching-notes h3 { font-size: var(--fs-md); font-weight: var(--fw-semibold); margin-bottom: 16px; }
+    .coaching-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .coaching-grid { grid-template-columns: 1fr 1fr; } }
+    .coaching-card {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 24px;
+    }
+    .coaching-card h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--blue); }
+    .coaching-card ul { list-style: none; }
+    .coaching-card li { padding: 4px 0; font-size: var(--fs-sm); color: var(--gray); }
+
+    /* Debrief actions */
+    .debrief-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+    /* ─── Buttons ─── */
+    .btn {
+      padding: 8px 24px;
+      border-radius: var(--rs);
+      font-family: inherit;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      min-height: 44px;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #2563EB; }
+    .btn-secondary {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      color: var(--white);
+    }
+    .btn-secondary:hover { border-color: rgba(59,130,246,.4); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--gb);
+      color: var(--gray);
+    }
+    .btn-ghost:hover { color: var(--white); border-color: rgba(59,130,246,.4); }
+
+    /* ─── Toast ─── */
+    #toastContainer {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: var(--z-toast);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    /* ─── Mobile (≤767px) ─── */
+    @media (max-width: 767px) {
+      :root {
+        --fs-3xl: 1.75rem;
+        --fs-2xl: 1.5rem;
+        --fs-xl: 1.25rem;
+      }
+      .scenarios-main, .debrief-main { padding: 16px; }
+      .scenario-grid { grid-template-columns: 1fr; }
+      .score-hero { flex-direction: column; gap: 16px; }
+      .category-name { width: 100px; font-size: var(--fs-xs); }
+      .control-btn { padding: 8px; min-width: 56px; }
+      .lobby-card { padding: 24px 16px; }
+      .debrief-actions { flex-direction: column; }
+      .debrief-actions .btn { width: 100%; }
+    }
+
+    /* ─── Tablet (768-1023px) ─── */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .scenario-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ─── Focus Visible ─── */
+    :focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    /* ─── Skeleton Loading ─── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--n3) 25%, var(--n4) 50%, var(--n3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--rs);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toast container for all notifications -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ═══════════════ SCREEN 1: SCENARIO SELECTION ═══════════════ -->
+  <div id="screen-scenarios" class="screen active">
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">🎙️</div>
+        <div>
+          <h1>Sales Call Simulator</h1>
+          <span class="header-subtitle">ROC Academy – Practice Mode</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="scenarios-main" aria-label="Scenario selection">
+      <div class="scenarios-hero">
+        <h2>Choose Your Scenario</h2>
+        <p>Select a training scenario to practice with a realistic AI buyer. Each scenario tests specific skills from your sales curriculum.</p>
+      </div>
+      <div id="scenario-list" class="scenario-grid" role="list" aria-busy="true">
+        <!-- Populated by app.js -->
+        <div class="scenario-loading">
+          <div class="spinner" role="status" aria-label="Loading scenarios"></div>
+          <span>Loading scenarios...</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══════════════ SCREEN 2: PRE-CALL LOBBY ═══════════════ -->
+  <div id="screen-lobby" class="screen">
+    <div class="lobby-container">
+      <div class="lobby-card" role="status" aria-live="polite">
+        <div class="lobby-icon" aria-hidden="true">📞</div>
+        <h2 id="lobby-scenario-name">Preparing your call...</h2>
+        <p id="lobby-status" class="lobby-status">Setting up the conversation...</p>
+        <div class="lobby-spinner" aria-hidden="true">
+          <div class="spinner spinner-large"></div>
+        </div>
+        <div class="lobby-tips">
+          <h4>Quick Tips</h4>
+          <ul>
+            <li>Ask about their business <strong>before</strong> presenting solutions</li>
+            <li>Use BANT or CHAMP to qualify</li>
+            <li>Listen more than you talk in the first 5 minutes</li>
+            <li>Close for a next step, not a sale</li>
+          </ul>
+        </div>
+        <button id="lobby-cancel" class="btn btn-ghost" onclick="app.cancelLobby()" aria-label="Cancel and return to scenarios">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN 3: CALL SCREEN ═══════════════ -->
+  <div id="screen-call" class="screen">
+    <div class="call-layout">
+      <!-- Top bar -->
+      <div class="call-topbar">
+        <div class="call-topbar-left">
+          <span class="call-indicator" aria-hidden="true">🔴</span>
+          <span id="call-scenario-label" class="call-scenario-label">Sales Call</span>
+        </div>
+        <div class="call-topbar-center">
+          <span id="call-timer" class="call-timer" aria-label="Call duration">00:00</span>
+        </div>
+        <div class="call-topbar-right">
+          <span id="call-status-badge" class="call-status-badge">Connected</span>
+        </div>
+      </div>
+
+      <!-- Video area -->
+      <div class="call-video-area">
+        <div id="remote-video-container" class="video-container">
+          <video id="remote-video" autoplay playsinline aria-label="AI buyer video"></video>
+          <audio id="remote-audio" autoplay playsinline></audio>
+          <div id="remote-name-tag" class="video-name-tag">AI Buyer</div>
+        </div>
+      </div>
+
+      <!-- Captions -->
+      <div id="call-captions" class="call-captions" aria-live="polite">
+        <div id="captions-text" class="captions-text">
+          <span class="caption-placeholder">Captions will appear here when speaking begins...</span>
+        </div>
+      </div>
+
+      <!-- Control bar -->
+      <nav class="call-controls" aria-label="Call controls">
+        <button id="btn-mute" class="control-btn" onclick="callManager.toggleMute()" aria-label="Toggle microphone" aria-pressed="false">
+          <span class="control-icon" aria-hidden="true">🎤</span>
+          <span class="control-label">Mute</span>
+        </button>
+        <button id="btn-camera" class="control-btn" onclick="callManager.toggleCamera()" aria-label="Toggle camera" aria-pressed="false">
+          <span class="control-icon" aria-hidden="true">📹</span>
+          <span class="control-label">Camera</span>
+        </button>
+        <button id="btn-captions" class="control-btn active" onclick="callManager.toggleCaptions()" aria-label="Toggle captions" aria-pressed="true">
+          <span class="control-icon" aria-hidden="true">CC</span>
+          <span class="control-label">Captions</span>
+        </button>
+        <button id="btn-end" class="control-btn control-btn-end" onclick="callManager.endCall()" aria-label="End call">
+          <span class="control-icon" aria-hidden="true">📞</span>
+          <span class="control-label">End Call</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN 4: DEBRIEF / SCORECARD ═══════════════ -->
+  <div id="screen-debrief" class="screen">
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">📊</div>
+        <div>
+          <h1>Call Debrief</h1>
+          <span class="header-subtitle" id="debrief-scenario-name">Module 1 – Discovery Call</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="debrief-main" aria-label="Call debrief and scorecard">
+      <!-- Score summary -->
+      <div id="debrief-loading" class="debrief-loading" aria-busy="true">
+        <div class="spinner spinner-large" role="status" aria-label="Evaluating performance"></div>
+        <p>Evaluating your performance...</p>
+      </div>
+
+      <div id="debrief-content" class="debrief-content" style="display:none;">
+        <!-- Overall score -->
+        <div class="score-hero">
+          <div id="score-ring" class="score-ring" role="img" aria-label="Overall score">
+            <svg viewBox="0 0 120 120">
+              <circle class="score-ring-bg" cx="60" cy="60" r="54"/>
+              <circle id="score-ring-fill" class="score-ring-fill" cx="60" cy="60" r="54"
+                stroke-dasharray="339.29" stroke-dashoffset="339.29"/>
+            </svg>
+            <div class="score-ring-text">
+              <span id="score-number" class="score-number">0</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div class="score-hero-text">
+            <h2 id="score-verdict" class="score-verdict">Evaluating...</h2>
+            <p id="score-coaching-tip" class="score-coaching-tip"></p>
+          </div>
+        </div>
+
+        <!-- Category breakdown -->
+        <div class="score-categories" id="score-categories">
+          <!-- Populated by scoring.js -->
+        </div>
+
+        <!-- Strengths & Improvements -->
+        <div class="score-details-grid">
+          <div class="detail-card detail-strengths">
+            <h3>💪 Top Strengths</h3>
+            <ul id="score-strengths"></ul>
+          </div>
+          <div class="detail-card detail-improvements">
+            <h3>📈 Critical Improvements</h3>
+            <ul id="score-improvements"></ul>
+          </div>
+        </div>
+
+        <!-- Coaching notes -->
+        <div id="coaching-notes" class="coaching-notes" style="display:none;">
+          <h3>📚 Module Review</h3>
+          <div class="coaching-grid">
+            <div class="coaching-card">
+              <h4>Key Concepts</h4>
+              <ul id="coaching-concepts"></ul>
+            </div>
+            <div class="coaching-card">
+              <h4>Common Mistakes</h4>
+              <ul id="coaching-mistakes"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="debrief-actions">
+          <button class="btn btn-primary" onclick="app.showScreen('scenarios')">Try Another Scenario</button>
+          <button class="btn btn-secondary" onclick="app.retryScenario()">Retry This Scenario</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/@daily-co/daily-js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/call.js"></script>
+  <script src="js/scoring.js"></script>
+</body>
+</html>
