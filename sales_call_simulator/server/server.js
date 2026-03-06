@@ -79,22 +79,18 @@ app.use((req, res, next) => {
 
 // ─── API Routes ───
 
-const { requireAuth } = require('./middleware/auth');
+const { optionalAuth } = require('./middleware/auth');
 const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
 const scoringRoutes = require('./routes/scoringRoutes');
 
-// Auth is enforced only when JWT_SECRET is configured (production/integration).
-// For standalone staging, auth is skipped so the simulator works without ROC Academy login.
-const authMiddleware = config.JWT_SECRET ? requireAuth : (req, res, next) => next();
+// optionalAuth: populates req.user when JWT is present (integrated mode),
+// but never blocks requests (standalone/staging mode).
+// Hard auth enforcement happens at the ROC Academy gateway level.
 
-if (!config.JWT_SECRET) {
-  console.warn('[Server] ⚠️  JWT_SECRET not set — auth is DISABLED (staging mode)');
-}
-
-app.use('/api/tavus', authMiddleware, tavusRoutes);
+app.use('/api/tavus', optionalAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
-app.use('/api/scoring', authMiddleware, scoringRoutes);
+app.use('/api/scoring', optionalAuth, scoringRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
