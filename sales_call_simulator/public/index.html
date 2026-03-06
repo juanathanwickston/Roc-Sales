@@ -480,7 +480,7 @@
             <li>Close for a next step, not a sale</li>
           </ul>
         </div>
-        <button id="lobby-cancel" class="btn btn-ghost" onclick="app.cancelLobby()" aria-label="Cancel and return to scenarios">Cancel</button>
+        <button id="lobby-cancel" class="btn btn-ghost" aria-label="Cancel and return to scenarios">Cancel</button>
       </div>
     </div>
   </div>
@@ -520,19 +520,19 @@
 
       <!-- Control bar -->
       <nav class="call-controls" aria-label="Call controls">
-        <button id="btn-mute" class="control-btn" onclick="callManager.toggleMute()" aria-label="Toggle microphone" aria-pressed="false">
+        <button id="btn-mute" class="control-btn" aria-label="Toggle microphone" aria-pressed="false">
           <span class="control-icon" aria-hidden="true">🎤</span>
           <span class="control-label">Mute</span>
         </button>
-        <button id="btn-camera" class="control-btn" onclick="callManager.toggleCamera()" aria-label="Toggle camera" aria-pressed="false">
+        <button id="btn-camera" class="control-btn" aria-label="Toggle camera" aria-pressed="false">
           <span class="control-icon" aria-hidden="true">📹</span>
           <span class="control-label">Camera</span>
         </button>
-        <button id="btn-captions" class="control-btn active" onclick="callManager.toggleCaptions()" aria-label="Toggle captions" aria-pressed="true">
+        <button id="btn-captions" class="control-btn active" aria-label="Toggle captions" aria-pressed="true">
           <span class="control-icon" aria-hidden="true">CC</span>
           <span class="control-label">Captions</span>
         </button>
-        <button id="btn-end" class="control-btn control-btn-end" onclick="callManager.endCall()" aria-label="End call">
+        <button id="btn-end" class="control-btn control-btn-end" aria-label="End call">
           <span class="control-icon" aria-hidden="true">📞</span>
           <span class="control-label">End Call</span>
         </button>
@@ -613,8 +613,8 @@
 
         <!-- Actions -->
         <div class="debrief-actions">
-          <button class="btn btn-primary" onclick="app.showScreen('scenarios')">Try Another Scenario</button>
-          <button class="btn btn-secondary" onclick="app.retryScenario()">Retry This Scenario</button>
+          <button id="btn-try-another" class="btn btn-primary">Try Another Scenario</button>
+          <button id="btn-retry" class="btn btn-secondary">Retry This Scenario</button>
         </div>
       </div>
     </main>

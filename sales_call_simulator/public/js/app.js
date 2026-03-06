@@ -1,13 +1,13 @@
 /**
  * Sales Call Simulator — App Controller
  * Manages screen transitions, scenario loading, and state.
+ * NO inline onclick handlers — all bindings via addEventListener (CSP compliant).
  */
 
-// ─── Shared Helpers (matching ROC Academy api.js patterns) ───
+// ─── Shared Helpers ───
 
 /**
  * Escape HTML entities in user-sourced strings.
- * Prevents XSS when inserting via innerHTML.
  */
 var esc = function(str) {
   if (!str) return '';
@@ -17,13 +17,12 @@ var esc = function(str) {
 };
 
 /**
- * Toast notification system — auto-dismiss alerts.
- * Usage: toast('Saved!') or toast('Error occurred', 'error')
+ * Toast notification system.
  */
 var toast = function(msg, type, duration) {
   type = type || 'success';
   duration = duration || 3000;
-  let container = document.getElementById('toastContainer');
+  var container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');
     container.id = 'toastContainer';
@@ -31,19 +30,19 @@ var toast = function(msg, type, duration) {
     container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
     document.body.appendChild(container);
   }
-  const colors = { success: 'var(--green,#00E0B8)', error: 'var(--red,#FF4466)', info: 'var(--blue,#3B82F6)' };
-  const icons = { success: '✅', error: '⚠️', info: 'ℹ️' };
-  const el = document.createElement('div');
-  el.style.cssText = `pointer-events:auto;padding:8px 16px;border-radius:var(--rs,8px);background:var(--n2,#0F1B32);border:1px solid ${colors[type] || colors.success};color:var(--white,#EDF2FF);font-size:var(--fs-sm,13px);font-family:var(--font,'Geist',sans-serif);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;`;
-  el.innerHTML = `<span style="margin-right:8px">${icons[type] || icons.success}</span>${esc(msg)}`;
+  var colors = { success: 'var(--green,#00E0B8)', error: 'var(--red,#FF4466)', info: 'var(--blue,#3B82F6)' };
+  var icons = { success: '✅', error: '⚠️', info: 'ℹ️' };
+  var el = document.createElement('div');
+  el.style.cssText = 'pointer-events:auto;padding:8px 16px;border-radius:var(--rs,8px);background:var(--n2,#0F1B32);border:1px solid ' + (colors[type] || colors.success) + ';color:var(--white,#EDF2FF);font-size:var(--fs-sm,13px);font-family:var(--font,Geist,sans-serif);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;';
+  el.innerHTML = '<span style="margin-right:8px">' + (icons[type] || icons.success) + '</span>' + esc(msg);
   container.appendChild(el);
-  requestAnimationFrame(() => el.style.transform = 'translateX(0)');
-  setTimeout(() => {
+  requestAnimationFrame(function() { el.style.transform = 'translateX(0)'; });
+  setTimeout(function() {
     el.style.transform = 'translateX(120%)';
     el.style.opacity = '0';
-    setTimeout(() => el.remove(), 300);
+    setTimeout(function() { el.remove(); }, 300);
   }, type === 'error' ? 5000 : duration);
-}
+};
 
 // ─── App Controller ───
 
@@ -53,18 +52,59 @@ var app = {
   scenarios: [],
 
   /**
-   * Initialize the app — load scenarios on startup.
+   * Initialize — load scenarios and bind all event listeners.
    */
   async init() {
     await this.loadScenarios();
+    this.bindEvents();
+  },
+
+  /**
+   * Bind all static event listeners (CSP-safe — no inline onclick).
+   */
+  bindEvents() {
+    // Lobby cancel
+    var lobbyCancel = document.getElementById('lobby-cancel');
+    if (lobbyCancel) lobbyCancel.addEventListener('click', function() { app.cancelLobby(); });
+
+    // Call controls
+    var btnMute = document.getElementById('btn-mute');
+    if (btnMute) btnMute.addEventListener('click', function() { callManager.toggleMute(); });
+
+    var btnCamera = document.getElementById('btn-camera');
+    if (btnCamera) btnCamera.addEventListener('click', function() { callManager.toggleCamera(); });
+
+    var btnCaptions = document.getElementById('btn-captions');
+    if (btnCaptions) btnCaptions.addEventListener('click', function() { callManager.toggleCaptions(); });
+
+    var btnEnd = document.getElementById('btn-end');
+    if (btnEnd) btnEnd.addEventListener('click', function() { callManager.endCall(); });
+
+    // Debrief actions
+    var btnTryAnother = document.getElementById('btn-try-another');
+    if (btnTryAnother) btnTryAnother.addEventListener('click', function() { app.showScreen('scenarios'); });
+
+    var btnRetry = document.getElementById('btn-retry');
+    if (btnRetry) btnRetry.addEventListener('click', function() { app.retryScenario(); });
+
+    // Scenario card clicks — event delegation on the grid container
+    var scenarioList = document.getElementById('scenario-list');
+    if (scenarioList) {
+      scenarioList.addEventListener('click', function(e) {
+        var card = e.target.closest('[data-scenario-id]');
+        if (card) {
+          app.selectScenario(card.dataset.scenarioId);
+        }
+      });
+    }
   },
 
   /**
    * Switch between screens.
    */
   showScreen(name) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const screen = document.getElementById(`screen-${name}`);
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    var screen = document.getElementById('screen-' + name);
     if (screen) {
       screen.classList.add('active');
       this.currentScreen = name;
@@ -75,60 +115,63 @@ var app = {
    * Load and render available scenarios.
    */
   async loadScenarios() {
-    const container = document.getElementById('scenario-list');
+    var container = document.getElementById('scenario-list');
     try {
-      const res = await fetch('/api/scenarios');
-      const data = await res.json();
+      var res = await fetch('/api/scenarios');
+      var data = await res.json();
       this.scenarios = data.scenarios || [];
 
       if (this.scenarios.length === 0) {
-        // M9: Empty state with icon + title + desc + CTA
         container.setAttribute('aria-busy', 'false');
-        container.innerHTML = `
-          <div class="empty-state" role="listitem">
-            <div class="empty-icon">🎭</div>
-            <div class="empty-title">No scenarios available</div>
-            <div class="empty-desc">Training scenarios haven't been configured yet. Contact your administrator.</div>
-          </div>`;
+        container.innerHTML =
+          '<div class="empty-state" role="listitem">' +
+            '<div class="empty-icon">🎭</div>' +
+            '<div class="empty-title">No scenarios available</div>' +
+            '<div class="empty-desc">Training scenarios haven\'t been configured yet. Contact your administrator.</div>' +
+          '</div>';
         return;
       }
 
       container.setAttribute('aria-busy', 'false');
       container.innerHTML = this.scenarios
-        .map(s => this.renderScenarioCard(s))
+        .map(function(s) { return app.renderScenarioCard(s); })
         .join('');
     } catch (err) {
       console.error('[App] Failed to load scenarios:', err);
       container.setAttribute('aria-busy', 'false');
-      container.innerHTML = `
-        <div class="empty-state" role="listitem">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-title">Unable to load scenarios</div>
-          <div class="empty-desc">Please check your connection and try again.</div>
-          <button class="btn btn-primary" onclick="app.loadScenarios()">Retry</button>
-        </div>`;
+      container.innerHTML =
+        '<div class="empty-state" role="listitem">' +
+          '<div class="empty-icon">⚠️</div>' +
+          '<div class="empty-title">Unable to load scenarios</div>' +
+          '<div class="empty-desc">Please check your connection and try again.</div>' +
+          '<button id="btn-retry-load" class="btn btn-primary">Retry</button>' +
+        '</div>';
+      // Bind retry button
+      var retryBtn = document.getElementById('btn-retry-load');
+      if (retryBtn) retryBtn.addEventListener('click', function() { app.loadScenarios(); });
     }
   },
 
   /**
-   * Render a single scenario card as a semantic button element.
+   * Render a scenario card — uses data-scenario-id for event delegation.
+   * NO inline onclick.
    */
   renderScenarioCard(scenario) {
-    const diff = scenario.difficulty || 'beginner';
-    const duration = scenario.durationMinutes || scenario.duration_minutes;
-    return `
-      <button class="scenario-card" onclick="app.selectScenario('${esc(scenario.id)}')" role="listitem"
-        aria-label="${esc(scenario.name)} — ${diff} difficulty">
-        <div class="scenario-card-title">
-          <span>${esc(scenario.name)}</span>
-          <span class="difficulty-badge difficulty-${diff}">${diff}</span>
-        </div>
-        <div class="scenario-card-desc">${esc(scenario.description || '')}</div>
-        <div class="scenario-card-meta">
-          ${scenario.module ? `<span>📋 ${esc(scenario.module)}</span>` : ''}
-          ${duration ? `<span>⏱ ${duration} min</span>` : ''}
-        </div>
-      </button>`;
+    var diff = scenario.difficulty || 'beginner';
+    var duration = scenario.durationMinutes || scenario.duration_minutes;
+    return '' +
+      '<button class="scenario-card" data-scenario-id="' + esc(scenario.id) + '" role="listitem"' +
+        ' aria-label="' + esc(scenario.name) + ' — ' + diff + ' difficulty" type="button">' +
+        '<div class="scenario-card-title">' +
+          '<span>' + esc(scenario.name) + '</span>' +
+          '<span class="difficulty-badge difficulty-' + diff + '">' + diff + '</span>' +
+        '</div>' +
+        '<div class="scenario-card-desc">' + esc(scenario.description || '') + '</div>' +
+        '<div class="scenario-card-meta">' +
+          (scenario.module ? '<span>📋 ' + esc(scenario.module) + '</span>' : '') +
+          (duration ? '<span>⏱ ' + duration + ' min</span>' : '') +
+        '</div>' +
+      '</button>';
   },
 
   /**
@@ -136,21 +179,17 @@ var app = {
    */
   async selectScenario(scenarioId) {
     try {
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch(`/api/scenarios/${scenarioId}`);
+      var res = await fetch('/api/scenarios/' + scenarioId);
       if (!res.ok) throw new Error('Scenario not found');
       this.currentScenario = await res.json();
 
-      // Show lobby
       document.getElementById('lobby-scenario-name').textContent = this.currentScenario.name;
       document.getElementById('lobby-status').textContent = 'Setting up the conversation...';
       this.showScreen('lobby');
 
-      // Start the call
       await callManager.startCall(this.currentScenario);
     } catch (err) {
       console.error('[App] Error selecting scenario:', err);
-      // C8 fix: toast instead of alert()
       toast('Failed to start scenario. Please try again.', 'error');
       this.showScreen('scenarios');
     }
@@ -170,16 +209,10 @@ var app = {
    */
   async onCallEnded(callData) {
     this.showScreen('debrief');
-
-    // Set debrief header
-    const scenarioName = this.currentScenario?.name || 'Sales Call Simulation';
+    var scenarioName = this.currentScenario ? this.currentScenario.name : 'Sales Call Simulation';
     document.getElementById('debrief-scenario-name').textContent = scenarioName;
-
-    // Show loading
     document.getElementById('debrief-loading').style.display = 'flex';
     document.getElementById('debrief-content').style.display = 'none';
-
-    // Run scoring
     await scoring.evaluate(callData, this.currentScenario);
   },
 
@@ -196,4 +229,4 @@ var app = {
 };
 
 // Boot
-document.addEventListener('DOMContentLoaded', () => app.init());
+document.addEventListener('DOMContentLoaded', function() { app.init(); });
