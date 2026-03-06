@@ -89,6 +89,7 @@ var callManager = {
       this.callObject = window.DailyIframe.createCallObject({
         audioSource: true,
         videoSource: true,
+        avoidEval: true, // CSP-safe: eliminates need for 'unsafe-eval'
       });
 
       // Set up event listeners

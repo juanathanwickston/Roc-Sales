@@ -22,7 +22,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://*.daily.co"],
         connectSrc: [
           "'self'",
           "https://tavusapi.com",
@@ -30,6 +30,7 @@ app.use(
           "https://*.wss.daily.co",
           "wss://*.daily.co",
           "https://api.openai.com",
+          "https://*.ingest.sentry.io",
         ],
         frameSrc: ["'self'", "https://*.daily.co"],
         mediaSrc: ["'self'", "blob:", "https://*.daily.co"],
