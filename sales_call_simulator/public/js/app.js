@@ -74,9 +74,6 @@ var app = {
     var btnCamera = document.getElementById('btn-camera');
     if (btnCamera) btnCamera.addEventListener('click', function() { callManager.toggleCamera(); });
 
-    var btnCaptions = document.getElementById('btn-captions');
-    if (btnCaptions) btnCaptions.addEventListener('click', function() { callManager.toggleCaptions(); });
-
     var btnEnd = document.getElementById('btn-end');
     if (btnEnd) btnEnd.addEventListener('click', function() { callManager.endCall(); });
 

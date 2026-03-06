@@ -108,6 +108,10 @@ var callManager = {
       this.updateLobbyStatus('Joining call...');
       await this.callObject.join({ url: this.conversationUrl });
 
+      // Ensure local audio is explicitly enabled after join
+      this.callObject.setLocalAudio(true);
+      this.callObject.setLocalVideo(true);
+
       console.log('[Call] Joined successfully');
     } catch (err) {
       console.error('[Call] Daily join error:', err);
@@ -131,7 +135,11 @@ var callManager = {
 
     // When remote tracks update (video/audio becomes playable)
     call.on('participant-updated', (event) => {
-      if (event.participant.local) return;
+      if (event.participant.local) {
+        // Update local PiP when local tracks change
+        this.attachLocalTracks(event.participant);
+        return;
+      }
       this.attachRemoteTracks(event.participant);
     });
 
@@ -147,16 +155,37 @@ var callManager = {
       console.error('[Call] Daily error:', event);
     });
 
-    // When we've joined successfully
+    // When we've joined successfully — attach local video to PiP
     call.on('joined-meeting', () => {
       console.log('[Call] Local user joined meeting');
       this.updateLobbyStatus('Waiting for AI buyer to join...');
+
+      // Attach local video to PiP self-view
+      var localParticipant = call.participants().local;
+      if (localParticipant) {
+        this.attachLocalTracks(localParticipant);
+      }
     });
 
     // When call is left
     call.on('left-meeting', () => {
       console.log('[Call] Left meeting');
     });
+  },
+
+  /**
+   * Attach local participant's video track to the PiP self-view element.
+   */
+  attachLocalTracks(participant) {
+    var localVideo = document.getElementById('local-video');
+    if (
+      localVideo &&
+      participant.tracks.video &&
+      participant.tracks.video.state === 'playable' &&
+      participant.tracks.video.persistentTrack
+    ) {
+      localVideo.srcObject = new MediaStream([participant.tracks.video.persistentTrack]);
+    }
   },
 
   /**
@@ -259,20 +288,15 @@ var callManager = {
     if (!this.callObject) return;
     this.isCameraOff = !this.isCameraOff;
     this.callObject.setLocalVideo(!this.isCameraOff);
-    this.updateControlStates();
-  },
-
-  toggleCaptions() {
-    this.captionsVisible = !this.captionsVisible;
-    const captionsEl = document.getElementById('call-captions');
-    captionsEl.classList.toggle('hidden', !this.captionsVisible);
+    // Update PiP visibility
+    var pip = document.getElementById('pip-container');
+    if (pip) pip.style.display = this.isCameraOff ? 'none' : '';
     this.updateControlStates();
   },
 
   updateControlStates() {
     const muteBtn = document.getElementById('btn-mute');
     const cameraBtn = document.getElementById('btn-camera');
-    const captionsBtn = document.getElementById('btn-captions');
 
     if (muteBtn) {
       muteBtn.classList.toggle('muted', this.isMuted);
@@ -283,9 +307,6 @@ var callManager = {
       cameraBtn.classList.toggle('muted', this.isCameraOff);
       cameraBtn.querySelector('.control-icon').textContent = this.isCameraOff ? '📷' : '📹';
       cameraBtn.querySelector('.control-label').textContent = this.isCameraOff ? 'Camera On' : 'Camera';
-    }
-    if (captionsBtn) {
-      captionsBtn.classList.toggle('active', this.captionsVisible);
     }
   },
 
