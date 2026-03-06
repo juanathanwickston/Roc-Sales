@@ -851,8 +851,9 @@ function finishCoach(){
 // ═══════════════════════════════════
 // RESULTS SCREEN
 // ═══════════════════════════════════
-function showRes(title,pts,mx,str){
-  const pct=Math.min(100,Math.round(pts/mx*100));
+function showRes(title,pts,mx,str,correct,total){
+  // Use accuracy (correct/total) when available, otherwise fall back to pts/mx
+  const pct = (correct != null && total > 0) ? Math.round(correct/total*100) : Math.min(100,Math.round(pts/mx*100));
   const prof=getProficiency(pct);
   const grade=pct>=90?'S':pct>=80?'A':pct>=70?'B':pct>=60?'C':'D';
   const stars=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=50?'⭐':'';
@@ -865,7 +866,8 @@ function showRes(title,pts,mx,str){
   if(pct>=80){
     const badges={90:'🏆',80:'🥇',70:'🥈'};
     const bicon=badges[Math.floor(pct/10)*10]||'🥈';
-    h+=`<div class="rb"><div class="rbi">${bicon}</div><div class="rbn">${title} — Grade ${grade}</div><div class="rbd">Top ${100-pct}% performance</div></div>`;
+    const topPct = Math.max(1, 100-pct);
+    h+=`<div class="rb"><div class="rbi">${bicon}</div><div class="rbn">${title} — Grade ${grade}</div><div class="rbd">Top ${topPct}% performance</div></div>`;
   }
   h+=`<button class="nb pr show" onclick="${curMod?'backToModule()':'home()'}">← ${curMod?'Back to Module':'Mission Hub'}</button>`;
   h+=`<button class="nb gh2 show" onclick="home()">🏠 Home</button></div>`;
@@ -953,7 +955,7 @@ function beginFactory(){
       pool:pool, poolIdx:0,
       active:null,      // the one piece currently falling
       bins:[],
-      pts:0, streak:0, bestStreak:0,
+      pts:0, correct:0, streak:0, bestStreak:0,
       lives:5, maxLives:5,
       baseSpeed:1.2, speedMult:1,
       particles:[],
@@ -1132,6 +1134,7 @@ function ffUpdate(){
 
     if(col===a.product){
       // CORRECT
+      f.correct++;
       f.pts+=100+(f.streak*10);
       f.streak++;
       if(f.streak>f.bestStreak) f.bestStreak=f.streak;
@@ -1303,10 +1306,10 @@ function ffEndGame(){
   c.removeEventListener('touchend',ffTouchEnd);
   if(ffRAF) cancelAnimationFrame(ffRAF);
   const mx=ff.totalFeatures*100;
-  const pct=Math.min(100,Math.round(ff.pts/mx*100));
-  saveSkill('featureFactory',pct,ff.pts,mx);
+  const accuracyPct=ff.totalFeatures>0?Math.round(ff.correct/ff.totalFeatures*100):0;
+  saveSkill('featureFactory',accuracyPct,ff.pts,mx);
   if(curMod) completeAct(curMod,'game');
-  showRes('Feature Factory',ff.pts,mx,ff.bestStreak);
+  showRes('Feature Factory',ff.pts,mx,ff.bestStreak,ff.correct,ff.totalFeatures);
 }
 
 // ─── INIT ───
