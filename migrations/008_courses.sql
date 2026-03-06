@@ -49,20 +49,20 @@ CREATE INDEX IF NOT EXISTS idx_course_modules_module ON course_modules(module_id
 
 -- 5a. Create one course per distinct phase found in pathway_modules
 INSERT INTO courses (title, description, icon)
-SELECT DISTINCT
-  CASE cm.phase
+SELECT
+  CASE MIN(cm.phase)
     WHEN 1 THEN 'Foundation'
     WHEN 2 THEN 'Applied Skill'
     WHEN 3 THEN 'Performance Validation'
-    ELSE 'Phase ' || cm.phase
+    ELSE 'Phase ' || MIN(cm.phase)
   END,
-  CASE cm.phase
+  CASE MIN(cm.phase)
     WHEN 1 THEN 'Build your product knowledge, understand your compensation, and master the sales process.'
     WHEN 2 THEN 'Handle objections, cross-sell effectively, and own your territory.'
     WHEN 3 THEN 'Prove your skills with full simulations, coaching, and final certification.'
-    ELSE 'Auto-migrated from phase ' || cm.phase
+    ELSE 'Auto-migrated from phase ' || MIN(cm.phase)
   END,
-  CASE cm.phase
+  CASE MIN(cm.phase)
     WHEN 1 THEN '🟢'
     WHEN 2 THEN '🟠'
     WHEN 3 THEN '🟡'
@@ -71,7 +71,7 @@ SELECT DISTINCT
 FROM pathway_modules pm
 JOIN cms_modules cm ON cm.id = pm.module_id
 GROUP BY cm.phase
-ORDER BY cm.phase;
+ORDER BY MIN(cm.phase);
 
 -- 5b. Map courses → modules (course_modules junction)
 -- Each module goes into the course matching its phase
