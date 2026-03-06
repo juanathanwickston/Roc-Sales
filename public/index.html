@@ -691,7 +691,16 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .pathway-card-desc{font-size:var(--fs-sm);color:var(--gray);line-height:var(--lh-normal);margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pathway-card-meta{display:flex;align-items:center;gap:16px;font-size:var(--fs-xs);color:var(--gray)}
 .pathway-card-stat{display:flex;align-items:center;gap:4px}
-.pathway-card-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gb)}
+.pathway-card-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gb);align-items:center;position:relative}
+.pw-overflow{position:relative;margin-left:auto}
+.pw-overflow-btn{background:none;border:1px solid var(--gb);border-radius:var(--rs);color:var(--gray);cursor:pointer;padding:4px 8px;font-size:16px;line-height:1;transition:all .2s}
+.pw-overflow-btn:hover{color:var(--white);border-color:rgba(59,130,246,.4)}
+.pw-overflow-menu{display:none;position:absolute;right:0;bottom:100%;margin-bottom:4px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs);box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:140px;z-index:50;overflow:hidden}
+.pw-overflow-menu.open{display:block}
+.pw-overflow-menu button{display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;color:var(--lt);font-size:var(--fs-sm);cursor:pointer;transition:background .15s}
+.pw-overflow-menu button:hover{background:rgba(255,255,255,.05)}
+.pw-overflow-menu button.danger{color:#ef4444}
+.pw-overflow-menu button.danger:hover{background:rgba(239,68,68,.1)}
 
 /* PATHWAY BUILDER */
 .builder-title{font-size:var(--fs-md);font-weight:600;margin-bottom:16px;color:var(--white)}

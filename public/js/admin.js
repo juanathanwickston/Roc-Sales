@@ -398,20 +398,22 @@ const Admin = {
         h += `<span class="pathway-card-stat">📅 ${new Date(p.createdAt).toLocaleDateString()}</span>`;
         h += '</div>';
 
-        // Actions footer (LD Manager+ only for mutating actions)
+        // Actions footer
         if (Auth.hasRole('ld_manager')) {
           h += '<div class="pathway-card-actions">';
           h += `<button class="admin-btn" onclick="Admin.showPathwayProgress(${p.id}, '${esc(p.name)}')">Progress</button>`;
-          h += `<button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button>`;
-          h += `<button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button>`;
+          h += `<button class="admin-btn" onclick="Admin.showEditPathway(${p.id})">Edit</button>`;
           h += `<button class="admin-btn" onclick="Admin.showAssignPathway(${p.id}, '${esc(p.name)}')">Assign</button>`;
-          h += `<button class="admin-btn" onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
+          h += `<div class="pw-overflow">`;
+          h += `<button class="pw-overflow-btn" onclick="event.stopPropagation();Admin.toggleOverflow(this)" title="More actions">⋮</button>`;
+          h += `<div class="pw-overflow-menu">`;
+          h += `<button onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
           if (p.isActive) {
-            h += `<button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
+            h += `<button class="danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
           }
+          h += `</div></div>`;
           h += '</div>';
         } else if (Auth.hasRole('manager')) {
-          // Managers can view progress but not mutate
           h += '<div class="pathway-card-actions">';
           h += `<button class="admin-btn" onclick="Admin.showPathwayProgress(${p.id}, '${esc(p.name)}')">Progress</button>`;
           h += '</div>';
@@ -435,6 +437,23 @@ const Admin = {
       await this.renderPathways();
     } catch (err) {
       toast(err.message, 'error');
+    }
+  },
+
+  /**
+   * Toggle overflow ⋮ menu. Closes on click outside.
+   */
+  toggleOverflow(btn) {
+    const menu = btn.nextElementSibling;
+    const isOpen = menu.classList.toggle('open');
+    if (isOpen) {
+      const close = (e) => {
+        if (!menu.contains(e.target) && e.target !== btn) {
+          menu.classList.remove('open');
+          document.removeEventListener('click', close);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', close), 0);
     }
   },
 
@@ -879,25 +898,76 @@ const Admin = {
     }
   },
 
-  showEditPathway(id, currentName, currentDesc, isActive) {
-    const body = `
-      <div class="modal-field"><label>Pathway Name</label><input type="text" id="epName" value="${esc(currentName)}"></div>
-      <div class="modal-field"><label>Description</label><textarea id="epDesc" rows="3">${esc(currentDesc)}</textarea></div>
-      <div class="modal-field"><label><input type="checkbox" id="epActive" ${isActive ? 'checked' : ''}> Active</label></div>
-      <div id="epError" class="modal-error"></div>
-      <button class="modal-submit" onclick="Admin.editPathway(${id})">Save</button>`;
-    this.showModal('Edit Pathway', body);
+  /**
+   * Combined Edit view: pathway details + module builder in one modal.
+   * Takes only pathwayId — loads all data from API.
+   */
+  async showEditPathway(pathwayId) {
+    this.showModal('Edit Pathway', '<div class="admin-loading">Loading pathway...</div>');
+    // Widen modal for builder layout
+    const card = document.querySelector('#adminModal .modal-card');
+    if (card) card.style.maxWidth = '900px';
+
+    try {
+      // Load pathway details and modules in parallel
+      const [pathways, modData] = await Promise.all([
+        API.getPathways(),
+        API.getPathwayModules(pathwayId)
+      ]);
+      const pw = pathways.pathways.find(p => p.id === pathwayId);
+      if (!pw) throw new Error('Pathway not found');
+
+      // Store builder state
+      this._builderPathwayId = pathwayId;
+      this._builderAssigned = modData.assigned.map(m => m.id);
+      this._builderModules = {};
+      modData.assigned.forEach(m => { this._builderModules[m.id] = m; });
+      modData.available.forEach(m => { this._builderModules[m.id] = m; });
+
+      // Render combined view: details at top + builder below
+      let h = '';
+
+      // ─── Pathway Details Section ───
+      h += '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gb)">';
+      h += `<div class="modal-field"><label>Pathway Name</label><input type="text" id="epName" value="${esc(pw.name)}"></div>`;
+      h += `<div class="modal-field"><label>Description</label><textarea id="epDesc" rows="2">${esc(pw.description || '')}</textarea></div>`;
+      h += `<div class="modal-field"><label><input type="checkbox" id="epActive" ${pw.isActive ? 'checked' : ''}> Active</label></div>`;
+      h += '<div id="epError" class="modal-error"></div>';
+      h += '</div>';
+
+      // ─── Module Builder Section ───
+      h += this._buildBuilderHTML(modData.pathwayName);
+
+      const body = document.querySelector('.modal-body');
+      if (body) body.innerHTML = h;
+    } catch (err) {
+      const body = document.querySelector('.modal-body');
+      if (body) body.innerHTML = `<div class="admin-error">${esc(err.message)}</div>`;
+    }
   },
 
+  /**
+   * Combined save: updates pathway details AND module assignments.
+   */
   async editPathway(id) {
     const errorEl = document.getElementById('epError');
+    const saveBtn = document.getElementById('builderSaveBtn');
+    if (saveBtn) saveBtn.disabled = true;
     try {
+      // Save details
       await API.updatePathway(id, document.getElementById('epName').value, document.getElementById('epDesc').value, document.getElementById('epActive').checked);
+      // Save module assignments
+      const moduleEntries = this._builderAssigned.map(mid => ({
+        id: mid,
+        isRequired: this._builderModules[mid]?.isRequired !== false
+      }));
+      await API.updatePathwayModulesWithRequired(id, moduleEntries);
       this.closeModal();
+      toast('Pathway saved');
       await this.renderPathways();
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
+      if (errorEl) { errorEl.textContent = err.message; errorEl.style.display = 'block'; }
+      if (saveBtn) saveBtn.disabled = false;
     }
   },
 
@@ -926,7 +996,10 @@ const Admin = {
     }
   },
 
-  _renderBuilderBody(pathwayName) {
+  /**
+   * Returns builder HTML string (used by both standalone builder and merged edit).
+   */
+  _buildBuilderHTML(pathwayName) {
     const assigned = this._builderAssigned;
     const allIds = Object.keys(this._builderModules);
     const availableIds = allIds.filter(id => !assigned.includes(id));
@@ -1009,9 +1082,31 @@ const Admin = {
     h += '</div>';
     h += '<div class="builder-footer">';
     h += `<span class="builder-count">${assigned.length} module${assigned.length !== 1 ? 's' : ''} assigned</span>`;
-    h += `<button class="admin-action-btn" id="builderSaveBtn" onclick="Admin.savePathwayModules()">Save Module Assignments</button>`;
+    h += `<button class="admin-action-btn" id="builderSaveBtn" onclick="Admin.editPathway(${this._builderPathwayId})">Save Pathway</button>`;
     h += '</div>';
 
+    return h;
+  },
+
+  /**
+   * Renders builder into modal body (used by internal callers like _builderAdd).
+   */
+  _renderBuilderBody(pathwayName) {
+    // Re-render: pathway details at top + builder below
+    let h = '';
+    // If epName exists, preserve details section
+    const nameEl = document.getElementById('epName');
+    if (nameEl) {
+      h += '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gb)">';
+      h += `<div class="modal-field"><label>Pathway Name</label><input type="text" id="epName" value="${esc(nameEl.value)}"></div>`;
+      const descEl = document.getElementById('epDesc');
+      h += `<div class="modal-field"><label>Description</label><textarea id="epDesc" rows="2">${esc(descEl ? descEl.value : '')}</textarea></div>`;
+      const activeEl = document.getElementById('epActive');
+      h += `<div class="modal-field"><label><input type="checkbox" id="epActive" ${activeEl && activeEl.checked ? 'checked' : ''}> Active</label></div>`;
+      h += '<div id="epError" class="modal-error"></div>';
+      h += '</div>';
+    }
+    h += this._buildBuilderHTML(pathwayName);
     const body = document.querySelector('.modal-body');
     if (body) body.innerHTML = h;
   },
