@@ -15,7 +15,7 @@ const requireAuth = require('../middleware/requireAuth');
 const requireRole = require('../middleware/requireRole');
 const { verifyToken } = require('../auth');
 
-// ─── PUBLIC: Full content tree (pathway-aware) ───
+// ─── PUBLIC: Full content tree (pathway-aware, course-grouped) ───
 
 router.get('/modules', async (req, res) => {
   try {
@@ -42,12 +42,18 @@ router.get('/modules', async (req, res) => {
     let filterParams = [];
     let pathwayJoin = '';
     let pathwayCols = ', cm.sort_order AS pw_sort_order, TRUE AS is_required';
+    let courseCols = '';
+    let courseJoin = '';
 
     // Explicit pathway filter via query param (multi-pathway tab switching)
     const queryPathway = req.query.pathway ? parseInt(req.query.pathway) : null;
     if (queryPathway && !isNaN(queryPathway)) {
-      pathwayJoin = 'JOIN pathway_modules pm ON pm.module_id = cm.id AND pm.pathway_id = $1';
-      pathwayCols = ', pm.sort_order AS pw_sort_order, COALESCE(pm.is_required, TRUE) AS is_required';
+      // Join through pathway_courses → course_modules to get modules for this pathway
+      pathwayJoin = `JOIN course_modules com ON com.module_id = cm.id
+        JOIN pathway_courses pc ON pc.course_id = com.course_id AND pc.pathway_id = $1`;
+      pathwayCols = ', com.sort_order AS pw_sort_order, COALESCE(com.is_required, TRUE) AS is_required';
+      courseCols = ', pc.course_id, pc.sort_order AS course_sort_order, COALESCE(pc.is_required, TRUE) AS course_is_required';
+      courseJoin = '';
       moduleFilter = '';
       filterParams = [queryPathway];
     } else if (userId && (userRole === 'rep' || userRole === 'manager')) {
@@ -57,10 +63,12 @@ router.get('/modules', async (req, res) => {
       );
 
       if (pathwayCheck.rows.length > 0) {
-        // User has pathways — only show modules assigned to those pathways
+        // User has pathways — only show modules assigned to those pathways via courses
         const pathwayIds = pathwayCheck.rows.map(r => r.pathway_id);
         moduleFilter = `AND cm.id IN (
-          SELECT module_id FROM pathway_modules WHERE pathway_id = ANY($1)
+          SELECT com.module_id FROM course_modules com
+          JOIN pathway_courses pc ON pc.course_id = com.course_id
+          WHERE pc.pathway_id = ANY($1)
         )`;
         filterParams = [pathwayIds];
       }
@@ -68,9 +76,9 @@ router.get('/modules', async (req, res) => {
     // Superuser, ld_manager, unauthenticated, or users without pathways → all modules
 
     const modules = await db.query(
-      `SELECT cm.id, cm.phase, cm.title, cm.description, cm.icon, cm.game_id, cm.game_title, cm.game_desc, cm.sort_order, cm.track ${pathwayCols}
-       FROM cms_modules cm ${pathwayJoin} WHERE 1=1 ${moduleFilter}
-       ORDER BY pw_sort_order, cm.phase`,
+      `SELECT cm.id, cm.phase, cm.title, cm.description, cm.icon, cm.game_id, cm.game_title, cm.game_desc, cm.sort_order, cm.track ${pathwayCols} ${courseCols}
+       FROM cms_modules cm ${pathwayJoin} ${courseJoin} WHERE 1=1 ${moduleFilter}
+       ORDER BY ${queryPathway ? 'course_sort_order, pw_sort_order' : 'pw_sort_order'}, cm.phase`,
       filterParams
     );
 
@@ -86,62 +94,105 @@ router.get('/modules', async (req, res) => {
     const docsByMod = groupBy(docs.rows, 'module_id');
     const applyByMod = groupBy(applyItems.rows, 'module_id');
 
-    // Assemble content tree
-    const result = modules.rows.map(m => ({
-      id: m.id,
-      phase: m.phase,
-      title: m.title,
-      desc: m.description,
-      icon: m.icon,
-      track: m.track || 'onboarding',
-      sort_order: m.pw_sort_order,
-      isRequired: m.is_required,
-      video: {
-        title: (videosByMod[m.id] || []).length === 1
-          ? videosByMod[m.id][0].title
-          : m.title,
-        playlist: (videosByMod[m.id] || []).length > 1
-          ? (videosByMod[m.id] || []).map(v => ({
-              title: v.title, icon: v.icon,
-              url: v.url || '',
-              desc: v.description || ''
-            }))
-          : undefined,
-        url: (videosByMod[m.id] || []).length === 1
-          ? (videosByMod[m.id][0].url || '')
-          : undefined,
-        desc: (videosByMod[m.id] || []).length === 1
-          ? (videosByMod[m.id][0].description || '')
-          : undefined
-      },
-      doc: {
+    // Build module object helper
+    function buildModuleObj(m) {
+      return {
+        id: m.id,
+        phase: m.phase,
         title: m.title,
-        sections: (docsByMod[m.id] || []).map(d => ({
-          h: d.heading,
-          body: d.body
-        }))
-      },
-      game: {
-        title: m.game_title || m.title,
-        gameId: m.game_id,
-        desc: m.game_desc || ''
-      },
-      apply: {
-        title: m.title,
-        desc: m.description || '',
-        items: (applyByMod[m.id] || []).map(a => {
-          if (a.item_type === 'text') return a.text;
-          return {
-            text: a.text,
-            type: a.item_type,
-            url: a.url || undefined,
-            icon: a.icon || undefined
-          };
-        })
-      }
-    }));
+        desc: m.description,
+        icon: m.icon,
+        track: m.track || 'onboarding',
+        sort_order: m.pw_sort_order,
+        isRequired: m.is_required,
+        video: {
+          title: (videosByMod[m.id] || []).length === 1
+            ? videosByMod[m.id][0].title
+            : m.title,
+          playlist: (videosByMod[m.id] || []).length > 1
+            ? (videosByMod[m.id] || []).map(v => ({
+                title: v.title, icon: v.icon,
+                url: v.url || '',
+                desc: v.description || ''
+              }))
+            : undefined,
+          url: (videosByMod[m.id] || []).length === 1
+            ? (videosByMod[m.id][0].url || '')
+            : undefined,
+          desc: (videosByMod[m.id] || []).length === 1
+            ? (videosByMod[m.id][0].description || '')
+            : undefined
+        },
+        doc: {
+          title: m.title,
+          sections: (docsByMod[m.id] || []).map(d => ({
+            h: d.heading,
+            body: d.body
+          }))
+        },
+        game: {
+          title: m.game_title || m.title,
+          gameId: m.game_id,
+          desc: m.game_desc || ''
+        },
+        apply: {
+          title: m.title,
+          desc: m.description || '',
+          items: (applyByMod[m.id] || []).map(a => {
+            if (a.item_type === 'text') return a.text;
+            return {
+              text: a.text,
+              type: a.item_type,
+              url: a.url || undefined,
+              icon: a.icon || undefined
+            };
+          })
+        }
+      };
+    }
 
-    res.json(result);
+    // If pathway-specific request, group modules by course
+    if (queryPathway && modules.rows.length > 0 && modules.rows[0].course_id) {
+      // Load course metadata
+      const courseData = await db.query(
+        `SELECT c.id, c.title, c.description, c.icon, pc.sort_order, COALESCE(pc.is_required, TRUE) AS is_required
+         FROM courses c
+         JOIN pathway_courses pc ON pc.course_id = c.id
+         WHERE pc.pathway_id = $1
+         ORDER BY pc.sort_order`,
+        [queryPathway]
+      );
+
+      // Group modules by course_id
+      const courseMap = {};
+      for (const cd of courseData.rows) {
+        courseMap[cd.id] = {
+          id: cd.id,
+          title: cd.title,
+          description: cd.description,
+          icon: cd.icon,
+          sortOrder: cd.sort_order,
+          isRequired: cd.is_required,
+          modules: []
+        };
+      }
+      for (const m of modules.rows) {
+        if (courseMap[m.course_id]) {
+          courseMap[m.course_id].modules.push(buildModuleObj(m));
+        }
+      }
+
+      // Return nested structure: { courses: [...], modules: [...] }
+      // courses = nested structure for timeline rendering
+      // modules = flat array for backward compatibility (game.js module lookups)
+      const courses = Object.values(courseMap).sort((a, b) => a.sortOrder - b.sortOrder);
+      const flatModules = modules.rows.map(buildModuleObj);
+      res.json({ courses, modules: flatModules });
+    } else {
+      // No pathway filter or no course data — return flat array (backward compat)
+      const result = modules.rows.map(buildModuleObj);
+      res.json(result);
+    }
   } catch (err) {
     console.error('[CMS] Modules fetch error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -555,6 +606,222 @@ router.get('/chatbots', requireAuth, async (req, res) => {
     res.json({ chatbots: result.rows });
   } catch (err) {
     console.error('[CMS] Chatbots list error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── COURSE CRUD (LD Manager+) ───
+
+/**
+ * GET /api/cms/courses
+ * Returns all courses with module counts and pathway assignments.
+ */
+router.get('/courses', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT c.id, c.title, c.description, c.icon, c.created_at, c.updated_at,
+        (SELECT COUNT(*) FROM course_modules WHERE course_id = c.id) AS module_count,
+        COALESCE(
+          (SELECT json_agg(json_build_object('pathwayId', p.id, 'pathwayName', p.name))
+           FROM pathway_courses pc2
+           JOIN pathways p ON p.id = pc2.pathway_id
+           WHERE pc2.course_id = c.id),
+          '[]'::json
+        ) AS pathways
+      FROM courses c
+      ORDER BY c.title
+    `);
+    res.json({ courses: result.rows.map(c => ({
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      icon: c.icon,
+      moduleCount: parseInt(c.module_count),
+      pathways: c.pathways,
+      createdAt: c.created_at,
+      updatedAt: c.updated_at
+    }))});
+  } catch (err) {
+    console.error('[CMS] Courses list error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/cms/courses/:id
+ * Returns a single course with its assigned modules.
+ */
+router.get('/courses/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  if (isNaN(courseId)) return res.status(400).json({ error: 'Valid course ID is required' });
+  try {
+    const course = await db.query('SELECT * FROM courses WHERE id = $1', [courseId]);
+    if (course.rows.length === 0) return res.status(404).json({ error: 'Course not found' });
+
+    const assigned = await db.query(
+      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track, com.sort_order, com.is_required,
+        (SELECT COUNT(*) FROM cms_videos WHERE module_id = cm.id) AS video_count,
+        (SELECT COUNT(*) FROM cms_doc_sections WHERE module_id = cm.id) AS doc_count,
+        (SELECT COUNT(*) FROM cms_apply_items WHERE module_id = cm.id) AS apply_count
+       FROM course_modules com
+       JOIN cms_modules cm ON cm.id = com.module_id
+       WHERE com.course_id = $1
+       ORDER BY com.sort_order`,
+      [courseId]
+    );
+
+    const available = await db.query(
+      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track,
+        (SELECT COUNT(*) FROM cms_videos WHERE module_id = cm.id) AS video_count,
+        (SELECT COUNT(*) FROM cms_doc_sections WHERE module_id = cm.id) AS doc_count,
+        (SELECT COUNT(*) FROM cms_apply_items WHERE module_id = cm.id) AS apply_count
+       FROM cms_modules cm
+       WHERE cm.id NOT IN (SELECT module_id FROM course_modules WHERE course_id = $1)
+       ORDER BY cm.phase, cm.sort_order`,
+      [courseId]
+    );
+
+    res.json({
+      ...course.rows[0],
+      assigned: assigned.rows.map(m => ({
+        id: m.id, title: m.title, icon: m.icon, phase: m.phase,
+        track: m.track || 'onboarding', sortOrder: m.sort_order,
+        isRequired: m.is_required !== false,
+        activityCount: parseInt(m.video_count) + parseInt(m.doc_count) + parseInt(m.apply_count) + (m.game_id ? 1 : 0)
+      })),
+      available: available.rows.map(m => ({
+        id: m.id, title: m.title, icon: m.icon, phase: m.phase,
+        track: m.track || 'onboarding',
+        activityCount: parseInt(m.video_count) + parseInt(m.doc_count) + parseInt(m.apply_count)
+      }))
+    });
+  } catch (err) {
+    console.error('[CMS] Course fetch error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/cms/courses
+ * Create a new course.
+ * Body: { title, description, icon }
+ */
+router.post('/courses', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  const { title, description, icon } = req.body;
+  if (!title || title.trim().length === 0) {
+    return res.status(400).json({ error: 'Course title is required' });
+  }
+  if (title.trim().length > 200) {
+    return res.status(400).json({ error: 'Course title must be 200 characters or less' });
+  }
+  try {
+    const result = await db.query(
+      'INSERT INTO courses (title, description, icon, created_by) VALUES ($1, $2, $3, $4) RETURNING *',
+      [title.trim(), description?.trim() || null, icon || '📘', req.user.id]
+    );
+    await auditLog(req.user.id, 'course_created', result.rows[0].id, { title: title.trim() });
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('[CMS] Course create error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PUT /api/cms/courses/:id
+ * Update course metadata.
+ * Body: { title, description, icon }
+ */
+router.put('/courses/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  if (isNaN(courseId)) return res.status(400).json({ error: 'Valid course ID is required' });
+  const { title, description, icon } = req.body;
+  if (!title || title.trim().length === 0) {
+    return res.status(400).json({ error: 'Course title is required' });
+  }
+  try {
+    const result = await db.query(
+      'UPDATE courses SET title = $1, description = $2, icon = $3, updated_at = NOW() WHERE id = $4 RETURNING *',
+      [title.trim(), description?.trim() || null, icon || '📘', courseId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Course not found' });
+    await auditLog(req.user.id, 'course_updated', courseId, { changes: req.body });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('[CMS] Course update error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * DELETE /api/cms/courses/:id
+ * Deletes a course. Modules survive (cascade removes course_modules junction only).
+ */
+router.delete('/courses/:id', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  if (isNaN(courseId)) return res.status(400).json({ error: 'Valid course ID is required' });
+  try {
+    const course = await db.query('SELECT id, title FROM courses WHERE id = $1', [courseId]);
+    if (course.rows.length === 0) return res.status(404).json({ error: 'Course not found' });
+
+    await db.query('DELETE FROM courses WHERE id = $1', [courseId]);
+    await auditLog(req.user.id, 'course_deleted', courseId, { title: course.rows[0].title });
+    res.json({ message: 'Course deleted' });
+  } catch (err) {
+    console.error('[CMS] Course delete error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PUT /api/cms/courses/:id/modules
+ * Save module assignments for a course.
+ * Body: { modules: [{ id: 'm1', isRequired: true }, ...] }
+ */
+router.put('/courses/:id/modules', requireAuth, requireRole('ld_manager'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  if (isNaN(courseId)) return res.status(400).json({ error: 'Valid course ID is required' });
+  const { modules: moduleEntries } = req.body;
+  if (!Array.isArray(moduleEntries)) return res.status(400).json({ error: 'modules array is required' });
+
+  try {
+    const course = await db.query('SELECT id FROM courses WHERE id = $1', [courseId]);
+    if (course.rows.length === 0) return res.status(404).json({ error: 'Course not found' });
+
+    // Validate module IDs exist
+    const entryIds = moduleEntries.map(e => e.id);
+    if (entryIds.length > 0) {
+      const valid = await db.query('SELECT id FROM cms_modules WHERE id = ANY($1)', [entryIds]);
+      const validIds = new Set(valid.rows.map(r => r.id));
+      const invalid = entryIds.filter(id => !validIds.has(id));
+      if (invalid.length > 0) {
+        return res.status(400).json({ error: `Invalid module IDs: ${invalid.join(', ')}` });
+      }
+    }
+
+    // Transaction: delete all → re-insert in order
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM course_modules WHERE course_id = $1', [courseId]);
+      for (let i = 0; i < moduleEntries.length; i++) {
+        await client.query(
+          'INSERT INTO course_modules (course_id, module_id, sort_order, is_required) VALUES ($1, $2, $3, $4)',
+          [courseId, moduleEntries[i].id, i, moduleEntries[i].isRequired !== false]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    await auditLog(req.user.id, 'course_modules_updated', courseId, { moduleIds: entryIds });
+    res.json({ message: 'Course modules updated' });
+  } catch (err) {
+    console.error('[CMS] Course modules update error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -266,107 +266,186 @@ function renderHome(){
   document.getElementById('readinessPanel').innerHTML = rh;
 
   // ─── PATHWAY TIMELINE ───
-  // Sort modules by pathway sort_order (from CMS), fallback to track → phase → sort_order
-  const trackOrder = {onboarding:0, upskilling:1};
-  const sorted = [...MODULES].sort((a,b)=>{
-    // If both have pathway sort_order, use it directly
-    if(a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
-    const ta = trackOrder[a.track||'onboarding'] || 0;
-    const tb = trackOrder[b.track||'onboarding'] || 0;
-    if(ta !== tb) return ta - tb;
-    if((a.phase||1) !== (b.phase||1)) return (a.phase||1) - (b.phase||1);
-    return (a.sort_order||0) - (b.sort_order||0);
-  });
-
-  // ─── Build sequential unlock set ───
-  // Required modules gate sequentially; optional modules always unlocked
-  const unlocked = new Set();
-  let prevRequiredDone = true; // first required module is always unlocked
-  let prevRequiredTitle = '';
-  const requiredMods = sorted.filter(m => m.isRequired !== false);
-  for (const m of requiredMods) {
-    if (prevRequiredDone) {
-      unlocked.add(m.id);
-    }
-    prevRequiredDone = isModDone(m.id);
-  }
-  // Optional modules are always unlocked
-  sorted.filter(m => m.isRequired === false).forEach(m => unlocked.add(m.id));
-
-  // Build a map of "previous required module title" for locked descriptions
-  const prevReqTitleMap = {};
-  for (let i = 1; i < requiredMods.length; i++) {
-    prevReqTitleMap[requiredMods[i].id] = requiredMods[i-1].title;
-  }
-
-  // ─── Pathway progress bar ───
-  const doneModCount = sorted.filter(m => m.isRequired !== false && isModDone(m.id)).length;
-  const totalModCount = requiredMods.length;
-  const progPct = totalModCount > 0 ? Math.round(doneModCount / totalModCount * 100) : 0;
-
+  // Use courses if available, fall back to phase-based rendering
   let h = tabsHtml;
-  h += `<div class="pw-progress"><div class="pw-prog-label">${doneModCount} of ${totalModCount} modules complete (${progPct}%)</div><div class="pw-prog-bar"><div class="pw-prog-fill" style="width:${progPct}%"></div></div></div>`;
-  h += '<div class="pathway-timeline">';
 
-  // Group into sections by track + phase
-  let lastTrack = null;
-  let lastPhase = null;
-  sorted.forEach(m=>{
-    const track = m.track || 'onboarding';
-    const phase = m.phase || 1;
-    const phaseData = PHASES.find(p=>p.num===phase);
+  if (COURSES && COURSES.length > 0) {
+    // ─── Course-based timeline ───
+    // Overall pathway progress
+    const totalReqMods = COURSES.reduce((sum, c) => sum + c.modules.filter(m => m.isRequired !== false).length, 0);
+    const doneReqMods = COURSES.reduce((sum, c) => sum + c.modules.filter(m => m.isRequired !== false && isModDone(m.id)).length, 0);
+    const progPct = totalReqMods > 0 ? Math.round(doneReqMods / totalReqMods * 100) : 0;
+    h += `<div class="pw-progress"><div class="pw-prog-label">${doneReqMods} of ${totalReqMods} modules complete (${progPct}%)</div><div class="pw-prog-bar"><div class="pw-prog-fill" style="width:${progPct}%"></div></div></div>`;
+    h += '<div class="pathway-timeline">';
 
-    // Phase divider when track or phase changes
-    if(track !== lastTrack || phase !== lastPhase){
-      const trackLabel = track === 'upskilling' ? 'Upskilling' : 'Onboarding';
-      const phaseLabel = phaseData ? phaseData.title : 'Phase '+phase;
-      h += `<div class="tl-phase"><span class="track-pill track-${track}">${trackLabel}</span> <span class="phase-pill">Phase ${phase} · ${phaseLabel}</span></div>`;
-      lastTrack = track;
-      lastPhase = phase;
+    COURSES.forEach(course => {
+      const courseMods = course.modules || [];
+      const courseReq = courseMods.filter(m => m.isRequired !== false);
+      const courseDone = courseReq.filter(m => isModDone(m.id)).length;
+      const courseTotal = courseReq.length;
+      const coursePct = courseTotal > 0 ? Math.round(courseDone / courseTotal * 100) : 0;
+      const courseComplete = coursePct >= 100;
+
+      // Course section header
+      h += `<div class="tl-course ${courseComplete ? 'tl-course-done' : ''}">`;
+      h += `<div class="tl-course-header">`;
+      h += `<span class="tl-course-icon">${course.icon || '📘'}</span>`;
+      h += `<div class="tl-course-info">`;
+      h += `<div class="tl-course-title">${course.title} ${courseComplete ? '✅' : ''}</div>`;
+      h += `<div class="tl-course-progress">${courseDone}/${courseTotal} modules · ${coursePct}%</div>`;
+      h += `</div>`;
+      h += `<div class="tl-course-bar"><div class="tl-course-bar-fill" style="width:${coursePct}%"></div></div>`;
+      h += `</div>`;
+
+      // Sequential unlock within this course
+      const courseUnlocked = new Set();
+      let prevDone = true;
+      const courseReqMods = courseMods.filter(m => m.isRequired !== false);
+      const prevReqTitleMap = {};
+      for (let i = 0; i < courseReqMods.length; i++) {
+        if (prevDone) courseUnlocked.add(courseReqMods[i].id);
+        prevDone = isModDone(courseReqMods[i].id);
+        if (i > 0) prevReqTitleMap[courseReqMods[i].id] = courseReqMods[i-1].title;
+      }
+      // Optional modules always unlocked
+      courseMods.filter(m => m.isRequired === false).forEach(m => courseUnlocked.add(m.id));
+
+      // Render modules within course
+      courseMods.forEach(m => {
+        const pr = getModProg(m.id);
+        const done = isModDone(m.id);
+        const open = courseUnlocked.has(m.id);
+        let statusCls = 'tl-lock';
+        let statusText = '🔒';
+        const prevTitle = prevReqTitleMap[m.id];
+        let descText = prevTitle ? 'Complete '+prevTitle+' to unlock' : 'Complete previous to unlock';
+
+        if(done){
+          statusCls = 'tl-done';
+          statusText = '✅';
+          descText = m.desc;
+        } else if(open && pr.count > 0){
+          statusCls = 'tl-prog';
+          statusText = pr.count+'/'+pr.total;
+          descText = pr.count+' of '+pr.total+' activities';
+        } else if(open){
+          statusCls = 'tl-prog';
+          statusText = '';
+          descText = m.desc;
+        }
+
+        const skillKey = (m.game && m.game.gameId) ? SKILL_MAP[m.game.gameId] : null;
+        const sk = skillKey ? D.skills[skillKey] : null;
+        const reinf = getReinforcementStatus(sk ? sk.lastDate : null);
+
+        if(open || done){
+          h += `<div class="tl-mod ${statusCls}" onclick="showModule('${m.id}')">`;
+          h += `<div class="mc-i">${m.icon}</div>`;
+          h += `<div class="mc-info"><div class="mc-t">${m.title} <span class="mc-reinf ${reinf.cls}">${reinf.icon}</span></div>`;
+          h += `<div class="mc-d">${descText}</div>`;
+          h += `<div class="mc-dots">${pr.acts.map(a=>`<div class="mc-dot ${pr[a]?'done':(!pr[a]&&getActStatus(m.id,a)==='avail'?'cur':'')}"></div>`).join('')}</div>`;
+          h += `</div><span class="mc-st ${done?'done':(pr.count>0?'prog':'')}">${statusText}</span></div>`;
+        } else {
+          h += `<div class="tl-mod tl-lock">`;
+          h += `<div class="mc-i">${m.icon}</div>`;
+          h += `<div class="mc-info"><div class="mc-t">${m.title}</div><div class="mc-d">${descText}</div></div>`;
+          h += `<span class="mc-st lock">${statusText}</span></div>`;
+        }
+      });
+
+      h += `</div>`; // close tl-course
+    });
+    h += '</div>';
+  } else {
+    // ─── Legacy phase-based timeline (no courses) ───
+    const trackOrder = {onboarding:0, upskilling:1};
+    const sorted = [...MODULES].sort((a,b)=>{
+      if(a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
+      const ta = trackOrder[a.track||'onboarding'] || 0;
+      const tb = trackOrder[b.track||'onboarding'] || 0;
+      if(ta !== tb) return ta - tb;
+      if((a.phase||1) !== (b.phase||1)) return (a.phase||1) - (b.phase||1);
+      return (a.sort_order||0) - (b.sort_order||0);
+    });
+
+    const unlocked = new Set();
+    let prevRequiredDone = true;
+    const requiredMods = sorted.filter(m => m.isRequired !== false);
+    for (const m of requiredMods) {
+      if (prevRequiredDone) unlocked.add(m.id);
+      prevRequiredDone = isModDone(m.id);
+    }
+    sorted.filter(m => m.isRequired === false).forEach(m => unlocked.add(m.id));
+
+    const prevReqTitleMap = {};
+    for (let i = 1; i < requiredMods.length; i++) {
+      prevReqTitleMap[requiredMods[i].id] = requiredMods[i-1].title;
     }
 
-    const pr = getModProg(m.id);
-    const done = isModDone(m.id);
-    const open = unlocked.has(m.id);
-    let statusCls = 'tl-lock';
-    let statusText = '🔒';
-    const prevTitle = prevReqTitleMap[m.id];
-    let descText = prevTitle ? 'Complete '+prevTitle+' to unlock' : 'Complete previous to unlock';
+    const doneModCount = sorted.filter(m => m.isRequired !== false && isModDone(m.id)).length;
+    const totalModCount = requiredMods.length;
+    const progPct = totalModCount > 0 ? Math.round(doneModCount / totalModCount * 100) : 0;
 
-    if(done){
-      statusCls = 'tl-done';
-      statusText = '✅';
-      descText = m.desc;
-    } else if(open && pr.count > 0){
-      statusCls = 'tl-prog';
-      statusText = pr.count+'/'+pr.total;
-      descText = pr.count+' of '+pr.total+' activities';
-    } else if(open){
-      statusCls = 'tl-prog';
-      statusText = '';
-      descText = m.desc;
-    }
+    h += `<div class="pw-progress"><div class="pw-prog-label">${doneModCount} of ${totalModCount} modules complete (${progPct}%)</div><div class="pw-prog-bar"><div class="pw-prog-fill" style="width:${progPct}%"></div></div></div>`;
+    h += '<div class="pathway-timeline">';
 
-    // Reinforcement indicator
-    const skillKey = (m.game && m.game.gameId) ? SKILL_MAP[m.game.gameId] : null;
-    const sk = skillKey ? D.skills[skillKey] : null;
-    const reinf = getReinforcementStatus(sk ? sk.lastDate : null);
+    let lastTrack = null;
+    let lastPhase = null;
+    sorted.forEach(m=>{
+      const track = m.track || 'onboarding';
+      const phase = m.phase || 1;
+      const phaseData = PHASES.find(p=>p.num===phase);
 
-    if(open || done){
-      h += `<div class="tl-mod ${statusCls}" onclick="showModule('${m.id}')">`;
-      h += `<div class="mc-i">${m.icon}</div>`;
-      h += `<div class="mc-info"><div class="mc-t">${m.title} <span class="mc-reinf ${reinf.cls}">${reinf.icon}</span></div>`;
-      h += `<div class="mc-d">${descText}</div>`;
-      h += `<div class="mc-dots">${pr.acts.map(a=>`<div class="mc-dot ${pr[a]?'done':(!pr[a]&&getActStatus(m.id,a)==='avail'?'cur':'')}"></div>`).join('')}</div>`;
-      h += `</div><span class="mc-st ${done?'done':(pr.count>0?'prog':'')}">${statusText}</span></div>`;
-    } else {
-      h += `<div class="tl-mod tl-lock">`;
-      h += `<div class="mc-i">${m.icon}</div>`;
-      h += `<div class="mc-info"><div class="mc-t">${m.title}</div><div class="mc-d">${descText}</div></div>`;
-      h += `<span class="mc-st lock">${statusText}</span></div>`;
-    }
-  });
-  h += '</div>';
+      if(track !== lastTrack || phase !== lastPhase){
+        const trackLabel = track === 'upskilling' ? 'Upskilling' : 'Onboarding';
+        const phaseLabel = phaseData ? phaseData.title : 'Phase '+phase;
+        h += `<div class="tl-phase"><span class="track-pill track-${track}">${trackLabel}</span> <span class="phase-pill">Phase ${phase} · ${phaseLabel}</span></div>`;
+        lastTrack = track;
+        lastPhase = phase;
+      }
+
+      const pr = getModProg(m.id);
+      const done = isModDone(m.id);
+      const open = unlocked.has(m.id);
+      let statusCls = 'tl-lock';
+      let statusText = '🔒';
+      const prevTitle = prevReqTitleMap[m.id];
+      let descText = prevTitle ? 'Complete '+prevTitle+' to unlock' : 'Complete previous to unlock';
+
+      if(done){
+        statusCls = 'tl-done';
+        statusText = '✅';
+        descText = m.desc;
+      } else if(open && pr.count > 0){
+        statusCls = 'tl-prog';
+        statusText = pr.count+'/'+pr.total;
+        descText = pr.count+' of '+pr.total+' activities';
+      } else if(open){
+        statusCls = 'tl-prog';
+        statusText = '';
+        descText = m.desc;
+      }
+
+      const skillKey = (m.game && m.game.gameId) ? SKILL_MAP[m.game.gameId] : null;
+      const sk = skillKey ? D.skills[skillKey] : null;
+      const reinf = getReinforcementStatus(sk ? sk.lastDate : null);
+
+      if(open || done){
+        h += `<div class="tl-mod ${statusCls}" onclick="showModule('${m.id}')">`;
+        h += `<div class="mc-i">${m.icon}</div>`;
+        h += `<div class="mc-info"><div class="mc-t">${m.title} <span class="mc-reinf ${reinf.cls}">${reinf.icon}</span></div>`;
+        h += `<div class="mc-d">${descText}</div>`;
+        h += `<div class="mc-dots">${pr.acts.map(a=>`<div class="mc-dot ${pr[a]?'done':(!pr[a]&&getActStatus(m.id,a)==='avail'?'cur':'')}"></div>`).join('')}</div>`;
+        h += `</div><span class="mc-st ${done?'done':(pr.count>0?'prog':'')}">${statusText}</span></div>`;
+      } else {
+        h += `<div class="tl-mod tl-lock">`;
+        h += `<div class="mc-i">${m.icon}</div>`;
+        h += `<div class="mc-info"><div class="mc-t">${m.title}</div><div class="mc-d">${descText}</div></div>`;
+        h += `<span class="mc-st lock">${statusText}</span></div>`;
+      }
+    });
+    h += '</div>';
+  }
   document.getElementById('phaseMap').innerHTML=h;
 
   // Certification

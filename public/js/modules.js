@@ -4,17 +4,27 @@
 
 // MODULES starts empty — populated by loadModules() on init
 let MODULES = [];
+// COURSES starts empty — populated by loadModules() when pathway is specified
+let COURSES = [];
 
 /**
  * Load modules from CMS API. Called once on app init.
  * Returns the loaded array; also sets the global MODULES.
+ * When pathway is specified, also populates global COURSES.
  */
 async function loadModules(pathwayId) {
   try {
     const data = await API.getModules(pathwayId);
-    if (Array.isArray(data) && data.length > 0) {
+    // New response shape: { courses: [...], modules: [...] }
+    if (data && data.courses && data.modules) {
+      COURSES = data.courses;
+      MODULES = data.modules;
+      console.log(`[CMS] Loaded ${COURSES.length} courses, ${MODULES.length} modules from API`);
+    } else if (Array.isArray(data) && data.length > 0) {
+      // Legacy flat array response (no pathway filter)
       MODULES = data;
-      console.log(`[CMS] Loaded ${MODULES.length} modules from API`);
+      COURSES = [];
+      console.log(`[CMS] Loaded ${MODULES.length} modules from API (flat)`);
     } else {
       console.warn('[CMS] API returned empty modules');
     }

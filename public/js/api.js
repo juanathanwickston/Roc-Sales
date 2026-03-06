@@ -248,17 +248,38 @@ const API = {
     return this.request('PUT', '/admin/user-pathways', { userId, pathwayIds });
   },
 
-  async getPathwayModules(pathwayId) {
+  async getPathwayCourses(pathwayId) {
     return this.request('GET', `/admin/pathways/${pathwayId}/modules`);
   },
 
-  async updatePathwayModules(pathwayId, moduleIds) {
-    return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { moduleIds });
+  async updatePathwayCourses(pathwayId, courses) {
+    return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { modules: courses });
   },
 
-  /** New format: modules as objects with isRequired flag */
-  async updatePathwayModulesWithRequired(pathwayId, modules) {
-    return this.request('PUT', `/admin/pathways/${pathwayId}/modules`, { modules });
+  // ─── Course Management ───
+
+  async getCourses() {
+    return this.request('GET', '/cms/courses');
+  },
+
+  async getCourse(courseId) {
+    return this.request('GET', `/cms/courses/${courseId}`);
+  },
+
+  async createCourse(data) {
+    return this.request('POST', '/cms/courses', data);
+  },
+
+  async updateCourse(courseId, data) {
+    return this.request('PUT', `/cms/courses/${courseId}`, data);
+  },
+
+  async deleteCourse(courseId) {
+    return this.request('DELETE', `/cms/courses/${courseId}`);
+  },
+
+  async updateCourseModules(courseId, modules) {
+    return this.request('PUT', `/cms/courses/${courseId}/modules`, { modules });
   },
 
   // ─── CMS (Content Management) ───

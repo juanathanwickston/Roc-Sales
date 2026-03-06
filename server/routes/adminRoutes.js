@@ -625,43 +625,45 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
       return res.status(404).json({ error: 'Pathway not found' });
     }
 
-    // Assigned modules — ordered by sort_order
+    // Assigned courses — ordered by sort_order
     const assigned = await db.query(
-      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track, pm.sort_order AS sort_order, pm.is_required
-       FROM pathway_modules pm
-       JOIN cms_modules cm ON cm.id = pm.module_id
-       WHERE pm.pathway_id = $1
-       ORDER BY pm.sort_order`,
+      `SELECT c.id, c.title, c.description, c.icon, pc.sort_order AS sort_order, pc.is_required,
+        (SELECT COUNT(*) FROM course_modules WHERE course_id = c.id) AS module_count
+       FROM pathway_courses pc
+       JOIN courses c ON c.id = pc.course_id
+       WHERE pc.pathway_id = $1
+       ORDER BY pc.sort_order`,
       [pathwayId]
     );
 
-    // Available modules — active modules NOT assigned to this pathway
+    // Available courses — courses NOT assigned to this pathway
     const available = await db.query(
-      `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track
-       FROM cms_modules cm
-       WHERE cm.id NOT IN (SELECT module_id FROM pathway_modules WHERE pathway_id = $1)
-       ORDER BY cm.phase, cm.sort_order`,
+      `SELECT c.id, c.title, c.description, c.icon,
+        (SELECT COUNT(*) FROM course_modules WHERE course_id = c.id) AS module_count
+       FROM courses c
+       WHERE c.id NOT IN (SELECT course_id FROM pathway_courses WHERE pathway_id = $1)
+       ORDER BY c.title`,
       [pathwayId]
     );
 
     res.json({
       pathwayId,
       pathwayName: pathway.rows[0].name,
-      assigned: assigned.rows.map(m => ({
-        id: m.id,
-        title: m.title,
-        icon: m.icon,
-        phase: m.phase,
-        track: m.track || 'onboarding',
-        sortOrder: m.sort_order,
-        isRequired: m.is_required !== false
+      assigned: assigned.rows.map(c => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        icon: c.icon,
+        sortOrder: c.sort_order,
+        isRequired: c.is_required !== false,
+        moduleCount: parseInt(c.module_count)
       })),
-      available: available.rows.map(m => ({
-        id: m.id,
-        title: m.title,
-        icon: m.icon,
-        phase: m.phase,
-        track: m.track || 'onboarding'
+      available: available.rows.map(c => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        icon: c.icon,
+        moduleCount: parseInt(c.module_count)
       }))
     });
   } catch (err) {
@@ -703,17 +705,17 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
       return res.status(404).json({ error: 'Pathway not found' });
     }
 
-    // Validate all module IDs exist in cms_modules
+    // Validate all course IDs exist
     const entryIds = moduleEntries.map(e => e.id);
     if (entryIds.length > 0) {
       const valid = await db.query(
-        'SELECT id FROM cms_modules WHERE id = ANY($1)',
+        'SELECT id FROM courses WHERE id = ANY($1)',
         [entryIds]
       );
       const validIds = new Set(valid.rows.map(r => r.id));
       const invalid = entryIds.filter(id => !validIds.has(id));
       if (invalid.length > 0) {
-        return res.status(400).json({ error: `Invalid module IDs: ${invalid.join(', ')}` });
+        return res.status(400).json({ error: `Invalid course IDs: ${invalid.join(', ')}` });
       }
     }
 
@@ -721,12 +723,12 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
     const client = await db.getClient();
     try {
       await client.query('BEGIN');
-      await client.query('DELETE FROM pathway_modules WHERE pathway_id = $1', [pathwayId]);
+      await client.query('DELETE FROM pathway_courses WHERE pathway_id = $1', [pathwayId]);
 
       for (let i = 0; i < moduleEntries.length; i++) {
         await client.query(
-          'INSERT INTO pathway_modules (pathway_id, module_id, sort_order, is_required) VALUES ($1, $2, $3, $4)',
-          [pathwayId, moduleEntries[i].id, i, moduleEntries[i].isRequired]
+          'INSERT INTO pathway_courses (pathway_id, course_id, sort_order, is_required) VALUES ($1, $2, $3, $4)',
+          [pathwayId, moduleEntries[i].id, i, moduleEntries[i].isRequired !== false]
         );
       }
 
@@ -738,11 +740,11 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
       client.release();
     }
 
-    await logAudit(req.user.id, 'pathway_modules_updated', pathwayId, { moduleIds });
+    await logAudit(req.user.id, 'pathway_courses_updated', pathwayId, { courseIds: entryIds });
 
-    res.json({ message: 'Pathway modules updated' });
+    res.json({ message: 'Pathway courses updated' });
   } catch (err) {
-    console.error('[ADMIN] Update pathway modules error:', err.message);
+    console.error('[ADMIN] Update pathway courses error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -776,8 +778,8 @@ router.delete('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
         [pathwayId]
       );
 
-      // Remove module assignments
-      await client.query('DELETE FROM pathway_modules WHERE pathway_id = $1', [pathwayId]);
+      // Remove course assignments
+      await client.query('DELETE FROM pathway_courses WHERE pathway_id = $1', [pathwayId]);
 
       // Hard delete the pathway
       await client.query('DELETE FROM pathways WHERE id = $1', [pathwayId]);
@@ -836,11 +838,11 @@ router.post('/pathways/:id/duplicate', requireRole('ld_manager'), async (req, re
       );
       const newId = newPathway.rows[0].id;
 
-      // Copy module assignments (including is_required)
+      // Copy course assignments (including is_required)
       await client.query(
-        `INSERT INTO pathway_modules (pathway_id, module_id, sort_order, is_required)
-         SELECT $1, module_id, sort_order, is_required
-         FROM pathway_modules WHERE pathway_id = $2`,
+        `INSERT INTO pathway_courses (pathway_id, course_id, sort_order, is_required)
+         SELECT $1, course_id, sort_order, is_required
+         FROM pathway_courses WHERE pathway_id = $2`,
         [newId, sourceId]
       );
 
@@ -919,13 +921,16 @@ router.get('/pathways/:id/progress', async (req, res) => {
       }
     }
 
-    // Get required modules in this pathway
+    // Get required modules in this pathway (through courses)
     const reqMods = await db.query(
-      `SELECT pm.module_id, cm.title
-       FROM pathway_modules pm
-       JOIN cms_modules cm ON cm.id = pm.module_id
-       WHERE pm.pathway_id = $1 AND COALESCE(pm.is_required, TRUE) = TRUE
-       ORDER BY pm.sort_order`,
+      `SELECT DISTINCT com.module_id, cm.title
+       FROM pathway_courses pc
+       JOIN course_modules com ON com.course_id = pc.course_id
+       JOIN cms_modules cm ON cm.id = com.module_id
+       WHERE pc.pathway_id = $1
+         AND COALESCE(pc.is_required, TRUE) = TRUE
+         AND COALESCE(com.is_required, TRUE) = TRUE
+       ORDER BY cm.title`,
       [pathwayId]
     );
     const totalModules = reqMods.rows.length;

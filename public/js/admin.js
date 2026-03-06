@@ -32,8 +32,9 @@ const Admin = {
     // Tabs + toolbar on one row (heading from static HTML in index.html)
     let h = '<div class="admin-tabs">';
     h += `<button class="admin-tab${this.currentTab === 'users' ? ' active' : ''}" onclick="Admin.switchTab('users')">Users</button>`;
-    h += `<button class="admin-tab${this.currentTab === 'pathways' ? ' active' : ''}" onclick="Admin.switchTab('pathways')">Pathways</button>`;
     h += `<button class="admin-tab${this.currentTab === 'content' ? ' active' : ''}" onclick="Admin.switchTab('content')">Modules</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'courses' ? ' active' : ''}" onclick="Admin.switchTab('courses')">Courses</button>`;
+    h += `<button class="admin-tab${this.currentTab === 'pathways' ? ' active' : ''}" onclick="Admin.switchTab('pathways')">Pathways</button>`;
     h += '<div style="flex:1"></div>';
     h += '<div class="admin-toolbar">';
     h += '<button class="admin-toolbar-btn" onclick="Admin.showExportMenu(this)" title="Export data">Export ▾</button>';
@@ -57,6 +58,8 @@ const Admin = {
       await this.renderPathways();
     } else if (this.currentTab === 'content') {
       await this.renderContent();
+    } else if (this.currentTab === 'courses') {
+      await this.renderCourses();
     }
   },
 
@@ -795,10 +798,10 @@ const Admin = {
       if (this._createMode === 'clone') {
         const sourceId = document.getElementById('cpCloneSource').value;
         if (sourceId) {
-          const sourceData = await API.getPathwayModules(parseInt(sourceId));
-          const moduleIds = sourceData.assigned.map(m => m.id);
-          if (moduleIds.length > 0) {
-            await API.updatePathwayModules(result.id, moduleIds);
+          const sourceData = await API.getPathwayCourses(parseInt(sourceId));
+          const courseEntries = sourceData.assigned.map(c => ({ id: c.id, isRequired: c.isRequired }));
+          if (courseEntries.length > 0) {
+            await API.updatePathwayCourses(result.id, courseEntries);
           }
         }
       }
@@ -882,23 +885,23 @@ const Admin = {
     history.pushState({ view: 'pathwayBuilder', id: pathwayId }, '', '');
 
     try {
-      // Load pathway details and modules in parallel
-      const [pathways, modData] = await Promise.all([
+      // Load pathway details and courses in parallel
+      const [pathways, courseData] = await Promise.all([
         API.getPathways(),
-        API.getPathwayModules(pathwayId)
+        API.getPathwayCourses(pathwayId)
       ]);
       const pw = pathways.pathways.find(p => p.id === pathwayId);
       if (!pw) throw new Error('Pathway not found');
 
-      // Store builder state
+      // Store builder state (now courses instead of modules)
       this._builderPathwayId = pathwayId;
       this._builderPathway = pw;
-      this._builderAssigned = modData.assigned.map(m => m.id);
-      this._builderModules = {};
+      this._builderAssigned = courseData.assigned.map(c => c.id);
+      this._builderModules = {};  // renamed but kept for backward compat in drag-drop
       this._expandedModules = new Set();
       this._showAvailable = false;
-      modData.assigned.forEach(m => { this._builderModules[m.id] = m; });
-      modData.available.forEach(m => { this._builderModules[m.id] = m; });
+      courseData.assigned.forEach(c => { this._builderModules[c.id] = c; });
+      courseData.available.forEach(c => { this._builderModules[c.id] = c; });
 
       this._renderBuilderPage();
     } catch (err) {
@@ -961,16 +964,15 @@ const Admin = {
 
     // ─── Toolbar ───
     h += '<div class="pb-toolbar">';
-    h += '<button class="pb-toolbar-btn" onclick="Admin._builderSort()" title="Sort: Onboarding → Upskilling, then by phase">⇅ Auto-Sort</button>';
     h += '</div>';
 
-    // ─── Module List ───
+    // ─── Course List ───
     h += this._buildBuilderHTML();
 
     // ─── Footer ───
     const count = this._builderAssigned.length;
     h += '<div class="pb-footer">';
-    h += `<span class="pb-count">${count} module${count !== 1 ? 's' : ''} assigned</span>`;
+    h += `<span class="pb-count">${count} course${count !== 1 ? 's' : ''} assigned</span>`;
     h += `<button class="pb-save-btn" id="builderSaveBtn" onclick="Admin.editPathway(${this._builderPathwayId})">Save Pathway</button>`;
     h += '</div>';
 
@@ -990,51 +992,37 @@ const Admin = {
     if (assigned.length === 0) {
       h += '<div style="text-align:center;padding:48px 16px;color:var(--gray)">';
       h += '<div style="font-size:24px;margin-bottom:8px">📚</div>';
-      h += '<div style="font-size:var(--fs-sm)">No modules assigned yet.</div>';
-      h += '<div style="font-size:var(--fs-xs);margin-top:4px">Click "+ Add Module" below to start building.</div>';
+      h += '<div style="font-size:var(--fs-sm)">No courses assigned yet.</div>';
+      h += '<div style="font-size:var(--fs-xs);margin-top:4px">Click "+ Add Course" below to start building.</div>';
       h += '</div>';
     } else {
       assigned.forEach((id, i) => {
-        const m = this._builderModules[id];
-        if (!m) return;
-        const track = m.track || 'onboarding';
-        const isReq = m.isRequired !== false;
+        const c = this._builderModules[id];
+        if (!c) return;
+        const isReq = c.isRequired !== false;
         const isExpanded = this._expandedModules.has(id);
 
-        h += `<div class="pb-module${isExpanded ? ' expanded' : ''}" data-module-id="${esc(id)}" draggable="true">`;
+        h += `<div class="pb-module${isExpanded ? ' expanded' : ''}" data-module-id="${id}" draggable="true">`;
 
-        // Module header row
+        // Course header row
         h += '<div class="pb-module-row">';
         h += `<span class="pb-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">⸬</span>`;
-        h += `<span class="pb-track-dot ${track}"></span>`;
-        h += `<span class="pb-module-icon">${m.icon || '📘'}</span>`;
-        h += `<span class="pb-module-title">${esc(m.title)}</span>`;
+        h += `<span class="pb-module-icon">${c.icon || '📘'}</span>`;
+        h += `<span class="pb-module-title">${esc(c.title)}</span>`;
         h += '<span class="pb-module-meta">';
-        h += `<span class="pb-phase-pill">P${m.phase || 1}</span>`;
-        h += `<span class="pb-req-badge ${isReq ? 'req' : 'opt'}" onclick="event.stopPropagation();Admin._builderToggleRequired('${esc(id)}')" title="Click to toggle" style="cursor:pointer">${isReq ? 'Req' : 'Opt'}</span>`;
+        h += `<span class="pb-phase-pill">${c.moduleCount || 0} mod${(c.moduleCount || 0) !== 1 ? 's' : ''}</span>`;
+        h += `<span class="pb-req-badge ${isReq ? 'req' : 'opt'}" onclick="event.stopPropagation();Admin._builderToggleRequired('${id}')" title="Click to toggle" style="cursor:pointer">${isReq ? 'Req' : 'Opt'}</span>`;
         h += '</span>';
-        h += `<span class="pb-chevron${isExpanded ? ' open' : ''}" aria-expanded="${isExpanded}" onclick="Admin._toggleModule('${esc(id)}')">▶</span>`;
-        h += `<button class="pb-remove-btn" onclick="event.stopPropagation();Admin._builderRemove('${esc(id)}')" aria-label="Remove ${esc(m.title)} from pathway" title="Remove">✕</button>`;
+        h += `<span class="pb-chevron${isExpanded ? ' open' : ''}" aria-expanded="${isExpanded}" onclick="Admin._toggleModule('${id}')">▶</span>`;
+        h += `<button class="pb-remove-btn" onclick="event.stopPropagation();Admin._builderRemove('${id}')" aria-label="Remove ${esc(c.title)} from pathway" title="Remove">✕</button>`;
         h += '</div>';
 
         // Expandable body
         h += '<div class="pb-module-body">';
-        if (m.description) {
-          h += `<div class="pb-module-desc">${esc(m.description)}</div>`;
+        if (c.description) {
+          h += `<div class="pb-module-desc">${esc(c.description)}</div>`;
         }
-        // Show content items if we have them
-        h += '<div class="pb-content-list">';
-        if (m.videoUrl) h += `<div class="pb-content-item"><span class="pb-content-item-icon">🎬</span><span class="pb-content-item-title">Video</span></div>`;
-        if (m.docUrl) h += `<div class="pb-content-item"><span class="pb-content-item-icon">📖</span><span class="pb-content-item-title">Document</span></div>`;
-        if (m.gameTypes && m.gameTypes.length) {
-          m.gameTypes.forEach(g => {
-            h += `<div class="pb-content-item"><span class="pb-content-item-icon">🎮</span><span class="pb-content-item-title">${esc(g)}</span></div>`;
-          });
-        }
-        if (!m.videoUrl && !m.docUrl && (!m.gameTypes || !m.gameTypes.length)) {
-          h += '<div style="color:var(--gray);font-size:var(--fs-xs)">No content configured. Edit this module in the Modules tab.</div>';
-        }
-        h += '</div>';
+        h += `<div style="color:var(--gray);font-size:var(--fs-xs);margin-top:4px">${c.moduleCount || 0} modules in this course</div>`;
         h += '</div>';
 
         h += '</div>';
@@ -1043,36 +1031,34 @@ const Admin = {
 
     h += '</div>';
 
-    // Add Module button
+    // Add Course button
     if (this._showAvailable) {
       h += this._buildAvailableDropdown();
     } else {
-      h += '<button class="pb-add-module" onclick="Admin._toggleAvailableModules()">➕ Add Module</button>';
+      h += '<button class="pb-add-module" onclick="Admin._toggleAvailableModules()">➕ Add Course</button>';
     }
 
     return h;
   },
 
-  /**
-   * Build the available modules dropdown for adding.
-   */
   _buildAvailableDropdown() {
     const assigned = this._builderAssigned;
     const allIds = Object.keys(this._builderModules);
-    const availableIds = allIds.filter(id => !assigned.includes(id));
+    const availableIds = allIds.filter(id => !assigned.includes(parseInt(id)) && !assigned.includes(id));
 
     let h = '<div class="pb-available-dropdown">';
     h += '<button class="pb-add-module" onclick="Admin._toggleAvailableModules()" style="border-color:var(--blue)">➖ Close</button>';
 
     if (availableIds.length === 0) {
-      h += '<div style="text-align:center;padding:16px;color:var(--gray);font-size:var(--fs-sm)">All modules are assigned.</div>';
+      h += '<div style="text-align:center;padding:16px;color:var(--gray);font-size:var(--fs-sm)">All courses are assigned.</div>';
     } else {
       h += '<div class="pb-available-list">';
       availableIds.forEach(id => {
-        const m = this._builderModules[id];
-        h += `<div class="pb-available-item" onclick="Admin._builderAdd('${esc(id)}')">`;
-        h += `<span class="pb-available-item-icon">${m.icon || '📘'}</span>`;
-        h += `<span>${esc(m.title)}</span>`;
+        const c = this._builderModules[id];
+        h += `<div class="pb-available-item" onclick="Admin._builderAdd(${parseInt(id)})">`;
+        h += `<span class="pb-available-item-icon">${c.icon || '📘'}</span>`;
+        h += `<span>${esc(c.title)}</span>`;
+        h += `<span style="color:var(--gray);font-size:var(--fs-xs);margin-left:8px">${c.moduleCount || 0} modules</span>`;
         h += '</div>';
       });
       h += '</div>';
@@ -1170,12 +1156,12 @@ const Admin = {
       const name = document.getElementById('epName').value;
       const desc = document.getElementById('epDesc').value;
       await API.updatePathway(id, name, desc);
-      // Save module assignments
-      const moduleEntries = this._builderAssigned.map(mid => ({
-        id: mid,
-        isRequired: this._builderModules[mid]?.isRequired !== false
+      // Save course assignments
+      const courseEntries = this._builderAssigned.map(cid => ({
+        id: cid,
+        isRequired: this._builderModules[cid]?.isRequired !== false
       }));
-      await API.updatePathwayModulesWithRequired(id, moduleEntries);
+      await API.updatePathwayCourses(id, courseEntries);
       toast('Pathway saved');
       // Navigate back to pathways
       this.currentTab = 'pathways';
@@ -1234,6 +1220,347 @@ const Admin = {
   async savePathwayModules() {
     // Legacy — now handled by editPathway
     await this.editPathway(this._builderPathwayId);
+  },
+
+  // ─── COURSES TAB ───
+
+  async renderCourses() {
+    const content = document.getElementById('adminContent');
+    content.innerHTML = '<div class="admin-loading" aria-busy="true">Loading courses...</div>';
+
+    try {
+      const data = await API.getCourses();
+      const courses = data.courses || [];
+
+      let h = '<div class="admin-section-header">';
+      h += `<span class="admin-section-count">${courses.length} course${courses.length !== 1 ? 's' : ''}</span>`;
+      if (Auth.hasRole('ld_manager')) {
+        h += '<button class="admin-section-btn" onclick="Admin.showCreateCourse()">+ Create Course</button>';
+      }
+      h += '</div>';
+
+      if (courses.length === 0) {
+        h += '<div style="text-align:center;padding:48px 16px;color:var(--gray)">';
+        h += '<div style="font-size:24px;margin-bottom:8px">📘</div>';
+        h += '<div style="font-size:var(--fs-sm)">No courses yet.</div>';
+        h += '<div style="font-size:var(--fs-xs);margin-top:4px">Create your first course to start organizing modules.</div>';
+        h += '</div>';
+      } else {
+        h += '<div class="course-cards">';
+        courses.forEach(c => {
+          const pathwayNames = (c.pathways || []).filter(p => p).map(p => p.pathwayName).join(', ');
+          const isOrphan = !pathwayNames;
+          h += `<div class="course-card" onclick="Admin.showCourseBuilder(${c.id})">`;
+          h += `<div class="course-card-header">`;
+          h += `<span class="course-card-icon">${c.icon || '📘'}</span>`;
+          h += `<span class="course-card-title">${esc(c.title)}</span>`;
+          h += `<span class="course-card-arrow">▸</span>`;
+          h += `</div>`;
+          h += `<div class="course-card-meta">`;
+          h += `<span>${c.moduleCount} module${c.moduleCount !== 1 ? 's' : ''}</span>`;
+          if (isOrphan) {
+            h += `<span class="course-orphan-badge">⚠️ Unassigned</span>`;
+          } else {
+            h += `<span style="color:var(--gray)">· ${pathwayNames}</span>`;
+          }
+          h += `</div>`;
+          h += `</div>`;
+        });
+        h += '</div>';
+      }
+      content.innerHTML = h;
+    } catch (err) {
+      content.innerHTML = `<div class="admin-error">Unable to load courses: ${esc(err.message)}</div>`;
+    }
+  },
+
+  showCreateCourse() {
+    let body = '<div id="ccError" class="admin-form-error"></div>';
+    body += '<div class="modal-field"><label>Title</label><input type="text" id="ccTitle" placeholder="e.g. Product Foundations" autofocus></div>';
+    body += '<div class="modal-field"><label>Description</label><textarea id="ccDesc" rows="3" placeholder="Brief description of this course..."></textarea></div>';
+    body += '<div class="modal-field"><label>Icon</label><input type="text" id="ccIcon" value="📘" maxlength="5" style="width:60px"></div>';
+    body += '<div style="margin-top:16px;text-align:right"><button class="admin-section-btn" onclick="Admin.createCourse()">Create Course</button></div>';
+    this.showModal('Create Course', body);
+  },
+
+  async createCourse() {
+    const errorEl = document.getElementById('ccError');
+    try {
+      const title = document.getElementById('ccTitle').value;
+      const desc = document.getElementById('ccDesc').value;
+      const icon = document.getElementById('ccIcon').value;
+      if (!title.trim()) { errorEl.textContent = 'Title is required'; errorEl.style.display = 'block'; return; }
+      await API.createCourse({ title, description: desc, icon });
+      this.closeModal();
+      toast('Course created');
+      await this.renderCourses();
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  },
+
+  /**
+   * Course Builder — full-page with 2-step flow (Basics + Curriculum).
+   */
+  async showCourseBuilder(courseId) {
+    const content = document.getElementById('adminContent');
+    content.innerHTML = '<div class="admin-loading" aria-busy="true">Loading course...</div>';
+
+    history.pushState({ view: 'courseBuilder', id: courseId }, '', '');
+
+    try {
+      const courseData = await API.getCourse(courseId);
+
+      this._courseBuilderData = courseData;
+      this._courseBuilderStep = 1;
+      this._courseAssigned = courseData.assigned.map(m => m.id);
+      this._courseModules = {};
+      this._courseExpandedModules = new Set();
+      this._courseShowAvailable = false;
+      courseData.assigned.forEach(m => { this._courseModules[m.id] = m; });
+      courseData.available.forEach(m => { this._courseModules[m.id] = m; });
+
+      this._renderCourseBuilder();
+    } catch (err) {
+      content.innerHTML = `<div class="admin-error">Unable to load course: ${esc(err.message)}</div>`;
+    }
+  },
+
+  _renderCourseBuilder() {
+    const content = document.getElementById('adminContent');
+    const c = this._courseBuilderData;
+    const step = this._courseBuilderStep;
+
+    // Preserve field values
+    const titleEl = document.getElementById('cbTitle');
+    const descEl = document.getElementById('cbDesc');
+    const iconEl = document.getElementById('cbIcon');
+    const curTitle = titleEl ? titleEl.value : c.title;
+    const curDesc = descEl ? descEl.value : (c.description || '');
+    const curIcon = iconEl ? iconEl.value : (c.icon || '📘');
+
+    let h = '';
+
+    // Breadcrumb
+    h += '<div class="pb-breadcrumb">';
+    h += '<a onclick="Admin.backToCourses()">← Back to Courses</a>';
+    h += `<span>/ ${esc(curTitle)}</span>`;
+    h += '</div>';
+
+    // Step indicator
+    h += '<div class="cb-steps">';
+    h += `<span class="cb-step ${step === 1 ? 'active' : 'done'}" onclick="Admin._setCourseBuilderStep(1)">① Basics</span>`;
+    h += `<span class="cb-step-line"></span>`;
+    h += `<span class="cb-step ${step === 2 ? 'active' : ''}" onclick="Admin._setCourseBuilderStep(2)">② Curriculum</span>`;
+    h += '</div>';
+
+    if (step === 1) {
+      // Basics form
+      h += '<div class="pb-header">';
+      h += `<div class="modal-field"><label>Course Title</label><input type="text" id="cbTitle" value="${esc(curTitle)}" aria-label="Course title"></div>`;
+      h += `<div class="modal-field"><label>Description</label><textarea id="cbDesc" rows="3" aria-label="Description">${esc(curDesc)}</textarea></div>`;
+      h += `<div class="modal-field"><label>Icon</label><input type="text" id="cbIcon" value="${esc(curIcon)}" maxlength="5" style="width:60px" aria-label="Icon"></div>`;
+      h += '<div id="cbError" class="pb-error"></div>';
+      h += '</div>';
+
+      h += '<div class="pb-footer">';
+      h += `<button class="pb-save-btn" style="background:var(--n4)" onclick="Admin._setCourseBuilderStep(2)">Next →</button>`;
+      h += `<button class="pb-save-btn" onclick="Admin.deleteCourseConfirm(${c.id})" style="background:transparent;color:var(--red);border:1px solid var(--red)">Delete Course</button>`;
+      h += `<button class="pb-save-btn" id="cbSaveBtn" onclick="Admin.saveCourse(${c.id})">Save Course</button>`;
+      h += '</div>';
+    } else {
+      // Curriculum (module assignment)
+      h += '<div class="pb-toolbar">';
+      h += '</div>';
+
+      h += this._buildCourseCurriculumHTML();
+
+      const count = this._courseAssigned.length;
+      h += '<div class="pb-footer">';
+      h += `<span class="pb-count">${count} module${count !== 1 ? 's' : ''} assigned</span>`;
+      h += `<button class="pb-save-btn" id="cbSaveBtn" onclick="Admin.saveCourse(${c.id})">Save Course</button>`;
+      h += '</div>';
+    }
+
+    content.innerHTML = h;
+
+    if (step === 2) this._setupCourseDragDrop();
+  },
+
+  _setCourseBuilderStep(step) {
+    // Save current field values before switching
+    this._courseBuilderStep = step;
+    this._renderCourseBuilder();
+  },
+
+  _buildCourseCurriculumHTML() {
+    const assigned = this._courseAssigned;
+    let h = '<div class="pb-modules" id="cbModuleList">';
+
+    if (assigned.length === 0) {
+      h += '<div style="text-align:center;padding:48px 16px;color:var(--gray)">';
+      h += '<div style="font-size:24px;margin-bottom:8px">📦</div>';
+      h += '<div style="font-size:var(--fs-sm)">No modules in this course yet.</div>';
+      h += '<div style="font-size:var(--fs-xs);margin-top:4px">Click "+ Add Module" below to add modules.</div>';
+      h += '</div>';
+    } else {
+      assigned.forEach((id, i) => {
+        const m = this._courseModules[id];
+        if (!m) return;
+        const isReq = m.isRequired !== false;
+        const isExpanded = this._courseExpandedModules.has(id);
+
+        h += `<div class="pb-module${isExpanded ? ' expanded' : ''}" data-module-id="${esc(id)}" draggable="true">`;
+        h += '<div class="pb-module-row">';
+        h += `<span class="pb-drag-handle" title="Drag to reorder">⸬</span>`;
+        h += `<span class="pb-module-icon">${m.icon || '📘'}</span>`;
+        h += `<span class="pb-module-title">${esc(m.title)}</span>`;
+        h += '<span class="pb-module-meta">';
+        h += `<span class="pb-phase-pill">P${m.phase || 1}</span>`;
+        h += `<span class="pb-phase-pill">${m.activityCount || 0} act</span>`;
+        h += `<span class="pb-req-badge ${isReq ? 'req' : 'opt'}" onclick="event.stopPropagation();Admin._courseToggleRequired('${esc(id)}')" style="cursor:pointer">${isReq ? 'Req' : 'Opt'}</span>`;
+        h += '</span>';
+        h += `<button class="pb-remove-btn" onclick="event.stopPropagation();Admin._courseRemoveModule('${esc(id)}')" title="Remove">✕</button>`;
+        h += '</div>';
+        h += '</div>';
+      });
+    }
+
+    h += '</div>';
+
+    if (this._courseShowAvailable) {
+      h += this._buildCourseAvailableDropdown();
+    } else {
+      h += '<button class="pb-add-module" onclick="Admin._courseToggleAvailable()">➕ Add Module</button>';
+    }
+
+    return h;
+  },
+
+  _buildCourseAvailableDropdown() {
+    const assigned = this._courseAssigned;
+    const allIds = Object.keys(this._courseModules);
+    const availableIds = allIds.filter(id => !assigned.includes(id));
+
+    let h = '<div class="pb-available-dropdown">';
+    h += '<button class="pb-add-module" onclick="Admin._courseToggleAvailable()" style="border-color:var(--blue)">➖ Close</button>';
+
+    if (availableIds.length === 0) {
+      h += '<div style="text-align:center;padding:16px;color:var(--gray);font-size:var(--fs-sm)">All modules are assigned.</div>';
+    } else {
+      h += '<div class="pb-available-list">';
+      availableIds.forEach(id => {
+        const m = this._courseModules[id];
+        h += `<div class="pb-available-item" onclick="Admin._courseAddModule('${esc(id)}')">`;
+        h += `<span class="pb-available-item-icon">${m.icon || '📘'}</span>`;
+        h += `<span>${esc(m.title)}</span>`;
+        h += `<span style="color:var(--gray);font-size:var(--fs-xs);margin-left:8px">P${m.phase || 1}</span>`;
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  },
+
+  _courseAddModule(moduleId) {
+    if (!this._courseAssigned.includes(moduleId)) {
+      this._courseAssigned.push(moduleId);
+      if (this._courseModules[moduleId]) this._courseModules[moduleId].isRequired = true;
+      this._courseShowAvailable = false;
+      this._renderCourseBuilder();
+    }
+  },
+
+  _courseRemoveModule(moduleId) {
+    this._courseAssigned = this._courseAssigned.filter(id => id !== moduleId);
+    this._renderCourseBuilder();
+  },
+
+  _courseToggleRequired(moduleId) {
+    if (this._courseModules[moduleId]) {
+      this._courseModules[moduleId].isRequired = !this._courseModules[moduleId].isRequired;
+      this._renderCourseBuilder();
+    }
+  },
+
+  _courseToggleAvailable() {
+    this._courseShowAvailable = !this._courseShowAvailable;
+    this._renderCourseBuilder();
+  },
+
+  _setupCourseDragDrop() {
+    const list = document.getElementById('cbModuleList');
+    if (!list) return;
+    let draggedId = null;
+    list.querySelectorAll('.pb-module[draggable]').forEach(el => {
+      el.addEventListener('dragstart', (e) => { draggedId = el.dataset.moduleId; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+      el.addEventListener('dragend', () => { el.classList.remove('dragging'); list.querySelectorAll('.pb-module').forEach(m => m.classList.remove('drag-over')); });
+      el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drag-over'); });
+      el.addEventListener('dragleave', () => { el.classList.remove('drag-over'); });
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const targetId = el.dataset.moduleId;
+        if (draggedId && draggedId !== targetId) {
+          const fromIdx = Admin._courseAssigned.indexOf(draggedId);
+          const toIdx = Admin._courseAssigned.indexOf(targetId);
+          if (fromIdx !== -1 && toIdx !== -1) {
+            const item = Admin._courseAssigned.splice(fromIdx, 1)[0];
+            Admin._courseAssigned.splice(toIdx, 0, item);
+            Admin._renderCourseBuilder();
+          }
+        }
+        draggedId = null;
+      });
+    });
+  },
+
+  async saveCourse(courseId) {
+    const saveBtn = document.getElementById('cbSaveBtn');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+    try {
+      // Save basics if on step 1 or saving from any step
+      const titleEl = document.getElementById('cbTitle');
+      if (titleEl) {
+        await API.updateCourse(courseId, {
+          title: titleEl.value,
+          description: document.getElementById('cbDesc')?.value || '',
+          icon: document.getElementById('cbIcon')?.value || '📘'
+        });
+      }
+      // Save module assignments
+      const moduleEntries = this._courseAssigned.map(mid => ({
+        id: mid,
+        isRequired: this._courseModules[mid]?.isRequired !== false
+      }));
+      await API.updateCourseModules(courseId, moduleEntries);
+      toast('Course saved');
+      this.currentTab = 'courses';
+      const container = document.getElementById('adminBody');
+      if (container) await this.render(container);
+    } catch (err) {
+      const errorEl = document.getElementById('cbError');
+      if (errorEl) { errorEl.textContent = err.message; errorEl.style.display = 'block'; }
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Course'; }
+    }
+  },
+
+  async deleteCourseConfirm(courseId) {
+    if (!confirm('Delete this course? Modules will NOT be deleted.')) return;
+    try {
+      await API.deleteCourse(courseId);
+      toast('Course deleted');
+      this.currentTab = 'courses';
+      const container = document.getElementById('adminBody');
+      if (container) await this.render(container);
+    } catch (err) {
+      alert('Failed to delete course: ' + err.message);
+    }
+  },
+
+  backToCourses() {
+    history.back();
   },
 
   // ─── CONTENT TAB (CMS) ───

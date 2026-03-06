@@ -89,9 +89,13 @@ router.put('/', requireAuth, async (req, res) => {
       );
 
       for (const pw of userPws.rows) {
-        // Get required modules in this pathway
+        // Get required modules in this pathway (through courses)
         const reqMods = await db.query(
-          'SELECT module_id FROM pathway_modules WHERE pathway_id = $1 AND COALESCE(is_required, TRUE) = TRUE',
+          `SELECT DISTINCT com.module_id FROM pathway_courses pc
+           JOIN course_modules com ON com.course_id = pc.course_id
+           WHERE pc.pathway_id = $1
+             AND COALESCE(pc.is_required, TRUE) = TRUE
+             AND COALESCE(com.is_required, TRUE) = TRUE`,
           [pw.pathway_id]
         );
         if (reqMods.rows.length === 0) continue;
