@@ -97,6 +97,37 @@ var app = {
         }
       });
     }
+
+    // ─── Coaching Sidebar: Accordion ───
+    var sidebarBody = document.querySelector('.sidebar-body');
+    if (sidebarBody) {
+      sidebarBody.addEventListener('click', function(e) {
+        var btn = e.target.closest('.guide-section-btn');
+        if (!btn) return;
+        var section = btn.closest('.guide-section');
+        var isOpen = section.classList.contains('open');
+        // Toggle this section
+        section.classList.toggle('open');
+        btn.setAttribute('aria-expanded', !isOpen);
+      });
+    }
+
+    // ─── Mobile Guide Drawer ───
+    var btnGuide = document.getElementById('btn-guide');
+    var sidebar = document.getElementById('call-sidebar');
+    var overlay = document.getElementById('drawer-overlay');
+
+    if (btnGuide && sidebar && overlay) {
+      btnGuide.addEventListener('click', function() {
+        var isOpen = sidebar.classList.contains('drawer-open');
+        sidebar.classList.toggle('drawer-open');
+        overlay.classList.toggle('visible');
+      });
+      overlay.addEventListener('click', function() {
+        sidebar.classList.remove('drawer-open');
+        overlay.classList.remove('visible');
+      });
+    }
   },
 
   /**

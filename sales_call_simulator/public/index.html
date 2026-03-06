@@ -175,12 +175,12 @@
     }
     .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--green); }
 
-    /* ─── Call Screen ─── */
+    /* ─── Call Screen — Teams-Style Layout ─── */
     .call-layout {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: #000;
+      background: var(--navy);
     }
     .call-topbar {
       display: flex;
@@ -189,6 +189,8 @@
       padding: 8px 16px;
       background: var(--n2);
       border-bottom: 1px solid var(--gb);
+      flex-shrink: 0;
+      z-index: var(--z-sticky);
     }
     .call-topbar-left { display: flex; align-items: center; gap: 8px; }
     .call-indicator { animation: blink 1.5s infinite; }
@@ -204,82 +206,346 @@
       font-weight: var(--fw-semibold);
     }
 
+    /* Two-panel layout: video + sidebar */
+    .call-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Left: Video panel */
+    .call-video-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
     .call-video-area {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
+      background: #000;
     }
     .video-container {
       width: 100%;
-      max-width: 800px;
-      aspect-ratio: 16/9;
-      background: var(--navy);
-      border-radius: var(--rs);
-      overflow: hidden;
+      height: 100%;
+      background: #000;
       position: relative;
     }
     .video-container video { width: 100%; height: 100%; object-fit: cover; }
     .video-name-tag {
       position: absolute;
-      bottom: 8px;
-      left: 8px;
-      padding: 4px 8px;
-      background: rgba(10,22,40,.8);
+      bottom: 12px;
+      left: 12px;
+      padding: 4px 12px;
+      background: rgba(10,22,40,.85);
       border-radius: var(--r-sm);
       font-size: var(--fs-xs);
       font-weight: var(--fw-medium);
+      backdrop-filter: blur(8px);
     }
 
+    /* PiP self-view */
+    .pip-container {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 160px;
+      height: 120px;
+      border-radius: var(--rs);
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,.15);
+      background: var(--n3);
+      z-index: 2;
+    }
+    .pip-container video { width: 100%; height: 100%; object-fit: cover; }
+    .pip-label {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      padding: 2px 6px;
+      background: rgba(10,22,40,.85);
+      border-radius: var(--r-xs);
+      font-size: var(--fs-2xs);
+      color: var(--gray);
+    }
+
+    /* Caption overlay */
     .call-captions {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       padding: 8px 16px;
-      min-height: 48px;
-      background: var(--n2);
+      background: rgba(10,22,40,.75);
+      backdrop-filter: blur(8px);
       text-align: center;
+      min-height: 40px;
+      z-index: 3;
     }
-    .captions-text { font-size: var(--fs-sm); color: var(--gray); }
+    .captions-text { font-size: var(--fs-sm); color: var(--white); line-height: var(--lh-normal); }
+    .caption-placeholder { color: var(--gray); }
 
+    /* Control bar */
     .call-controls {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      padding: 16px;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
       background: var(--n2);
       border-top: 1px solid var(--gb);
+      flex-shrink: 0;
     }
     .control-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 4px;
-      padding: 8px 16px;
-      min-width: 64px;
-      min-height: 48px;
+      width: 56px;
+      height: 56px;
       background: var(--n3);
       border: 1px solid var(--gb);
-      border-radius: var(--rs);
+      border-radius: 50%;
       color: var(--white);
       cursor: pointer;
       font-family: inherit;
       font-size: var(--fs-xs);
-      transition: background .15s, border-color .15s;
+      transition: background .15s, border-color .15s, transform .1s;
     }
     .control-btn:hover, .control-btn:focus-visible {
       background: var(--n4);
       border-color: rgba(59,130,246,.4);
       outline: none;
+      transform: scale(1.05);
     }
+    .control-btn:active { transform: scale(.95); }
     .control-btn.active { border-color: var(--blue); background: rgba(59,130,246,.12); }
     .control-btn.muted { border-color: var(--red); background: rgba(255,68,102,.12); }
-    .control-icon { font-size: var(--fs-md); }
-    .control-label { font-size: var(--fs-2xs); color: var(--gray); }
+    .control-icon { font-size: var(--fs-lg); }
+    .control-label { font-size: 9px; color: var(--gray); line-height: 1; }
     .control-btn-end {
-      background: rgba(255,68,102,.15);
+      background: var(--red);
       border-color: var(--red);
-      color: var(--red);
+      color: #fff;
+      width: 64px;
+      height: 56px;
+      border-radius: 28px;
     }
-    .control-btn-end:hover { background: var(--red); color: #fff; }
+    .control-btn-end:hover { background: #E63950; transform: scale(1.05); }
+    .control-btn-guide {
+      display: none; /* Shown on mobile only */
+    }
+
+    /* ─── Coaching Sidebar ─── */
+    .call-sidebar {
+      width: 340px;
+      background: var(--n2);
+      border-left: 1px solid var(--gb);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gb);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .sidebar-header h3 {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      margin: 0;
+    }
+    .sidebar-header-icon { color: var(--green); }
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .sidebar-body::-webkit-scrollbar { width: 4px; }
+    .sidebar-body::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--n4); border-radius: 2px; }
+
+    /* Accordion */
+    .guide-section { border-bottom: 1px solid rgba(59,130,246,.06); }
+    .guide-section-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-family: inherit;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-medium);
+      cursor: pointer;
+      text-align: left;
+      transition: background .15s;
+    }
+    .guide-section-btn:hover { background: rgba(59,130,246,.06); }
+    .guide-section-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .guide-section-title { display: flex; align-items: center; gap: 8px; }
+    .guide-chevron {
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      transition: transform .2s;
+    }
+    .guide-section.open .guide-chevron { transform: rotate(90deg); }
+    .guide-section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s ease;
+    }
+    .guide-section.open .guide-section-content {
+      max-height: 600px;
+    }
+    .guide-section-inner {
+      padding: 0 16px 12px 16px;
+    }
+    .guide-section-inner p {
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      line-height: var(--lh-relaxed);
+      margin-bottom: 8px;
+    }
+    .guide-section-inner ul { list-style: none; }
+    .guide-section-inner li {
+      padding: 4px 0;
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      position: relative;
+      padding-left: 16px;
+      line-height: var(--lh-normal);
+    }
+    .guide-section-inner li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--green);
+    }
+    .guide-mistake li::before { content: '✗'; color: var(--red); }
+    .guide-sample {
+      background: var(--n3);
+      border-radius: var(--r-sm);
+      padding: 8px 12px;
+      margin-top: 4px;
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      font-style: italic;
+      border-left: 2px solid var(--blue);
+    }
+    .guide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--r-xs);
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+    }
+    .guide-badge-green { background: rgba(0,224,184,.12); color: var(--green); }
+    .guide-badge-blue { background: rgba(59,130,246,.12); color: var(--blue); }
+    .guide-badge-orange { background: rgba(255,184,0,.12); color: var(--orange); }
+
+    /* Scoring footer in sidebar */
+    .sidebar-scoring {
+      padding: 12px 16px;
+      border-top: 1px solid var(--gb);
+      flex-shrink: 0;
+    }
+    .sidebar-scoring h4 {
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 8px;
+    }
+    .scoring-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+    }
+    .scoring-label {
+      flex: 1;
+      font-size: var(--fs-2xs);
+      color: var(--gray);
+    }
+    .scoring-weight {
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+      color: var(--white);
+    }
+    .scoring-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── Mobile Drawer (≤767px) ─── */
+    @media (max-width: 767px) {
+      .call-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 70vh;
+        border-left: none;
+        border-top: 1px solid var(--gb);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+        transition: transform .3s ease;
+        z-index: var(--z-modal);
+      }
+      .call-sidebar.drawer-open {
+        transform: translateY(0);
+      }
+      .drawer-handle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: var(--gray);
+        border-radius: 2px;
+        margin: 8px auto;
+      }
+      .control-btn-guide {
+        display: flex;
+      }
+      .pip-container {
+        width: 100px;
+        height: 75px;
+        bottom: 8px;
+        right: 8px;
+      }
+    }
+    @media (min-width: 768px) {
+      .drawer-handle { display: none; }
+    }
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: calc(var(--z-modal) - 1);
+    }
+    .drawer-overlay.visible { display: block; }
+
+    /* Tablet sidebar */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .call-sidebar { width: 280px; }
+    }
 
     /* ─── Debrief Screen ─── */
     .debrief-main { flex: 1; padding: 32px 24px; max-width: 800px; margin: 0 auto; width: 100%; }
@@ -485,7 +751,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════ SCREEN 3: CALL SCREEN ═══════════════ -->
+  <!-- ═══════════════ SCREEN 3: CALL SCREEN (Teams-Style) ═══════════════ -->
   <div id="screen-call" class="screen">
     <div class="call-layout">
       <!-- Top bar -->
@@ -502,41 +768,207 @@
         </div>
       </div>
 
-      <!-- Video area -->
-      <div class="call-video-area">
-        <div id="remote-video-container" class="video-container">
-          <video id="remote-video" autoplay playsinline aria-label="AI buyer video"></video>
-          <audio id="remote-audio" autoplay playsinline></audio>
-          <div id="remote-name-tag" class="video-name-tag">AI Buyer</div>
-        </div>
-      </div>
+      <!-- Two-panel body: video + sidebar -->
+      <div class="call-body">
+        <!-- Left: Video panel -->
+        <div class="call-video-panel">
+          <div class="call-video-area">
+            <div id="remote-video-container" class="video-container">
+              <video id="remote-video" autoplay playsinline aria-label="AI buyer video"></video>
+              <audio id="remote-audio" autoplay playsinline></audio>
+              <div id="remote-name-tag" class="video-name-tag">Tony Marchetti</div>
+            </div>
 
-      <!-- Captions -->
-      <div id="call-captions" class="call-captions" aria-live="polite">
-        <div id="captions-text" class="captions-text">
-          <span class="caption-placeholder">Captions will appear here when speaking begins...</span>
-        </div>
-      </div>
+            <!-- PiP self-view -->
+            <div class="pip-container" id="pip-container">
+              <video id="local-video" autoplay playsinline muted aria-label="Your camera"></video>
+              <span class="pip-label">You</span>
+            </div>
 
-      <!-- Control bar -->
-      <nav class="call-controls" aria-label="Call controls">
-        <button id="btn-mute" class="control-btn" aria-label="Toggle microphone" aria-pressed="false">
-          <span class="control-icon" aria-hidden="true">🎤</span>
-          <span class="control-label">Mute</span>
-        </button>
-        <button id="btn-camera" class="control-btn" aria-label="Toggle camera" aria-pressed="false">
-          <span class="control-icon" aria-hidden="true">📹</span>
-          <span class="control-label">Camera</span>
-        </button>
-        <button id="btn-captions" class="control-btn active" aria-label="Toggle captions" aria-pressed="true">
-          <span class="control-icon" aria-hidden="true">CC</span>
-          <span class="control-label">Captions</span>
-        </button>
-        <button id="btn-end" class="control-btn control-btn-end" aria-label="End call">
-          <span class="control-icon" aria-hidden="true">📞</span>
-          <span class="control-label">End Call</span>
-        </button>
-      </nav>
+            <!-- Caption overlay -->
+            <div id="call-captions" class="call-captions" aria-live="polite">
+              <div id="captions-text" class="captions-text">
+                <span class="caption-placeholder">Captions will appear here...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Control bar -->
+          <nav class="call-controls" aria-label="Call controls">
+            <button id="btn-mute" class="control-btn" aria-label="Toggle microphone" aria-pressed="false">
+              <span class="control-icon" aria-hidden="true">🎤</span>
+              <span class="control-label">Mute</span>
+            </button>
+            <button id="btn-camera" class="control-btn" aria-label="Toggle camera" aria-pressed="false">
+              <span class="control-icon" aria-hidden="true">📹</span>
+              <span class="control-label">Camera</span>
+            </button>
+            <button id="btn-captions" class="control-btn active" aria-label="Toggle captions" aria-pressed="true">
+              <span class="control-icon" aria-hidden="true">CC</span>
+              <span class="control-label">Captions</span>
+            </button>
+            <button id="btn-guide" class="control-btn control-btn-guide" aria-label="Toggle call guide">
+              <span class="control-icon" aria-hidden="true">📋</span>
+              <span class="control-label">Guide</span>
+            </button>
+            <button id="btn-end" class="control-btn control-btn-end" aria-label="End call">
+              <span class="control-icon" aria-hidden="true">📞</span>
+              <span class="control-label">End</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Mobile drawer overlay -->
+        <div id="drawer-overlay" class="drawer-overlay"></div>
+
+        <!-- Right: Coaching Sidebar -->
+        <aside id="call-sidebar" class="call-sidebar" role="complementary" aria-label="Call coaching guide">
+          <div class="drawer-handle" aria-hidden="true"></div>
+          <div class="sidebar-header">
+            <span class="sidebar-header-icon" aria-hidden="true">📋</span>
+            <h3>Call Guide</h3>
+            <span class="guide-badge guide-badge-green">Module 1</span>
+          </div>
+
+          <div class="sidebar-body">
+            <!-- Mission -->
+            <div class="guide-section open">
+              <button class="guide-section-btn" aria-expanded="true" aria-controls="guide-mission">
+                <span class="guide-section-title">🎯 Your Mission</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-mission">
+                <div class="guide-section-inner">
+                  <p><strong>Turn this suspect into a qualified lead.</strong> You're calling a restaurant owner referred by a friend — he's not expecting your call and knows nothing about Payroc.</p>
+                  <p>Remember: A <strong>suspect</strong> fits your Ideal Customer Profile but has shown no genuine interest. Your job is to earn engagement through discovery, not push a product.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="guide-section">
+              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step1">
+                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 1</span> Build Rapport</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-step1">
+                <div class="guide-section-inner">
+                  <p>Customer-focused reps seek to understand needs before presenting solutions. Show genuine curiosity about their business.</p>
+                  <ul>
+                    <li>Ask about their restaurant, how long they've been in business</li>
+                    <li>Reference the referral naturally (Dave)</li>
+                    <li>Show you're interested in THEM, not just the sale</li>
+                  </ul>
+                  <div class="guide-sample">"Dave mentioned you run a great place — how long have you been in the restaurant business?"</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="guide-section">
+              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step2">
+                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 2</span> Discover Pain Points</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-step2">
+                <div class="guide-section-inner">
+                  <p>Use open-ended questions to uncover challenges. You can't solve a problem you don't understand.</p>
+                  <ul>
+                    <li>Ask about their current payment processing setup</li>
+                    <li>Explore frustrations (fees, speed, reporting)</li>
+                    <li>Ask "What happens if nothing changes?"</li>
+                    <li>Quantify the pain — how much is it costing them?</li>
+                  </ul>
+                  <div class="guide-sample">"What are the biggest headaches with your current payment setup?"</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="guide-section">
+              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step3">
+                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 3</span> Qualify (BANT / CHAMP)</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-step3">
+                <div class="guide-section-inner">
+                  <p><strong>BANT:</strong> Budget, Authority, Need, Timeline<br><strong>CHAMP:</strong> Challenges, Authority, Money, Prioritization</p>
+                  <ul>
+                    <li><strong>Budget:</strong> "What budget has been allocated for this?"</li>
+                    <li><strong>Authority:</strong> "Who else is involved in this decision?"</li>
+                    <li><strong>Need:</strong> "What critical pain points are you addressing?"</li>
+                    <li><strong>Timeline:</strong> "When do you need a solution in place?"</li>
+                  </ul>
+                  <div class="guide-sample">"Besides yourself, who would need to be part of the decision to switch processors?"</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="guide-section">
+              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step4">
+                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 4</span> Close for Next Step</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-step4">
+                <div class="guide-section-inner">
+                  <p>Propose a clear, low-commitment next step. Do NOT push for a sale on the first call.</p>
+                  <ul>
+                    <li>Suggest a demo or follow-up with decision-makers present</li>
+                    <li>Set clear expectations for the follow-up</li>
+                    <li>Confirm their interest and timeline</li>
+                  </ul>
+                  <div class="guide-sample">"Would it make sense to set up a quick 20-minute demo with you and Maria so she can see how it works?"</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Common Mistakes -->
+            <div class="guide-section">
+              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-mistakes">
+                <span class="guide-section-title">⚠️ Common Mistakes</span>
+                <span class="guide-chevron" aria-hidden="true">▶</span>
+              </button>
+              <div class="guide-section-content" id="guide-mistakes">
+                <div class="guide-section-inner guide-mistake">
+                  <ul>
+                    <li>Feature-dumping before asking about their situation</li>
+                    <li>Treating a suspect like a prospect from minute one</li>
+                    <li>Not asking about other decision-makers (authority)</li>
+                    <li>Failing to quantify pain points</li>
+                    <li>Pushing for a close instead of a follow-up</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scoring footer -->
+          <div class="sidebar-scoring">
+            <h4>Scoring Criteria</h4>
+            <div class="scoring-row">
+              <span class="scoring-dot" style="background:var(--green)"></span>
+              <span class="scoring-label">Discovery Questions</span>
+              <span class="scoring-weight">30%</span>
+            </div>
+            <div class="scoring-row">
+              <span class="scoring-dot" style="background:var(--blue)"></span>
+              <span class="scoring-label">Qualification Framework</span>
+              <span class="scoring-weight">30%</span>
+            </div>
+            <div class="scoring-row">
+              <span class="scoring-dot" style="background:var(--purple)"></span>
+              <span class="scoring-label">Funnel Awareness</span>
+              <span class="scoring-weight">20%</span>
+            </div>
+            <div class="scoring-row">
+              <span class="scoring-dot" style="background:var(--orange)"></span>
+              <span class="scoring-label">Next Step Close</span>
+              <span class="scoring-weight">20%</span>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   </div>
 
