@@ -22,7 +22,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://*.daily.co"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://*.daily.co"],
         connectSrc: [
           "'self'",
           "https://tavusapi.com",
