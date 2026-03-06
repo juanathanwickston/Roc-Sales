@@ -3,7 +3,7 @@
  * Post-call evaluation using the scoring API (OpenAI GPT-4o).
  */
 
-const scoring = {
+var scoring = {
   /**
    * Evaluate a completed call and render the scorecard.
    */

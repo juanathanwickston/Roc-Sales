@@ -4,7 +4,7 @@
  * Handles WebRTC video/audio, call controls, and timer.
  */
 
-const callManager = {
+var callManager = {
   callObject: null,
   conversationId: null,
   conversationUrl: null,

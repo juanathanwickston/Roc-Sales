@@ -9,18 +9,20 @@
  * Escape HTML entities in user-sourced strings.
  * Prevents XSS when inserting via innerHTML.
  */
-function esc(str) {
+var esc = function(str) {
   if (!str) return '';
   const d = document.createElement('div');
   d.textContent = String(str);
   return d.innerHTML;
-}
+};
 
 /**
  * Toast notification system — auto-dismiss alerts.
  * Usage: toast('Saved!') or toast('Error occurred', 'error')
  */
-function toast(msg, type = 'success', duration = 3000) {
+var toast = function(msg, type, duration) {
+  type = type || 'success';
+  duration = duration || 3000;
   let container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');
@@ -45,7 +47,7 @@ function toast(msg, type = 'success', duration = 3000) {
 
 // ─── App Controller ───
 
-const app = {
+var app = {
   currentScreen: 'scenarios',
   currentScenario: null,
   scenarios: [],
