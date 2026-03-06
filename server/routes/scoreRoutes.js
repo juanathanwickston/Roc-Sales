@@ -78,6 +78,7 @@ router.get('/my', requireAuth, async (req, res) => {
  */
 router.get('/leaderboard', requireAuth, async (req, res) => {
   const period = req.query.period || 'all';
+  const pathway = req.query.pathway || null;
 
   let dateFilter = '';
   if (period === 'week') {
@@ -86,10 +87,25 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
     dateFilter = "AND s.submitted_at >= NOW() - INTERVAL '30 days'";
   }
 
+  // Optional pathway filter: limit to users assigned to this pathway
+  let pathwayFilter = '';
+  let pathwayParams = [];
+  if (pathway) {
+    pathwayFilter = 'AND u.id IN (SELECT up.user_id FROM user_pathways up WHERE up.pathway_id = $1)';
+    pathwayParams = [parseInt(pathway)];
+  }
+
   try {
-    // Total module count for completion calculation (dynamic from CMS)
-    const modCount = await db.query('SELECT COUNT(*) AS cnt FROM cms_modules');
-    const totalModules = parseInt(modCount.rows[0].cnt) || 9;
+    // Count actual activities across all active modules (not hardcoded * 4)
+    const actCount = await db.query(`
+      SELECT
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_videos v WHERE v.module_id = m.id)) +
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_doc_sections d WHERE d.module_id = m.id)) +
+        (SELECT COUNT(*) FROM cms_modules m WHERE m.is_active = TRUE AND m.game_id IS NOT NULL AND m.game_id != '') +
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_apply_items a WHERE a.module_id = m.id))
+        AS total_activities
+    `);
+    const totalActivities = Math.max(parseInt(actCount.rows[0].total_activities) || 1, 1);
 
     const result = await db.query(`
       WITH user_completion AS (
@@ -98,7 +114,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
           COUNT(DISTINCT CASE WHEN p.status = 'done' THEN p.module_id || '|' || p.activity_type END) AS done_count
         FROM progress p
         JOIN users u ON u.id = p.user_id
-        WHERE u.is_active = TRUE AND u.role = 'rep'
+        WHERE u.is_active = TRUE AND u.role = 'rep' ${pathwayFilter}
         GROUP BY p.user_id
       ),
       user_accuracy AS (
@@ -108,7 +124,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
         FROM scores s
         JOIN users u ON u.id = s.user_id
         WHERE u.is_active = TRUE AND u.role = 'rep'
-          AND s.activity_type = 'quiz' ${dateFilter}
+          AND s.activity_type = 'quiz' ${dateFilter} ${pathwayFilter}
         GROUP BY s.user_id
       ),
       user_games AS (
@@ -123,7 +139,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
           FROM scores s
           JOIN users u ON u.id = s.user_id
           WHERE u.is_active = TRUE AND u.role = 'rep'
-            AND s.activity_type = 'game' ${dateFilter}
+            AND s.activity_type = 'game' ${dateFilter} ${pathwayFilter}
           GROUP BY s.user_id, s.activity_id
         ) s
         GROUP BY s.user_id
@@ -134,15 +150,15 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
           u.first_name,
           u.last_name,
           u.nickname,
-          COALESCE(uc.done_count, 0)::FLOAT / (${totalModules} * 4) * 1000 * 0.40 +
+          COALESCE(uc.done_count, 0)::FLOAT / ${totalActivities} * 1000 * 0.40 +
           COALESCE(ua.avg_accuracy, 0) * 1000 * 0.25 +
           LEAST(COALESCE(ug.total_best, 0), 1000) * 0.20 +
-          COALESCE(uc.done_count, 0)::FLOAT / (${totalModules} * 4) * 1000 * 0.15 AS power_score
+          COALESCE(uc.done_count, 0)::FLOAT / ${totalActivities} * 1000 * 0.15 AS power_score
         FROM users u
         LEFT JOIN user_completion uc ON uc.user_id = u.id
         LEFT JOIN user_accuracy ua ON ua.user_id = u.id
         LEFT JOIN user_games ug ON ug.user_id = u.id
-        WHERE u.is_active = TRUE AND u.role = 'rep'
+        WHERE u.is_active = TRUE AND u.role = 'rep' ${pathwayFilter}
       )
       SELECT
         id, first_name, last_name, nickname,
@@ -150,7 +166,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
         RANK() OVER (ORDER BY power_score DESC) AS rank
       FROM composite
       ORDER BY power_score DESC
-    `);
+    `, pathwayParams);
 
     // Find the requesting user's rank
     const myRank = result.rows.find(r => r.id === req.user.id);

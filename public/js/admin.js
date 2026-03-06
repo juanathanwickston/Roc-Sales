@@ -398,9 +398,10 @@ const Admin = {
         h += `<span class="pathway-card-stat">📅 ${new Date(p.createdAt).toLocaleDateString()}</span>`;
         h += '</div>';
 
-        // Actions footer (LD Manager+ only)
+        // Actions footer (LD Manager+ only for mutating actions)
         if (Auth.hasRole('ld_manager')) {
           h += '<div class="pathway-card-actions">';
+          h += `<button class="admin-btn" onclick="Admin.showPathwayProgress(${p.id}, '${esc(p.name)}')">Progress</button>`;
           h += `<button class="admin-btn" onclick="Admin.showPathwayBuilder(${p.id})">Build</button>`;
           h += `<button class="admin-btn" onclick="Admin.showEditPathway(${p.id}, '${esc(p.name)}', '${esc(p.description || '')}', ${p.isActive})">Edit</button>`;
           h += `<button class="admin-btn" onclick="Admin.showAssignPathway(${p.id}, '${esc(p.name)}')">Assign</button>`;
@@ -408,6 +409,11 @@ const Admin = {
           if (p.isActive) {
             h += `<button class="admin-btn danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
           }
+          h += '</div>';
+        } else if (Auth.hasRole('manager')) {
+          // Managers can view progress but not mutate
+          h += '<div class="pathway-card-actions">';
+          h += `<button class="admin-btn" onclick="Admin.showPathwayProgress(${p.id}, '${esc(p.name)}')">Progress</button>`;
           h += '</div>';
         }
 
@@ -440,6 +446,110 @@ const Admin = {
     } catch (err) {
       toast(err.message, 'error');
     }
+  },
+
+  // ─── PATHWAY PROGRESS VIEW ───
+
+  /**
+   * Show modal with per-user completion data for a pathway.
+   * Includes summary, per-user table, force-unlock, and CSV export.
+   */
+  async showPathwayProgress(pathwayId, pathwayName) {
+    try {
+      const data = await API.getPathwayProgress(pathwayId);
+      this._progressData = data;
+
+      let h = `<div class="modal-overlay" onclick="Admin.closeModal(this)">`;
+      h += `<div class="modal admin-modal-lg" onclick="event.stopPropagation()">`;
+      h += `<div class="modal-header"><h3>${esc(pathwayName)} — Progress</h3><button class="modal-close" onclick="Admin.closeModal(this.closest('.modal-overlay'))">✕</button></div>`;
+
+      // Summary
+      h += `<div style="padding:16px 20px;border-bottom:1px solid var(--gb)">`;
+      h += `<div style="display:flex;gap:24px;flex-wrap:wrap">`;
+      h += `<div><strong>${data.summary.completedUsers}</strong> of <strong>${data.summary.totalUsers}</strong> users completed</div>`;
+      h += `<div>Total modules: <strong>${data.pathway.totalModules}</strong></div>`;
+      h += `</div></div>`;
+
+      // Per-user table
+      h += `<div style="padding:16px 20px;max-height:400px;overflow-y:auto">`;
+      h += `<table class="admin-table"><thead><tr>`;
+      h += `<th>Name</th><th>Modules</th><th>%</th><th>Started</th><th>Completed</th>`;
+      if (Auth.hasRole('ld_manager')) h += `<th>Actions</th>`;
+      h += `</tr></thead><tbody>`;
+
+      if (data.users.length === 0) {
+        h += `<tr><td colspan="${Auth.hasRole('ld_manager') ? 6 : 5}" style="text-align:center;color:var(--gray)">No users enrolled</td></tr>`;
+      } else {
+        data.users.forEach(u => {
+          const pctCls = u.completedAt ? 'done' : (u.pct > 0 ? 'prog' : '');
+          h += `<tr>`;
+          h += `<td>${esc(u.name)}</td>`;
+          h += `<td>${u.modulesComplete}/${u.totalModules}</td>`;
+          h += `<td><span class="mc-st ${pctCls}">${u.pct}%</span></td>`;
+          h += `<td>${u.startedAt ? new Date(u.startedAt).toLocaleDateString() : '—'}</td>`;
+          h += `<td>${u.completedAt ? '✅ ' + new Date(u.completedAt).toLocaleDateString() : '—'}</td>`;
+          if (Auth.hasRole('ld_manager')) {
+            h += `<td><button class="admin-btn" style="font-size:12px" onclick="Admin.forceUnlockPrompt(${u.userId}, '${esc(u.name)}', ${pathwayId}, '${esc(pathwayName)}')">Force Unlock</button></td>`;
+          }
+          h += `</tr>`;
+        });
+      }
+
+      h += `</tbody></table></div>`;
+
+      // Footer: CSV export
+      h += `<div style="padding:12px 20px;border-top:1px solid var(--gb);display:flex;justify-content:flex-end;gap:8px">`;
+      h += `<button class="admin-btn" onclick="Admin.downloadProgressCSV(${pathwayId}, '${esc(pathwayName)}')">📥 Export CSV</button>`;
+      h += `<button class="admin-action-btn" onclick="Admin.closeModal(this.closest('.modal-overlay'))">Close</button>`;
+      h += `</div></div></div>`;
+
+      document.body.insertAdjacentHTML('beforeend', h);
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  },
+
+  /**
+   * Prompt to select which module to force-unlock for a user.
+   */
+  async forceUnlockPrompt(userId, userName, pathwayId, pathwayName) {
+    const moduleId = prompt(`Force Unlock for ${userName}\n\nEnter the module ID to unlock (e.g., m1, m2):`);
+    if (!moduleId || !moduleId.trim()) return;
+
+    try {
+      await API.forceUnlockModule(userId, moduleId.trim());
+      toast(`Module ${moduleId.trim()} force-unlocked for ${userName}`);
+      // Refresh the progress view
+      const overlay = document.querySelector('.modal-overlay');
+      if (overlay) overlay.remove();
+      await this.showPathwayProgress(pathwayId, pathwayName);
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  },
+
+  /**
+   * Download pathway progress as CSV.
+   */
+  downloadProgressCSV(pathwayId, pathwayName) {
+    const data = this._progressData;
+    if (!data || !data.users) { toast('No data to export', 'error'); return; }
+
+    let csv = 'Name,Modules Complete,Total Modules,Percentage,Started,Completed\n';
+    data.users.forEach(u => {
+      csv += `"${u.name}",${u.modulesComplete},${u.totalModules},${u.pct}%,`;
+      csv += `${u.startedAt ? new Date(u.startedAt).toLocaleDateString() : ''},`;
+      csv += `${u.completedAt ? new Date(u.completedAt).toLocaleDateString() : ''}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${pathwayName.replace(/[^a-zA-Z0-9]/g, '_')}_progress.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('CSV downloaded');
   },
 
   // ─── MODAL DIALOGS ───

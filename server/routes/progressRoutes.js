@@ -79,7 +79,61 @@ router.put('/', requireAuth, async (req, res) => {
       [req.user.id, moduleId, activityType, status, completedAt]
     );
 
-    res.json({ message: 'Progress saved' });
+    // ─── Auto Pathway Completion Check ───
+    let pathwayCompleted = null;
+    if (status === 'done') {
+      // Get all pathways this user is enrolled in (not yet completed)
+      const userPws = await db.query(
+        'SELECT pathway_id FROM user_pathways WHERE user_id = $1 AND completed_at IS NULL',
+        [req.user.id]
+      );
+
+      for (const pw of userPws.rows) {
+        // Get required modules in this pathway
+        const reqMods = await db.query(
+          'SELECT module_id FROM pathway_modules WHERE pathway_id = $1 AND COALESCE(is_required, TRUE) = TRUE',
+          [pw.pathway_id]
+        );
+        if (reqMods.rows.length === 0) continue;
+
+        // Check if all required modules have all their assigned activities done
+        let allDone = true;
+        for (const rm of reqMods.rows) {
+          // Get activities assigned to this module (from cms data)
+          const modActivities = await db.query(
+            `SELECT DISTINCT activity_type FROM progress WHERE user_id = $1 AND module_id = $2 AND status = 'done'`,
+            [req.user.id, rm.module_id]
+          );
+          // Check module has required activities done
+          const mod = await db.query(
+            `SELECT id,
+              (SELECT COUNT(*) FROM cms_videos WHERE module_id = cm.id) > 0 AS has_video,
+              (SELECT COUNT(*) FROM cms_doc_sections WHERE module_id = cm.id) > 0 AS has_doc,
+              game_id IS NOT NULL AS has_game,
+              (SELECT COUNT(*) FROM cms_apply_items WHERE module_id = cm.id) > 0 AS has_apply
+            FROM cms_modules cm WHERE cm.id = $1`,
+            [rm.module_id]
+          );
+          if (mod.rows.length === 0) continue;
+          const m = mod.rows[0];
+          const doneTypes = modActivities.rows.map(r => r.activity_type);
+          if (m.has_video && !doneTypes.includes('video')) { allDone = false; break; }
+          if (m.has_doc && !doneTypes.includes('doc')) { allDone = false; break; }
+          if (m.has_game && !doneTypes.includes('game')) { allDone = false; break; }
+          if (m.has_apply && !doneTypes.includes('apply')) { allDone = false; break; }
+        }
+
+        if (allDone) {
+          await db.query(
+            'UPDATE user_pathways SET completed_at = NOW() WHERE user_id = $1 AND pathway_id = $2 AND completed_at IS NULL',
+            [req.user.id, pw.pathway_id]
+          );
+          pathwayCompleted = pw.pathway_id;
+        }
+      }
+    }
+
+    res.json({ message: 'Progress saved', pathwayCompleted });
   } catch (err) {
     console.error('[PROGRESS] Save error:', err.message);
     res.status(500).json({ error: 'Internal server error' });

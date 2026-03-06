@@ -184,8 +184,14 @@ function getActStatus(modId, type){
 function completeAct(modId, type){
   if(!D.modules[modId]) D.modules[modId]={};
   D.modules[modId][type]=true;
-  // Sync to backend
-  API.saveProgress(modId, type, 'done').catch(e=>{
+  // Sync to backend — check for pathway completion
+  API.saveProgress(modId, type, 'done').then(res=>{
+    if(res && res.pathwayCompleted){
+      // Pathway complete! Toast + confetti
+      toast('🎉 Pathway Complete! You finished all required modules!','success');
+      if(typeof launchConfetti==='function') launchConfetti();
+    }
+  }).catch(e=>{
     console.warn('[PROGRESS] Save failed:',e.message);
     toast('Progress save failed — will retry on next load','error');
   });
@@ -242,9 +248,11 @@ function renderHome(){
   document.getElementById('readinessPanel').innerHTML = rh;
 
   // ─── PATHWAY TIMELINE ───
-  // Sort modules: onboarding first (by phase), then upskilling (by phase)
+  // Sort modules by pathway sort_order (from CMS), fallback to track → phase → sort_order
   const trackOrder = {onboarding:0, upskilling:1};
   const sorted = [...MODULES].sort((a,b)=>{
+    // If both have pathway sort_order, use it directly
+    if(a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
     const ta = trackOrder[a.track||'onboarding'] || 0;
     const tb = trackOrder[b.track||'onboarding'] || 0;
     if(ta !== tb) return ta - tb;
@@ -252,7 +260,34 @@ function renderHome(){
     return (a.sort_order||0) - (b.sort_order||0);
   });
 
+  // ─── Build sequential unlock set ───
+  // Required modules gate sequentially; optional modules always unlocked
+  const unlocked = new Set();
+  let prevRequiredDone = true; // first required module is always unlocked
+  let prevRequiredTitle = '';
+  const requiredMods = sorted.filter(m => m.isRequired !== false);
+  for (const m of requiredMods) {
+    if (prevRequiredDone) {
+      unlocked.add(m.id);
+    }
+    prevRequiredDone = isModDone(m.id);
+  }
+  // Optional modules are always unlocked
+  sorted.filter(m => m.isRequired === false).forEach(m => unlocked.add(m.id));
+
+  // Build a map of "previous required module title" for locked descriptions
+  const prevReqTitleMap = {};
+  for (let i = 1; i < requiredMods.length; i++) {
+    prevReqTitleMap[requiredMods[i].id] = requiredMods[i-1].title;
+  }
+
+  // ─── Pathway progress bar ───
+  const doneModCount = sorted.filter(m => m.isRequired !== false && isModDone(m.id)).length;
+  const totalModCount = requiredMods.length;
+  const progPct = totalModCount > 0 ? Math.round(doneModCount / totalModCount * 100) : 0;
+
   let h = tabsHtml;
+  h += `<div class="pw-progress"><div class="pw-prog-label">${doneModCount} of ${totalModCount} modules complete (${progPct}%)</div><div class="pw-prog-bar"><div class="pw-prog-fill" style="width:${progPct}%"></div></div></div>`;
   h += '<div class="pathway-timeline">';
 
   // Group into sections by track + phase
@@ -274,10 +309,11 @@ function renderHome(){
 
     const pr = getModProg(m.id);
     const done = isModDone(m.id);
-    const open = isPhaseOpen(phase);
+    const open = unlocked.has(m.id);
     let statusCls = 'tl-lock';
     let statusText = '🔒';
-    let descText = 'Complete previous to unlock';
+    const prevTitle = prevReqTitleMap[m.id];
+    let descText = prevTitle ? 'Complete '+prevTitle+' to unlock' : 'Complete previous to unlock';
 
     if(done){
       statusCls = 'tl-done';

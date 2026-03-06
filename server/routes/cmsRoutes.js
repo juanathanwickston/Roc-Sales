@@ -40,13 +40,15 @@ router.get('/modules', async (req, res) => {
     // Determine if this user should see pathway-filtered modules
     let moduleFilter = '';
     let filterParams = [];
+    let pathwayJoin = '';
+    let pathwayCols = ', cm.sort_order AS pw_sort_order, TRUE AS is_required';
 
     // Explicit pathway filter via query param (multi-pathway tab switching)
     const queryPathway = req.query.pathway ? parseInt(req.query.pathway) : null;
     if (queryPathway && !isNaN(queryPathway)) {
-      moduleFilter = `AND cm.id IN (
-        SELECT module_id FROM pathway_modules WHERE pathway_id = $1
-      )`;
+      pathwayJoin = 'JOIN pathway_modules pm ON pm.module_id = cm.id AND pm.pathway_id = $1';
+      pathwayCols = ', pm.sort_order AS pw_sort_order, COALESCE(pm.is_required, TRUE) AS is_required';
+      moduleFilter = '';
       filterParams = [queryPathway];
     } else if (userId && (userRole === 'rep' || userRole === 'manager')) {
       // Check if user has any pathway assignments
@@ -66,9 +68,9 @@ router.get('/modules', async (req, res) => {
     // Superuser, ld_manager, unauthenticated, or users without pathways → all modules
 
     const modules = await db.query(
-      `SELECT id, phase, title, description, icon, game_id, game_title, game_desc, sort_order, track
-       FROM cms_modules cm WHERE cm.is_active = TRUE ${moduleFilter}
-       ORDER BY sort_order, phase`,
+      `SELECT cm.id, cm.phase, cm.title, cm.description, cm.icon, cm.game_id, cm.game_title, cm.game_desc, cm.sort_order, cm.track ${pathwayCols}
+       FROM cms_modules cm ${pathwayJoin} WHERE cm.is_active = TRUE ${moduleFilter}
+       ORDER BY pw_sort_order, cm.phase`,
       filterParams
     );
 
@@ -92,6 +94,8 @@ router.get('/modules', async (req, res) => {
       desc: m.description,
       icon: m.icon,
       track: m.track || 'onboarding',
+      sort_order: m.pw_sort_order,
+      isRequired: m.is_required,
       video: {
         title: (videosByMod[m.id] || []).length === 1
           ? videosByMod[m.id][0].title

@@ -1,10 +1,12 @@
 /**
  * Leaderboard UI for ROC Academy.
- * Renders ranked list with podium top 3, user highlight, and time filter tabs.
+ * Renders ranked list with podium top 3, user highlight, time filter tabs, and pathway filter.
  */
 
 const Leaderboard = {
   currentPeriod: 'all',
+  currentPathway: null,
+  _pathways: null,
 
   /**
    * Render the leaderboard screen.
@@ -13,7 +15,15 @@ const Leaderboard = {
     container.innerHTML = '<div class="lb-loading">Loading leaderboard...</div>';
 
     try {
-      const data = await API.getLeaderboard(this.currentPeriod);
+      // Load pathways on first render (cache them)
+      if (!this._pathways) {
+        try {
+          const pw = await API.getPathways();
+          this._pathways = pw.pathways || [];
+        } catch(e) { this._pathways = []; }
+      }
+
+      const data = await API.getLeaderboard(this.currentPeriod, this.currentPathway);
       container.innerHTML = this.buildHTML(data);
     } catch (err) {
       container.innerHTML = `<div class="lb-error"><div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>${esc(err.message)}<br><button class="nb pr show" style="margin-top:12px;font-size:.8rem" onclick="Leaderboard.render(this.parentElement.parentElement)">Retry</button></div>`;
@@ -23,6 +33,19 @@ const Leaderboard = {
   buildHTML(data) {
     const { leaderboard, myRank, totalReps } = data;
     let h = '';
+
+    // Pathway filter dropdown
+    if (this._pathways && this._pathways.length > 0) {
+      h += '<div class="lb-filter" style="display:flex;align-items:center;gap:8px;margin-bottom:12px">';
+      h += '<label style="font-size:.75rem;color:var(--gray,#94a3b8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Pathway</label>';
+      h += '<select id="lbPathwaySelect" onchange="Leaderboard.switchPathway(this.value)" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--dg,#2D3A55);background:var(--navy2,#0F1629);color:var(--white,#EDF2FF);font-size:.82rem">';
+      h += `<option value="">All Pathways</option>`;
+      this._pathways.forEach(p => {
+        const sel = this.currentPathway == p.id ? ' selected' : '';
+        h += `<option value="${p.id}"${sel}>${esc(p.name)}</option>`;
+      });
+      h += '</select></div>';
+    }
 
     // Period tabs
     h += '<div class="lb-tabs">';
@@ -89,6 +112,12 @@ const Leaderboard = {
 
   async switchPeriod(period) {
     this.currentPeriod = period;
+    const container = document.getElementById('leaderboardBody');
+    if (container) await this.render(container);
+  },
+
+  async switchPathway(pathwayId) {
+    this.currentPathway = pathwayId || null;
     const container = document.getElementById('leaderboardBody');
     if (container) await this.render(container);
   }

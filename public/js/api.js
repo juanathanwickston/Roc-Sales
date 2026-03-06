@@ -346,6 +346,16 @@ const API = {
     return this.request('PUT', `/cms/reorder/${type}`, { items });
   },
 
+  // ─── PATHWAY PROGRESS ───
+
+  async getPathwayProgress(pathwayId) {
+    return this.request('GET', `/admin/pathways/${pathwayId}/progress`);
+  },
+
+  async forceUnlockModule(userId, moduleId) {
+    return this.request('POST', '/admin/progress/force-unlock', { userId, moduleId });
+  },
+
   // ─── HEALTH ───
 
   async healthCheck() {

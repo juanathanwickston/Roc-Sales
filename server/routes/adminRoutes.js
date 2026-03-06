@@ -825,4 +825,180 @@ router.post('/reset-scores', requireRole('superuser'), async (req, res) => {
   }
 });
 
+// ─── PATHWAY PROGRESS VIEW ───
+
+/**
+ * GET /api/admin/pathways/:id/progress
+ * Returns per-user completion data for a pathway.
+ * Manager: scoped to shared pathways. LD Manager+: all.
+ */
+router.get('/pathways/:id/progress', async (req, res) => {
+  const pathwayId = parseInt(req.params.id);
+  if (isNaN(pathwayId)) {
+    return res.status(400).json({ error: 'Valid pathway ID is required' });
+  }
+
+  try {
+    // Verify pathway exists
+    const pathway = await db.query('SELECT id, name FROM pathways WHERE id = $1', [pathwayId]);
+    if (pathway.rows.length === 0) {
+      return res.status(404).json({ error: 'Pathway not found' });
+    }
+
+    // Manager scoping: must share this pathway
+    if (req.user.role === 'manager') {
+      const shared = await db.query(
+        'SELECT 1 FROM user_pathways WHERE user_id = $1 AND pathway_id = $2 LIMIT 1',
+        [req.user.id, pathwayId]
+      );
+      if (shared.rows.length === 0) {
+        return res.status(403).json({ error: 'Not authorized for this pathway' });
+      }
+    }
+
+    // Get required modules in this pathway
+    const reqMods = await db.query(
+      `SELECT pm.module_id, cm.title
+       FROM pathway_modules pm
+       JOIN cms_modules cm ON cm.id = pm.module_id
+       WHERE pm.pathway_id = $1 AND COALESCE(pm.is_required, TRUE) = TRUE
+       ORDER BY pm.sort_order`,
+      [pathwayId]
+    );
+    const totalModules = reqMods.rows.length;
+
+    // Get all users enrolled in this pathway
+    const enrolled = await db.query(
+      `SELECT u.id, u.first_name, u.last_name, u.nickname,
+              up.assigned_at, up.started_at, up.completed_at
+       FROM user_pathways up
+       JOIN users u ON u.id = up.user_id
+       WHERE up.pathway_id = $1 AND u.is_active = TRUE
+       ORDER BY u.last_name`,
+      [pathwayId]
+    );
+
+    // Batch-load progress for all enrolled users
+    const userIds = enrolled.rows.map(u => u.id);
+    let progressMap = {};
+    if (userIds.length > 0) {
+      const prog = await db.query(
+        `SELECT user_id, module_id, activity_type, status FROM progress
+         WHERE user_id = ANY($1) AND status = 'done'`,
+        [userIds]
+      );
+      prog.rows.forEach(r => {
+        if (!progressMap[r.user_id]) progressMap[r.user_id] = {};
+        if (!progressMap[r.user_id][r.module_id]) progressMap[r.user_id][r.module_id] = new Set();
+        progressMap[r.user_id][r.module_id].add(r.activity_type);
+      });
+    }
+
+    // Count completed modules per user (module = all assigned activities done)
+    // For simplicity, a module is "complete" if at least one activity is marked done
+    // (matching the frontend isModDone check)
+    const users = enrolled.rows.map(u => {
+      const userProg = progressMap[u.id] || {};
+      let modulesComplete = 0;
+      for (const rm of reqMods.rows) {
+        if (userProg[rm.module_id] && userProg[rm.module_id].size > 0) {
+          // Count as complete if all assigned activities done (simplified: has any done)
+          modulesComplete++;
+        }
+      }
+      return {
+        userId: u.id,
+        name: u.nickname || (u.first_name + ' ' + u.last_name),
+        modulesComplete,
+        totalModules,
+        pct: totalModules > 0 ? Math.round(modulesComplete / totalModules * 100) : 0,
+        startedAt: u.started_at || u.assigned_at,
+        completedAt: u.completed_at
+      };
+    });
+
+    const completedUsers = users.filter(u => u.completedAt !== null).length;
+
+    res.json({
+      pathway: { id: pathwayId, name: pathway.rows[0].name, totalModules },
+      users,
+      summary: { totalUsers: users.length, completedUsers }
+    });
+  } catch (err) {
+    console.error('[ADMIN] Pathway progress error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── FORCE UNLOCK MODULE ───
+
+/**
+ * POST /api/admin/progress/force-unlock
+ * Body: { userId, moduleId }
+ * LD Manager+ only. Marks all activities as done for a user's module.
+ * Audit-logged per security standards.
+ */
+router.post('/progress/force-unlock', requireRole('ld_manager'), async (req, res) => {
+  const { userId, moduleId } = req.body;
+
+  if (!userId || !moduleId) {
+    return res.status(400).json({ error: 'userId and moduleId are required' });
+  }
+
+  const targetId = parseInt(userId);
+  if (isNaN(targetId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
+  try {
+    // Verify user exists
+    const user = await db.query('SELECT id, first_name, last_name FROM users WHERE id = $1', [targetId]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify module exists and get its activities
+    const mod = await db.query(
+      `SELECT id,
+        (SELECT COUNT(*) FROM cms_videos WHERE module_id = cm.id) > 0 AS has_video,
+        (SELECT COUNT(*) FROM cms_doc_sections WHERE module_id = cm.id) > 0 AS has_doc,
+        game_id IS NOT NULL AS has_game,
+        (SELECT COUNT(*) FROM cms_apply_items WHERE module_id = cm.id) > 0 AS has_apply
+      FROM cms_modules cm WHERE cm.id = $1`,
+      [moduleId]
+    );
+    if (mod.rows.length === 0) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    const m = mod.rows[0];
+    const activities = [];
+    if (m.has_video) activities.push('video');
+    if (m.has_doc) activities.push('doc');
+    if (m.has_game) activities.push('game');
+    if (m.has_apply) activities.push('apply');
+
+    // Mark all activities as done
+    for (const actType of activities) {
+      await db.query(
+        `INSERT INTO progress (user_id, module_id, activity_type, status, completed_at)
+         VALUES ($1, $2, $3, 'done', NOW())
+         ON CONFLICT (user_id, module_id, activity_type)
+         DO UPDATE SET status = 'done', completed_at = NOW()`,
+        [targetId, moduleId, actType]
+      );
+    }
+
+    await logAudit(req.user.id, 'module_force_unlocked', targetId, {
+      moduleId,
+      activitiesMarked: activities
+    });
+
+    res.json({ message: 'Module force-unlocked', activitiesMarked: activities.length });
+  } catch (err) {
+    console.error('[ADMIN] Force unlock error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

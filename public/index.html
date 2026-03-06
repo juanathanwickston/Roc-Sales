@@ -155,6 +155,12 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 /* Phase pill inside timeline */
 .phase-pill{font-size:var(--fs-2xs);font-weight:500;color:var(--gray);letter-spacing:.3px}
 
+/* Pathway progress bar */
+.pw-progress{margin-bottom:16px;padding:0 4px}
+.pw-prog-label{font-size:var(--fs-xs);color:var(--gray);margin-bottom:6px;font-weight:500}
+.pw-prog-bar{height:8px;background:var(--dg);border-radius:4px;overflow:hidden}
+.pw-prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:4px;transition:width .8s}
+
 /* CERT */
 .cert{margin-top:24px;background:linear-gradient(145deg,var(--n3),var(--n2));border:1px solid var(--gb);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden}
 .cert::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,224,184,.03),transparent);pointer-events:none}
