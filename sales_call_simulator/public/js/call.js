@@ -18,6 +18,9 @@ var callManager = {
    * Start a call: create Tavus conversation via backend, then join via Daily.
    */
   async startCall(scenario) {
+    // Always clean up any previous call object before starting
+    this.cleanup();
+
     try {
       // Step 1: Create conversation via our backend proxy
       this.updateLobbyStatus('Creating conversation...');
@@ -71,6 +74,7 @@ var callManager = {
       await this.joinDaily();
     } catch (err) {
       console.error('[Call] Start error:', err);
+      this.cleanup();
       this.updateLobbyStatus(`Error: ${err.message}`);
       setTimeout(() => app.showScreen('scenarios'), 3000);
     }
