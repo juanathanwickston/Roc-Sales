@@ -99,10 +99,10 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
     // Count actual activities across all active modules (not hardcoded * 4)
     const actCount = await db.query(`
       SELECT
-        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_videos v WHERE v.module_id = m.id)) +
-        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_doc_sections d WHERE d.module_id = m.id)) +
-        (SELECT COUNT(*) FROM cms_modules m WHERE m.is_active = TRUE AND m.game_id IS NOT NULL AND m.game_id != '') +
-        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE m.is_active = TRUE AND EXISTS (SELECT 1 FROM cms_apply_items a WHERE a.module_id = m.id))
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE EXISTS (SELECT 1 FROM cms_videos v WHERE v.module_id = m.id)) +
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE EXISTS (SELECT 1 FROM cms_doc_sections d WHERE d.module_id = m.id)) +
+        (SELECT COUNT(*) FROM cms_modules m WHERE m.game_id IS NOT NULL AND m.game_id != '') +
+        (SELECT COUNT(DISTINCT m.id) FROM cms_modules m WHERE EXISTS (SELECT 1 FROM cms_apply_items a WHERE a.module_id = m.id))
         AS total_activities
     `);
     const totalActivities = Math.max(parseInt(actCount.rows[0].total_activities) || 1, 1);
@@ -114,7 +114,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
           COUNT(DISTINCT CASE WHEN p.status = 'done' THEN p.module_id || '|' || p.activity_type END) AS done_count
         FROM progress p
         JOIN users u ON u.id = p.user_id
-        WHERE u.is_active = TRUE AND u.role = 'rep' ${pathwayFilter}
+        WHERE u.role = 'rep' ${pathwayFilter}
         GROUP BY p.user_id
       ),
       user_accuracy AS (
@@ -123,7 +123,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
           AVG(CASE WHEN s.max_score > 0 THEN s.score::FLOAT / s.max_score ELSE 0 END) AS avg_accuracy
         FROM scores s
         JOIN users u ON u.id = s.user_id
-        WHERE u.is_active = TRUE AND u.role = 'rep'
+        WHERE u.role = 'rep'
           AND s.activity_type = 'quiz' ${dateFilter} ${pathwayFilter}
         GROUP BY s.user_id
       ),
@@ -138,7 +138,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
             MAX(s.score) AS best_score
           FROM scores s
           JOIN users u ON u.id = s.user_id
-          WHERE u.is_active = TRUE AND u.role = 'rep'
+          WHERE u.role = 'rep'
             AND s.activity_type = 'game' ${dateFilter} ${pathwayFilter}
           GROUP BY s.user_id, s.activity_id
         ) s
@@ -158,7 +158,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
         LEFT JOIN user_completion uc ON uc.user_id = u.id
         LEFT JOIN user_accuracy ua ON ua.user_id = u.id
         LEFT JOIN user_games ug ON ug.user_id = u.id
-        WHERE u.is_active = TRUE AND u.role = 'rep' ${pathwayFilter}
+        WHERE u.role = 'rep' ${pathwayFilter}
       )
       SELECT
         id, first_name, last_name, nickname,

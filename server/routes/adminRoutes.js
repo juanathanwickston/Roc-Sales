@@ -29,7 +29,7 @@ router.get('/users', async (req, res) => {
     if (req.user.role === 'superuser' || req.user.role === 'ld_manager' || req.query.all === '1') {
       users = await db.query(
         `SELECT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.is_active, u.created_at, u.last_login, u.must_change_password
+                u.role, u.created_at, u.last_login, u.must_change_password
          FROM users u
          ORDER BY u.role, u.last_name`
       );
@@ -37,7 +37,7 @@ router.get('/users', async (req, res) => {
       // Manager: only users who share a pathway with them
       users = await db.query(
         `SELECT DISTINCT u.id, u.username, u.first_name, u.last_name, u.nickname, u.email,
-                u.role, u.is_active, u.created_at, u.last_login, u.must_change_password
+                u.role, u.created_at, u.last_login, u.must_change_password
          FROM users u
          JOIN user_pathways up ON up.user_id = u.id
          WHERE up.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)
@@ -74,7 +74,6 @@ router.get('/users', async (req, res) => {
         email: u.email,
         role: u.role,
         pathways: pathwayMap[u.id] || [],
-        isActive: u.is_active,
         createdAt: u.created_at,
         lastLogin: u.last_login,
         mustChangePassword: u.must_change_password
@@ -196,11 +195,11 @@ router.post('/users', async (req, res) => {
 
 /**
  * PUT /api/admin/users/:id
- * Body: { firstName, lastName, email, nickname, pathwayIds, isActive }
+ * Body: { firstName, lastName, email, nickname, pathwayIds }
  */
 router.put('/users/:id', async (req, res) => {
   const targetId = parseInt(req.params.id);
-  const { firstName, lastName, email, nickname, pathwayIds, isActive, role } = req.body;
+  const { firstName, lastName, email, nickname, pathwayIds, role } = req.body;
 
   // Email validation
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -223,11 +222,6 @@ router.put('/users/:id', async (req, res) => {
       return res.status(403).json({ error: 'Insufficient permissions to edit this user' });
     }
 
-    // Prevent deactivating superuser
-    if (target.rows[0].role === 'superuser' && isActive === false) {
-      return res.status(403).json({ error: 'Cannot deactivate superuser' });
-    }
-
     const fields = [];
     const values = [];
     let idx = 1;
@@ -236,8 +230,6 @@ router.put('/users/:id', async (req, res) => {
     if (lastName !== undefined) { fields.push(`last_name = $${idx++}`); values.push(lastName.trim()); }
     if (email !== undefined) { fields.push(`email = $${idx++}`); values.push(email ? email.trim() : null); }
     if (nickname !== undefined) { fields.push(`nickname = $${idx++}`); values.push(nickname ? nickname.trim() : null); }
-    // Note: team_id is no longer used. Pathway assignment handled via junction table below.
-    if (isActive !== undefined) { fields.push(`is_active = $${idx++}`); values.push(!!isActive); }
 
     // Role changes: superuser + ld_manager, with safety guards
     if (role !== undefined) {
@@ -298,6 +290,79 @@ router.put('/users/:id', async (req, res) => {
     res.json({ message: 'User updated' });
   } catch (err) {
     console.error('[ADMIN] Update user error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * DELETE /api/admin/users/:id
+ * Hard-deletes a user and cascades: sessions, user_pathways, progress, scores.
+ * Guardrails: cannot delete self, superuser, or last admin.
+ * LD Manager / Superuser only. Audit-logged.
+ */
+router.delete('/users/:id', requireRole('ld_manager'), async (req, res) => {
+  const targetId = parseInt(req.params.id);
+  if (isNaN(targetId)) {
+    return res.status(400).json({ error: 'Valid user ID is required' });
+  }
+
+  try {
+    // Cannot delete yourself
+    if (targetId === req.user.id) {
+      return res.status(403).json({ error: 'Cannot delete your own account' });
+    }
+
+    const target = await db.query('SELECT id, role, username, first_name, last_name FROM users WHERE id = $1', [targetId]);
+    if (target.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Cannot delete superuser
+    if (target.rows[0].role === 'superuser') {
+      return res.status(403).json({ error: 'Cannot delete superuser account' });
+    }
+
+    // Cannot delete if user is the last admin-level user
+    if (['ld_manager', 'manager'].includes(target.rows[0].role)) {
+      const adminCount = await db.query(
+        "SELECT COUNT(*) as cnt FROM users WHERE role IN ('superuser', 'ld_manager', 'manager') AND id != $1",
+        [targetId]
+      );
+      if (parseInt(adminCount.rows[0].cnt) === 0) {
+        return res.status(403).json({ error: 'Cannot delete the last admin user' });
+      }
+    }
+
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+
+      // Cascade: remove related data
+      await client.query('DELETE FROM sessions WHERE user_id = $1', [targetId]);
+      await client.query('DELETE FROM user_pathways WHERE user_id = $1', [targetId]);
+      await client.query('DELETE FROM progress WHERE user_id = $1', [targetId]);
+      await client.query('DELETE FROM scores WHERE user_id = $1', [targetId]);
+
+      // Delete user
+      await client.query('DELETE FROM users WHERE id = $1', [targetId]);
+
+      await client.query('COMMIT');
+
+      await logAudit(req.user.id, 'user_deleted', targetId, {
+        username: target.rows[0].username,
+        name: `${target.rows[0].first_name} ${target.rows[0].last_name}`,
+        role: target.rows[0].role
+      });
+
+      res.json({ message: 'User deleted' });
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[ADMIN] Delete user error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -418,9 +483,9 @@ router.get('/users/:id/progress', async (req, res) => {
 router.get('/pathways', async (req, res) => {
   try {
     const pathways = await db.query(
-      `SELECT p.id, p.name, p.description, p.is_active, p.created_at,
+      `SELECT p.id, p.name, p.description, p.created_at,
               COUNT(DISTINCT up.user_id) FILTER (
-                WHERE EXISTS (SELECT 1 FROM users u WHERE u.id = up.user_id AND u.is_active = TRUE AND u.role = 'rep')
+                WHERE EXISTS (SELECT 1 FROM users u WHERE u.id = up.user_id AND u.role = 'rep')
               ) AS rep_count
        FROM pathways p
        LEFT JOIN user_pathways up ON up.pathway_id = p.id
@@ -432,7 +497,6 @@ router.get('/pathways', async (req, res) => {
       id: p.id,
       name: p.name,
       description: p.description,
-      isActive: p.is_active,
       repCount: parseInt(p.rep_count) || 0,
       createdAt: p.created_at
     }))});
@@ -471,11 +535,11 @@ router.post('/pathways', requireRole('ld_manager'), async (req, res) => {
 /**
  * PUT /api/admin/pathways/:id
  * Superuser / LD Manager only.
- * Body: { name, description, isActive }
+ * Body: { name, description }
  */
 router.put('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
   const pathwayId = parseInt(req.params.id);
-  const { name, description, isActive } = req.body;
+  const { name, description } = req.body;
 
   if (isNaN(pathwayId) || !name || !name.trim()) {
     return res.status(400).json({ error: 'Valid pathway ID and name are required' });
@@ -483,8 +547,8 @@ router.put('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
 
   try {
     const result = await db.query(
-      'UPDATE pathways SET name = $1, description = $2, is_active = $3 WHERE id = $4 RETURNING id',
-      [name.trim(), description || null, isActive !== false, pathwayId]
+      'UPDATE pathways SET name = $1, description = $2 WHERE id = $3 RETURNING id',
+      [name.trim(), description || null, pathwayId]
     );
 
     if (result.rows.length === 0) {
@@ -575,8 +639,7 @@ router.get('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
     const available = await db.query(
       `SELECT cm.id, cm.title, cm.icon, cm.phase, cm.track
        FROM cms_modules cm
-       WHERE cm.is_active = TRUE
-         AND cm.id NOT IN (SELECT module_id FROM pathway_modules WHERE pathway_id = $1)
+       WHERE cm.id NOT IN (SELECT module_id FROM pathway_modules WHERE pathway_id = $1)
        ORDER BY cm.phase, cm.sort_order`,
       [pathwayId]
     );
@@ -684,11 +747,11 @@ router.put('/pathways/:id/modules', requireRole('ld_manager'), async (req, res) 
   }
 });
 
-// ─── DELETE (DEACTIVATE) PATHWAY ───
+// ─── DELETE PATHWAY ───
 
 /**
  * DELETE /api/admin/pathways/:id
- * Soft-deletes a pathway (sets is_active = false) and hard-unassigns all users.
+ * Hard-deletes a pathway and unassigns all users.
  * LD Manager / Superuser only. Audit-logged.
  */
 router.delete('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
@@ -707,27 +770,27 @@ router.delete('/pathways/:id', requireRole('ld_manager'), async (req, res) => {
     try {
       await client.query('BEGIN');
 
-      // Hard unassign all users from this pathway
+      // Unassign all users from this pathway
       const unassigned = await client.query(
         'DELETE FROM user_pathways WHERE pathway_id = $1 RETURNING user_id',
         [pathwayId]
       );
 
-      // Soft delete the pathway
-      await client.query(
-        'UPDATE pathways SET is_active = FALSE WHERE id = $1',
-        [pathwayId]
-      );
+      // Remove module assignments
+      await client.query('DELETE FROM pathway_modules WHERE pathway_id = $1', [pathwayId]);
+
+      // Hard delete the pathway
+      await client.query('DELETE FROM pathways WHERE id = $1', [pathwayId]);
 
       await client.query('COMMIT');
 
-      await logAudit(req.user.id, 'pathway_deactivated', pathwayId, {
+      await logAudit(req.user.id, 'pathway_deleted', pathwayId, {
         name: pathway.rows[0].name,
         usersUnassigned: unassigned.rows.length
       });
 
       res.json({
-        message: 'Pathway deactivated',
+        message: 'Pathway deleted',
         usersUnassigned: unassigned.rows.length
       });
     } catch (txErr) {
@@ -767,8 +830,8 @@ router.post('/pathways/:id/duplicate', requireRole('ld_manager'), async (req, re
 
       // Create new pathway
       const newPathway = await client.query(
-        `INSERT INTO pathways (name, description, is_active)
-         VALUES ($1, $2, TRUE) RETURNING id, name`,
+        `INSERT INTO pathways (name, description)
+         VALUES ($1, $2) RETURNING id, name`,
         [source.rows[0].name + ' (Copy)', source.rows[0].description]
       );
       const newId = newPathway.rows[0].id;
@@ -873,7 +936,7 @@ router.get('/pathways/:id/progress', async (req, res) => {
               up.assigned_at, up.started_at, up.completed_at
        FROM user_pathways up
        JOIN users u ON u.id = up.user_id
-       WHERE up.pathway_id = $1 AND u.is_active = TRUE
+       WHERE up.pathway_id = $1
        ORDER BY u.last_name`,
       [pathwayId]
     );

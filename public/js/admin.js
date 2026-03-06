@@ -6,13 +6,11 @@
 
 const Admin = {
   currentTab: 'users',
-  showInactive: false,
   _editCache: null,
   _usersCache: null,
   _searchQuery: '',
   _filterRole: '',
   _filterPathway: '',
-  _filterStatus: 'active',
   _sortCol: 'name',
   _sortDir: 'asc',
 
@@ -140,14 +138,12 @@ const Admin = {
 
       // ── Summary Cards ──
       const total = data.users.length;
-      const active = data.users.filter(u => u.isActive).length;
-      const pendingPw = data.users.filter(u => u.mustChangePassword && u.isActive).length;
+      const pendingPw = data.users.filter(u => u.mustChangePassword).length;
       const now = Date.now();
       const recentLogins = data.users.filter(u => u.lastLogin && (now - new Date(u.lastLogin).getTime()) < 7 * 86400000).length;
 
       h += '<div class="admin-stats">';
       h += `<div class="admin-stat"><div class="admin-stat-val">${total}</div><div class="admin-stat-label">Total Users</div></div>`;
-      h += `<div class="admin-stat"><div class="admin-stat-val">${active}</div><div class="admin-stat-label">Active Users</div></div>`;
       h += `<div class="admin-stat"><div class="admin-stat-val">${pendingPw}</div><div class="admin-stat-label">Pending Reset</div></div>`;
       h += `<div class="admin-stat"><div class="admin-stat-val">${recentLogins}</div><div class="admin-stat-label">Recent Logins (7d)</div></div>`;
       h += '</div>';
@@ -158,7 +154,6 @@ const Admin = {
       h += `<input type="text" class="admin-search" id="adminSearch" placeholder="Search users..." value="${esc(this._searchQuery)}" autocomplete="one-time-code" oninput="Admin._searchQuery=this.value;Admin.filterAndRenderTable()">`;
       h += `<select class="admin-filter" onchange="Admin._filterRole=this.value;Admin.filterAndRenderTable()"><option value="">All Roles</option><option value="rep"${this._filterRole==='rep'?' selected':''}>Rep</option><option value="manager"${this._filterRole==='manager'?' selected':''}>Manager</option><option value="ld_manager"${this._filterRole==='ld_manager'?' selected':''}>LD Manager</option><option value="superuser"${this._filterRole==='superuser'?' selected':''}>Superuser</option></select>`;
       h += `<select class="admin-filter" onchange="Admin._filterPathway=this.value;Admin.filterAndRenderTable()"><option value="">All Pathways</option>${pathwayOptions}</select>`;
-      h += `<select class="admin-filter" onchange="Admin._filterStatus=this.value;Admin.filterAndRenderTable()"><option value="active"${this._filterStatus==='active'?' selected':''}>Active</option><option value="inactive"${this._filterStatus==='inactive'?' selected':''}>Inactive</option><option value=""${this._filterStatus===''?' selected':''}>All</option></select>`;
       h += '<div style="flex:1"></div>';
       h += '<button class="admin-action-btn" onclick="Admin.showCreateUser()">+ Create User</button>';
       h += '</div>';
@@ -194,8 +189,6 @@ const Admin = {
     // Filters
     if (this._filterRole) users = users.filter(u => u.role === this._filterRole);
     if (this._filterPathway) users = users.filter(u => (u.pathways || []).some(p => p.id == this._filterPathway));
-    if (this._filterStatus === 'active') users = users.filter(u => u.isActive);
-    else if (this._filterStatus === 'inactive') users = users.filter(u => !u.isActive);
 
     // Sort
     const dir = this._sortDir === 'asc' ? 1 : -1;
@@ -217,7 +210,6 @@ const Admin = {
     h += `<th class="col-name sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
     h += `<th class="col-role sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
     h += `<th class="col-pathway sortable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
-    h += '<th class="col-status">Status</th>';
     h += `<th class="col-login sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
     h += '<th class="col-actions"></th>';
     h += '</tr></thead><tbody>';
@@ -225,22 +217,18 @@ const Admin = {
     users.forEach(u => {
       const fn = Admin.titleCase(u.firstName);
       const ln = Admin.titleCase(u.lastName);
-      const status = u.isActive ? 'Active' : 'Inactive';
-      const statusClass = u.isActive ? 'status-active' : 'status-inactive';
-      const rowStyle = u.isActive ? '' : ' style="opacity:.45"';
       const lastLogin = u.lastLogin ? Admin.timeAgo(u.lastLogin) : '<span class="text-muted">Never</span>';
       const pwIndicator = u.mustChangePassword ? ' <span class="pw-reset-label">Reset</span>' : '';
 
-      h += `<tr${rowStyle}>`;
+      h += '<tr>';
       h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}</div><div class="cell-username">${esc(u.username)}</div></td>`;
       const roleLabel = u.role === 'ld_manager' ? 'LD Manager' : u.role;
       h += `<td class="col-role"><span class="role-text">${roleLabel}</span></td>`;
       h += `<td class="col-pathway">${(u.pathways || []).length > 0 ? u.pathways.map(p => esc(p.name)).join(', ') : '<span class="text-muted">—</span>'}</td>`;
-      h += `<td class="col-status"><span class="${statusClass}">${status}</span></td>`;
       h += `<td class="col-login">${lastLogin}</td>`;
       h += '<td class="col-actions">';
       if (u.role !== 'superuser') {
-        h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},${u.isActive},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
+        h += `<button class="admin-more-btn" onclick="Admin.showOverflowMenu(event,${u.id},'${esc(u.firstName)} ${esc(u.lastName)}')">⋯</button>`;
       }
       h += '</td>';
       h += '</tr>';
@@ -262,7 +250,7 @@ const Admin = {
     this.filterAndRenderTable();
   },
 
-  showOverflowMenu(event, id, isActive, name) {
+  showOverflowMenu(event, id, name) {
     event.stopPropagation();
     // Remove existing menu
     const existing = document.getElementById('adminOverflow');
@@ -276,13 +264,8 @@ const Admin = {
     items += `<button onclick="Admin.showResetPassword(${id});Admin.closeOverflow()">🔑 Reset Password</button>`;
     items += `<button onclick="Admin.showUserProgress(${id});Admin.closeOverflow()">📊 View Progress</button>`;
     if (id !== Auth.user.id) {
-      if (isActive) {
-        items += `<div class="admin-overflow-divider"></div>`;
-        items += `<button class="danger" onclick="Admin.confirmDeactivate(${id},'${name}');Admin.closeOverflow()">🗑 Deactivate</button>`;
-      } else {
-        items += `<div class="admin-overflow-divider"></div>`;
-        items += `<button onclick="Admin.reactivateUser(${id});Admin.closeOverflow()">↩ Reactivate</button>`;
-      }
+      items += `<div class="admin-overflow-divider"></div>`;
+      items += `<button class="danger" onclick="Admin.confirmDelete(${id},'${name}');Admin.closeOverflow()">🗑 Delete</button>`;
     }
     menu.innerHTML = items;
 
@@ -312,35 +295,26 @@ const Admin = {
     return new Date(dateStr).toLocaleDateString();
   },
 
-  confirmDeactivate(id, name) {
+  confirmDelete(id, name) {
     const body = `
       <div style="text-align:center;padding:8px 0">
-        <div style="font-size:var(--fs-base);margin-bottom:12px">Deactivate <strong>${name}</strong>?</div>
-        <div style="font-size:var(--fs-xs);color:var(--gray);margin-bottom:20px">They will no longer be able to log in. This can be reversed.</div>
+        <div style="font-size:var(--fs-base);margin-bottom:12px">Permanently delete <strong>${name}</strong>?</div>
+        <div style="font-size:var(--fs-xs);color:var(--gray);margin-bottom:20px">This cannot be undone. All progress and scores will be removed.</div>
         <div style="display:flex;gap:10px;justify-content:center">
           <button class="admin-btn" onclick="Admin.closeModal()">Cancel</button>
-          <button class="modal-submit" style="background:#ff4466" onclick="Admin.deactivateUser(${id})">Deactivate</button>
+          <button class="modal-submit" style="background:#ff4466" onclick="Admin.deleteUser(${id})">Delete</button>
         </div>
       </div>`;
-    this.showModal('Confirm Deactivation', body);
+    this.showModal('Confirm Deletion', body);
   },
 
-  async deactivateUser(id) {
+  async deleteUser(id) {
     try {
-      await API.updateUser(id, { isActive: false });
+      await API.deleteUser(id);
       this.closeModal();
       await this.renderUsers();
     } catch (err) {
-      alert('Deactivation failed: ' + err.message);
-    }
-  },
-
-  async reactivateUser(id) {
-    try {
-      await API.updateUser(id, { isActive: true });
-      await this.renderUsers();
-    } catch (err) {
-      alert('Reactivation failed: ' + err.message);
+      alert('Deletion failed: ' + err.message);
     }
   },
 
@@ -353,7 +327,6 @@ const Admin = {
     try {
       const data = await API.getPathways();
       this._allPathways = data.pathways;
-      this._pathwayFilter = this._pathwayFilter || 'active';
       this._renderPathwayCards();
     } catch (err) {
       content.innerHTML = `<div class="admin-error">${err.message}</div>`;
@@ -362,19 +335,13 @@ const Admin = {
 
   _renderPathwayCards() {
     const content = document.getElementById('adminContent');
-    const filter = this._pathwayFilter;
-    const pathways = filter === 'active'
-      ? this._allPathways.filter(p => p.isActive)
-      : this._allPathways;
+    const pathways = this._allPathways;
 
     let h = '<div class="pathway-hub">';
 
-    // Toolbar: filter pills + create button
+    // Toolbar: create button
     h += '<div class="pathway-toolbar">';
-    h += '<div class="pathway-filters">';
-    h += `<button class="pathway-filter-pill${filter === 'active' ? ' active' : ''}" onclick="Admin._pathwayFilter='active';Admin._renderPathwayCards()">Active</button>`;
-    h += `<button class="pathway-filter-pill${filter === 'all' ? ' active' : ''}" onclick="Admin._pathwayFilter='all';Admin._renderPathwayCards()">All</button>`;
-    h += '</div>';
+    h += '<div class="pathway-filters"></div>';
     if (Auth.hasRole('ld_manager')) {
       h += '<button class="admin-action-btn" onclick="Admin.showCreatePathway()">+ Create Pathway</button>';
     }
@@ -386,14 +353,11 @@ const Admin = {
     } else {
       h += '<div class="pathway-cards">';
       pathways.forEach(p => {
-        h += `<div class="pathway-card${p.isActive ? '' : ' inactive'}">`;
+        h += '<div class="pathway-card">';
 
-        // Header: name + status badge
+        // Header: name
         h += '<div class="pathway-card-header">';
         h += `<span class="pathway-card-name">${esc(p.name)}</span>`;
-        h += p.isActive
-          ? '<span class="role-badge role-rep">Active</span>'
-          : '<span class="role-badge" style="background:rgba(123,139,168,.12);color:var(--gray)">Inactive</span>';
         h += '</div>';
 
         // Description (2-line clamp)
@@ -415,9 +379,7 @@ const Admin = {
           h += `<button class="pw-overflow-btn" onclick="event.stopPropagation();Admin.toggleOverflow(this)" title="More actions">⋮</button>`;
           h += `<div class="pw-overflow-menu">`;
           h += `<button onclick="Admin.duplicatePathway(${p.id})">Duplicate</button>`;
-          if (p.isActive) {
-            h += `<button class="danger" onclick="Admin.deactivatePathway(${p.id}, '${esc(p.name)}')">Deactivate</button>`;
-          }
+          h += `<button class="danger" onclick="Admin.deletePathway(${p.id}, '${esc(p.name)}')">Delete</button>`;
           h += `</div></div>`;
           h += '</div>';
         } else if (Auth.hasRole('manager')) {
@@ -436,11 +398,11 @@ const Admin = {
   },
 
 
-  async deactivatePathway(id, name) {
-    if (!confirm(`Deactivate "${name}"?\n\nThis will unassign all users from this pathway. Their progress data will be preserved but they will no longer see it.`)) return;
+  async deletePathway(id, name) {
+    if (!confirm(`Permanently delete "${name}"?\n\nThis will unassign all users and remove the pathway. This cannot be undone.`)) return;
     try {
       const result = await API.deletePathway(id);
-      toast(`Pathway deactivated. ${result.usersUnassigned} user(s) unassigned.`);
+      toast(`Pathway deleted. ${result.usersUnassigned} user(s) unassigned.`);
       await this.renderPathways();
     } catch (err) {
       toast(err.message, 'error');
@@ -613,7 +575,7 @@ const Admin = {
     let pathwayOpts = '';
     try {
       const pd = await API.getPathways();
-      pathwayOpts = pd.pathways.filter(p => p.isActive).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+      pathwayOpts = pd.pathways.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
     } catch(e) {}
     const roleOpts = Auth.hasRole('superuser')
       ? '<option value="rep">Rep</option><option value="manager">Manager</option><option value="ld_manager">LD Manager</option>'
@@ -697,9 +659,7 @@ const Admin = {
         </select>
         <div style="font-size:.75rem;color:var(--gray);margin-top:4px">Hold Ctrl/Cmd to select multiple</div>
       </div>
-      <div class="modal-field">
-        <label><input type="checkbox" id="euActive" ${u.isActive !== false ? 'checked' : ''}> Active</label>
-      </div>
+
       <div id="euError" class="modal-error"></div>
       <button class="modal-submit" onclick="Admin.editUser(${id})">Save Changes</button>`;
     this.showModal('Edit User', body);
@@ -715,7 +675,6 @@ const Admin = {
         lastName: document.getElementById('euLast').value,
         nickname: document.getElementById('euNick').value,
         email: document.getElementById('euEmail').value,
-        isActive: document.getElementById('euActive').checked,
         pathwayIds
       };
       // Include role if the dropdown exists
@@ -797,7 +756,7 @@ const Admin = {
     body += '<div class="modal-field"><label>Clone From</label><select id="cpCloneSource">';
     body += '<option value="">Select a pathway...</option>';
     if (this._allPathways) {
-      this._allPathways.filter(p => p.isActive).forEach(p => {
+      this._allPathways.forEach(p => {
         body += `<option value="${p.id}">${esc(p.name)}</option>`;
       });
     }
@@ -856,7 +815,7 @@ const Admin = {
     this.showModal(`Assign Users to "${pathwayName}"`, '<div class="admin-loading">Loading users...</div>');
     try {
       const data = await API.getUsers();
-      const users = data.users.filter(u => u.isActive && (u.role === 'rep' || u.role === 'manager'));
+      const users = data.users.filter(u => u.role === 'rep' || u.role === 'manager');
 
       let body = '<div style="font-size:var(--fs-sm);color:var(--gray);margin-bottom:16px">Select users to assign to this pathway.</div>';
       body += '<div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">';
@@ -980,10 +939,8 @@ const Admin = {
     // Preserve field values if re-rendering
     const nameEl = document.getElementById('epName');
     const descEl = document.getElementById('epDesc');
-    const activeEl = document.getElementById('epActive');
     const curName = nameEl ? nameEl.value : pw.name;
     const curDesc = descEl ? descEl.value : (pw.description || '');
-    const curActive = activeEl ? activeEl.checked : pw.isActive;
 
     let h = '';
 
@@ -998,7 +955,6 @@ const Admin = {
     h += `<div class="modal-field"><label>Pathway Name</label><input type="text" id="epName" value="${esc(curName)}" aria-label="Pathway name"></div>`;
     h += `<div class="modal-field"><label>Description</label><textarea id="epDesc" rows="2" aria-label="Description">${esc(curDesc)}</textarea></div>`;
     h += '<div class="pb-header-row">';
-    h += `<div class="pb-header-active"><label><input type="checkbox" id="epActive" ${curActive ? 'checked' : ''}> Active</label></div>`;
     h += '</div>';
     h += '<div id="epError" class="pb-error"></div>';
     h += '</div>';
@@ -1213,8 +1169,7 @@ const Admin = {
       // Save details
       const name = document.getElementById('epName').value;
       const desc = document.getElementById('epDesc').value;
-      const active = document.getElementById('epActive').checked;
-      await API.updatePathway(id, name, desc, active);
+      await API.updatePathway(id, name, desc);
       // Save module assignments
       const moduleEntries = this._builderAssigned.map(mid => ({
         id: mid,

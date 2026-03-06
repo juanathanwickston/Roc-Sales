@@ -22,13 +22,13 @@ async function requireAuth(req, res, next) {
   const result = await db.query(
     `SELECT s.id AS session_id, s.expires_at, u.id AS user_id, u.role, u.must_change_password
      FROM sessions s
-     JOIN users u ON u.id = s.user_id AND u.is_active = TRUE
+     JOIN users u ON u.id = s.user_id
      WHERE s.user_id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()`,
     [payload.userId, payload.sessionHash]
   );
 
   if (result.rows.length === 0) {
-    return res.status(401).json({ error: 'Session expired or account deactivated' });
+    return res.status(401).json({ error: 'Session expired or account no longer exists' });
   }
 
   const row = result.rows[0];

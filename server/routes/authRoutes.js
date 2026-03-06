@@ -23,7 +23,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT id, username, password_hash, first_name, last_name, nickname, role, must_change_password, is_active FROM users WHERE username = $1',
+      'SELECT id, username, password_hash, first_name, last_name, nickname, role, must_change_password FROM users WHERE username = $1',
       [username.toLowerCase().trim()]
     );
 
@@ -34,10 +34,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     const user = result.rows[0];
 
-    if (!user.is_active) {
-      await logAudit(user.id, 'login_failed', user.id, { reason: 'account_deactivated' });
-      return res.status(401).json({ error: 'Account is deactivated' });
-    }
+    // (Deleted users won't have a row, so no need for an is_active check)
 
     const valid = await auth.verifyPassword(password, user.password_hash);
     if (!valid) {

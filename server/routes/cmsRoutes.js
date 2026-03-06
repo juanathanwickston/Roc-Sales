@@ -27,7 +27,7 @@ router.get('/modules', async (req, res) => {
       const payload = verifyToken(header.slice(7));
       if (payload) {
         const userCheck = await db.query(
-          'SELECT id, role FROM users WHERE id = $1 AND is_active = TRUE',
+          'SELECT id, role FROM users WHERE id = $1',
           [payload.userId]
         );
         if (userCheck.rows.length > 0) {
@@ -69,7 +69,7 @@ router.get('/modules', async (req, res) => {
 
     const modules = await db.query(
       `SELECT cm.id, cm.phase, cm.title, cm.description, cm.icon, cm.game_id, cm.game_title, cm.game_desc, cm.sort_order, cm.track ${pathwayCols}
-       FROM cms_modules cm ${pathwayJoin} WHERE cm.is_active = TRUE ${moduleFilter}
+       FROM cms_modules cm ${pathwayJoin} WHERE 1=1 ${moduleFilter}
        ORDER BY pw_sort_order, cm.phase`,
       filterParams
     );
@@ -156,12 +156,12 @@ router.get('/quizzes', async (req, res) => {
     let result;
     if (pool) {
       result = await db.query(
-        'SELECT id, pool, question, options, correct_index, explanation FROM cms_quiz_questions WHERE pool = $1 AND is_active = TRUE ORDER BY sort_order',
+        'SELECT id, pool, question, options, correct_index, explanation FROM cms_quiz_questions WHERE pool = $1 ORDER BY sort_order',
         [pool]
       );
     } else {
       result = await db.query(
-        'SELECT id, pool, question, options, correct_index, explanation FROM cms_quiz_questions WHERE is_active = TRUE ORDER BY pool, sort_order'
+        'SELECT id, pool, question, options, correct_index, explanation FROM cms_quiz_questions ORDER BY pool, sort_order'
       );
     }
 
@@ -482,7 +482,7 @@ router.delete('/quizzes/:id', requireAuth, requireRole('ld_manager'), async (req
     if (q.rows.length === 0) return res.status(404).json({ error: 'Question not found' });
 
     // Prevent deleting if pool would have < 4 questions (minimum for quiz to work)
-    const count = await db.query('SELECT COUNT(*) as cnt FROM cms_quiz_questions WHERE pool = $1 AND is_active = TRUE', [q.rows[0].pool]);
+    const count = await db.query('SELECT COUNT(*) as cnt FROM cms_quiz_questions WHERE pool = $1', [q.rows[0].pool]);
     if (parseInt(count.rows[0].cnt) <= 4) {
       return res.status(400).json({ error: 'Cannot delete. Quiz pool must have at least 4 questions.' });
     }
@@ -534,7 +534,7 @@ router.put('/reorder/:type', requireAuth, requireRole('ld_manager'), async (req,
 router.get('/games', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT id, title, description, skill_area, icon, is_active, created_at FROM cms_games WHERE is_active = TRUE ORDER BY title'
+      'SELECT id, title, description, skill_area, icon, created_at FROM cms_games ORDER BY title'
     );
     res.json({ games: result.rows });
   } catch (err) {
@@ -550,7 +550,7 @@ router.get('/games', requireAuth, async (req, res) => {
 router.get('/chatbots', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT id, title, description, category, icon, is_active, created_at FROM cms_chatbots WHERE is_active = TRUE ORDER BY title'
+      'SELECT id, title, description, category, icon, created_at FROM cms_chatbots ORDER BY title'
     );
     res.json({ chatbots: result.rows });
   } catch (err) {

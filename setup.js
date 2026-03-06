@@ -60,8 +60,8 @@ async function setup() {
     const hash = await auth.hashPassword(password);
 
     await db.query(
-      `INSERT INTO users (username, password_hash, first_name, last_name, role, must_change_password, is_active)
-       VALUES ($1, $2, $3, $4, 'superuser', FALSE, TRUE)`,
+      `INSERT INTO users (username, password_hash, first_name, last_name, role, must_change_password)
+       VALUES ($1, $2, $3, $4, 'superuser', FALSE)`,
       [username.toLowerCase().trim(), hash, firstName.trim(), lastName.trim()]
     );
 

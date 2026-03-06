@@ -32,7 +32,7 @@ router.get('/leaderboard', requireAuth, requireRole('manager'), async (req, res)
         LEFT JOIN user_pathways up ON up.user_id = u.id
         LEFT JOIN pathways p ON p.id = up.pathway_id
         LEFT JOIN scores s ON s.user_id = u.id
-        WHERE u.role = 'rep' AND u.is_active = TRUE
+        WHERE u.role = 'rep'
         GROUP BY u.id, u.first_name, u.last_name, u.username, u.email
         ORDER BY total_score DESC`;
     } else {
@@ -46,7 +46,7 @@ router.get('/leaderboard', requireAuth, requireRole('manager'), async (req, res)
         LEFT JOIN user_pathways up ON up.user_id = u.id
         LEFT JOIN pathways p ON p.id = up.pathway_id
         LEFT JOIN scores s ON s.user_id = u.id
-        WHERE u.role = 'rep' AND u.is_active = TRUE
+        WHERE u.role = 'rep'
           AND u.id IN (
             SELECT up2.user_id FROM user_pathways up2
             WHERE up2.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)
@@ -97,7 +97,7 @@ router.get('/progress', requireAuth, requireRole('manager'), async (req, res) =>
         JOIN users u ON p.user_id = u.id
         LEFT JOIN user_pathways up ON up.user_id = u.id
         LEFT JOIN pathways pw ON pw.id = up.pathway_id
-        WHERE u.is_active = TRUE
+        WHERE 1=1
         GROUP BY u.id, u.first_name, u.last_name, u.username, p.module_id, p.activity_type, p.status, p.completed_at
         ORDER BY u.last_name, u.first_name, p.module_id, p.activity_type`;
     } else {
@@ -109,7 +109,7 @@ router.get('/progress', requireAuth, requireRole('manager'), async (req, res) =>
         JOIN users u ON p.user_id = u.id
         LEFT JOIN user_pathways up ON up.user_id = u.id
         LEFT JOIN pathways pw ON pw.id = up.pathway_id
-        WHERE u.is_active = TRUE
+        WHERE 1=1
           AND u.id IN (
             SELECT up2.user_id FROM user_pathways up2
             WHERE up2.pathway_id IN (SELECT pathway_id FROM user_pathways WHERE user_id = $1)

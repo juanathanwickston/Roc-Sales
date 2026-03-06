@@ -249,8 +249,8 @@ async function bootstrapSuperuser() {
   const hash = await auth.hashPassword(password);
 
   await db.query(
-    `INSERT INTO users (username, password_hash, first_name, last_name, role, must_change_password, is_active)
-     VALUES ($1, $2, 'Admin', 'User', 'superuser', FALSE, TRUE)`,
+    `INSERT INTO users (username, password_hash, first_name, last_name, role, must_change_password)
+     VALUES ($1, $2, 'Admin', 'User', 'superuser', FALSE)`,
     [username.toLowerCase().trim(), hash]
   );
 
