@@ -41,7 +41,14 @@ router.get('/modules', async (req, res) => {
     let moduleFilter = '';
     let filterParams = [];
 
-    if (userId && (userRole === 'rep' || userRole === 'manager')) {
+    // Explicit pathway filter via query param (multi-pathway tab switching)
+    const queryPathway = req.query.pathway ? parseInt(req.query.pathway) : null;
+    if (queryPathway && !isNaN(queryPathway)) {
+      moduleFilter = `AND cm.id IN (
+        SELECT module_id FROM pathway_modules WHERE pathway_id = $1
+      )`;
+      filterParams = [queryPathway];
+    } else if (userId && (userRole === 'rep' || userRole === 'manager')) {
       // Check if user has any pathway assignments
       const pathwayCheck = await db.query(
         'SELECT pathway_id FROM user_pathways WHERE user_id = $1', [userId]

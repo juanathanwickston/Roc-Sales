@@ -153,21 +153,33 @@ window.addEventListener('popstate', (e) => {
 });
 
 // ─── PROGRESS HELPERS ───
+// Returns array of activity types that actually exist for a module
+function getModActivities(mod){
+  const acts=[];
+  if(mod.video&&(mod.video.url||mod.video.playlist)) acts.push('video');
+  if(mod.doc&&mod.doc.sections&&mod.doc.sections.length>0) acts.push('doc');
+  if(mod.game&&mod.game.gameId) acts.push('game');
+  if(mod.apply&&mod.apply.items&&mod.apply.items.length>0) acts.push('apply');
+  return acts;
+}
 function getModProg(id){
   const p = D.modules[id]||{};
+  const mod = MODULES.find(m=>m.id===id);
+  const acts = mod ? getModActivities(mod) : ['video','doc','game','apply'];
   return {video:!!p.video, doc:!!p.doc, game:!!p.game, apply:!!p.apply,
-    count: (p.video?1:0)+(p.doc?1:0)+(p.game?1:0)+(p.apply?1:0)};
+    count: acts.reduce((s,a)=>s+(p[a]?1:0),0), total: acts.length, acts};
 }
-function isModDone(id){return getModProg(id).count===4}
+function isModDone(id){const pr=getModProg(id);return pr.total>0&&pr.count===pr.total}
 function isPhaseDone(n){return MODULES.filter(m=>m.phase===n).every(m=>isModDone(m.id))}
 function isPhaseOpen(n){return n===1||isPhaseDone(n-1)}
 function getActStatus(modId, type){
-  const p = getModProg(modId);
-  if(p[type]) return 'done';
-  const order = ['video','doc','game','apply'];
-  const idx = order.indexOf(type);
+  const pr = getModProg(modId);
+  if(pr[type]) return 'done';
+  const acts = pr.acts;
+  const idx = acts.indexOf(type);
+  if(idx<0) return 'locked'; // activity not in this module
   if(idx===0) return 'avail';
-  return p[order[idx-1]] ? 'avail' : 'locked';
+  return pr[acts[idx-1]] ? 'avail' : 'locked';
 }
 function completeAct(modId, type){
   if(!D.modules[modId]) D.modules[modId]={};
@@ -186,11 +198,30 @@ function sfx(f,t){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webk
 function popup(txt,good,x,y){const d=document.createElement('div');d.className=`popup ${good?'good':'bad'}`;d.textContent=txt;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
 
 // ─── HOME SCREEN ───
+let _selectedPathway = null;
 function home(){curMod=null;cleanupGameState();show('home');renderHome()}
+async function switchPathway(pathwayId){
+  _selectedPathway = pathwayId || null;
+  await loadModules(_selectedPathway);
+  renderHome();
+}
 function renderHome(){
-  // Stats — modules done count
+  // Stats — modules done count (X/Y format)
   const doneMods = MODULES.filter(m=>isModDone(m.id)).length;
-  document.getElementById('hSk').textContent=doneMods;
+  document.getElementById('hSk').textContent=doneMods+'/'+MODULES.length;
+
+  // ─── PATHWAY TABS (multi-pathway users) ───
+  const userPathways = (Auth.user && Auth.user.pathways) ? Auth.user.pathways : [];
+  let tabsHtml = '';
+  if (userPathways.length > 1) {
+    tabsHtml = '<div class="pathway-tabs">';
+    tabsHtml += `<button class="pathway-tab${!_selectedPathway?' active':''}" onclick="switchPathway(null)">All Pathways</button>`;
+    userPathways.forEach(p => {
+      const active = _selectedPathway == p.id ? ' active' : '';
+      tabsHtml += `<button class="pathway-tab${active}" onclick="switchPathway(${p.id})">${esc(p.name)}</button>`;
+    });
+    tabsHtml += '</div>';
+  }
 
   // ─── READINESS INDEX (Pillar: Skill Measurement) ───
   const readiness = getReadiness();
@@ -210,51 +241,84 @@ function renderHome(){
   rh += '</div></div>';
   document.getElementById('readinessPanel').innerHTML = rh;
 
-  // Phase map
-  let h='';
-  PHASES.forEach(ph=>{
-    const mods=MODULES.filter(m=>m.phase===ph.num);
-    const done=mods.filter(m=>isModDone(m.id)).length;
-    const pct=Math.round(done/mods.length*100);
-    const open=isPhaseOpen(ph.num);
-    h+=`<div class="phase"><div class="ph p${ph.num}"><div class="ph-l">
-      <div class="ph-n">Phase ${ph.num} &middot; ${ph.days}</div>
-      <div class="ph-t">${ph.title}</div>
-      <div class="ph-d">${open?ph.desc:'Complete Phase '+(ph.num-1)+' to unlock'}</div>
-    </div><div class="ph-p">${pct}%</div></div>`;
-    if(open){
-      h+='<div class="ph-mods">';
-      mods.forEach(m=>{
-        const pr=getModProg(m.id);
-        const st=isModDone(m.id)?'done':(pr.count>0?'prog':'');
-        // Reinforcement indicator
-        const skillKey = SKILL_MAP[m.game.gameId];
-        const sk = skillKey?D.skills[skillKey]:null;
-        const reinf = getReinforcementStatus(sk?sk.lastDate:null);
-        h+=`<div class="mc" onclick="showModule('${m.id}')">
-          <div class="mc-i">${m.icon}</div>
-          <div class="mc-info"><div class="mc-t">${m.title} <span class="mc-reinf ${reinf.cls}">${reinf.icon}</span></div><div class="mc-d">${m.desc}</div>
-          <div class="mc-dots">
-            <div class="mc-dot ${pr.video?'done':(!pr.video&&getActStatus(m.id,'video')==='avail'?'cur':'')}"></div>
-            <div class="mc-dot ${pr.doc?'done':(!pr.doc&&getActStatus(m.id,'doc')==='avail'?'cur':'')}"></div>
-            <div class="mc-dot ${pr.game?'done':(!pr.game&&getActStatus(m.id,'game')==='avail'?'cur':'')}"></div>
-            <div class="mc-dot ${pr.apply?'done':(!pr.apply&&getActStatus(m.id,'apply')==='avail'?'cur':'')}"></div>
-          </div></div>
-          <span class="mc-st ${st}">${isModDone(m.id)?'✅':(pr.count>0?pr.count+'/4':'')}</span></div>`;
-      });
-      h+='</div>';
-    } else {
-      h+='<div class="ph-mods">';
-      mods.forEach(m=>{h+=`<div class="mc locked"><div class="mc-i">${m.icon}</div><div class="mc-info"><div class="mc-t">${m.title}</div><div class="mc-d">Locked</div></div><span class="mc-st lock">🔒</span></div>`});
-      h+='</div>';
-    }
-    h+='</div>';
+  // ─── PATHWAY TIMELINE ───
+  // Sort modules: onboarding first (by phase), then upskilling (by phase)
+  const trackOrder = {onboarding:0, upskilling:1};
+  const sorted = [...MODULES].sort((a,b)=>{
+    const ta = trackOrder[a.track||'onboarding'] || 0;
+    const tb = trackOrder[b.track||'onboarding'] || 0;
+    if(ta !== tb) return ta - tb;
+    if((a.phase||1) !== (b.phase||1)) return (a.phase||1) - (b.phase||1);
+    return (a.sort_order||0) - (b.sort_order||0);
   });
+
+  let h = tabsHtml;
+  h += '<div class="pathway-timeline">';
+
+  // Group into sections by track + phase
+  let lastTrack = null;
+  let lastPhase = null;
+  sorted.forEach(m=>{
+    const track = m.track || 'onboarding';
+    const phase = m.phase || 1;
+    const phaseData = PHASES.find(p=>p.num===phase);
+
+    // Phase divider when track or phase changes
+    if(track !== lastTrack || phase !== lastPhase){
+      const trackLabel = track === 'upskilling' ? 'Upskilling' : 'Onboarding';
+      const phaseLabel = phaseData ? phaseData.title : 'Phase '+phase;
+      h += `<div class="tl-phase"><span class="track-pill track-${track}">${trackLabel}</span> <span class="phase-pill">Phase ${phase} · ${phaseLabel}</span></div>`;
+      lastTrack = track;
+      lastPhase = phase;
+    }
+
+    const pr = getModProg(m.id);
+    const done = isModDone(m.id);
+    const open = isPhaseOpen(phase);
+    let statusCls = 'tl-lock';
+    let statusText = '🔒';
+    let descText = 'Complete previous to unlock';
+
+    if(done){
+      statusCls = 'tl-done';
+      statusText = '✅';
+      descText = m.desc;
+    } else if(open && pr.count > 0){
+      statusCls = 'tl-prog';
+      statusText = pr.count+'/'+pr.total;
+      descText = pr.count+' of '+pr.total+' activities';
+    } else if(open){
+      statusCls = 'tl-prog';
+      statusText = '';
+      descText = m.desc;
+    }
+
+    // Reinforcement indicator
+    const skillKey = (m.game && m.game.gameId) ? SKILL_MAP[m.game.gameId] : null;
+    const sk = skillKey ? D.skills[skillKey] : null;
+    const reinf = getReinforcementStatus(sk ? sk.lastDate : null);
+
+    if(open || done){
+      h += `<div class="tl-mod ${statusCls}" onclick="showModule('${m.id}')">`;
+      h += `<div class="mc-i">${m.icon}</div>`;
+      h += `<div class="mc-info"><div class="mc-t">${m.title} <span class="mc-reinf ${reinf.cls}">${reinf.icon}</span></div>`;
+      h += `<div class="mc-d">${descText}</div>`;
+      h += `<div class="mc-dots">${pr.acts.map(a=>`<div class="mc-dot ${pr[a]?'done':(!pr[a]&&getActStatus(m.id,a)==='avail'?'cur':'')}"></div>`).join('')}</div>`;
+      h += `</div><span class="mc-st ${done?'done':(pr.count>0?'prog':'')}">${statusText}</span></div>`;
+    } else {
+      h += `<div class="tl-mod tl-lock">`;
+      h += `<div class="mc-i">${m.icon}</div>`;
+      h += `<div class="mc-info"><div class="mc-t">${m.title}</div><div class="mc-d">${descText}</div></div>`;
+      h += `<span class="mc-st lock">${statusText}</span></div>`;
+    }
+  });
+  h += '</div>';
   document.getElementById('phaseMap').innerHTML=h;
+
   // Certification
-  const total=MODULES.length*4;
+  const total=MODULES.reduce((s,m)=>s+getModProg(m.id).total,0);
   const done2=MODULES.reduce((s,m)=>s+getModProg(m.id).count,0);
-  const cpct=Math.round(done2/total*100);
+  const cpct=total>0?Math.round(done2/total*100):0;
   document.getElementById('hC').textContent=cpct+'%';
   document.getElementById('hCF').style.width=cpct+'%';
   let bhtml='';
@@ -268,12 +332,14 @@ function showModule(id){
   const mod=MODULES.find(m=>m.id===id);
   const ph=PHASES.find(p=>p.num===mod.phase);
   document.getElementById('modPhase').textContent='Phase '+mod.phase+' · '+ph.title;
-  const acts=[
+  const allActs=[
     {type:'video',icon:'📺',label:'WATCH',data:mod.video},
     {type:'doc',icon:'📖',label:'READ',data:mod.doc},
     {type:'game',icon:'🎮',label:'PLAY',data:mod.game},
     {type:'apply',icon:'🎓',label:'MASTER',data:mod.apply}
   ];
+  const modActs=getModActivities(mod);
+  const acts=allActs.filter(a=>modActs.includes(a.type));
   let h=`<div class="mod-head"><div class="mod-icon">${mod.icon}</div><div class="mod-title">${mod.title}</div><div class="mod-desc">${mod.desc}</div></div>`;
 
   // Behavioral Standards (Pillar: Behavioral Standards)

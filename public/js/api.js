@@ -183,9 +183,12 @@ const API = {
     return this.request('GET', '/scores/my');
   },
 
-  async getLeaderboard(period) {
-    const param = period ? `?period=${period}` : '';
-    return this.request('GET', `/scores/leaderboard${param}`);
+  async getLeaderboard(period, pathway) {
+    const params = [];
+    if (period) params.push(`period=${period}`);
+    if (pathway) params.push(`pathway=${pathway}`);
+    const qs = params.length ? '?' + params.join('&') : '';
+    return this.request('GET', `/scores/leaderboard${qs}`);
   },
 
   // ─── PROFILE ───
@@ -256,8 +259,9 @@ const API = {
 
   // ─── CMS (Content Management) ───
 
-  async getModules() {
-    return this.request('GET', '/cms/modules');
+  async getModules(pathwayId) {
+    const qs = pathwayId ? `?pathway=${pathwayId}` : '';
+    return this.request('GET', '/cms/modules' + qs);
   },
 
   async getGames() {

@@ -120,6 +120,41 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .mc-st{font-size:var(--fs-sm);font-weight:600;flex-shrink:0}
 .mc-st.done{color:var(--green)}.mc-st.prog{color:var(--blue)}.mc-st.lock{color:var(--gray)}
 
+/* PATHWAY TABS */
+.pathway-tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pathway-tabs::-webkit-scrollbar{display:none}
+.pathway-tab{padding:8px 16px;border-radius:24px;font-size:var(--fs-sm);font-weight:600;border:1px solid var(--dg);background:transparent;color:var(--gray);cursor:pointer;transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:44px;display:flex;align-items:center}
+.pathway-tab:hover{border-color:var(--green);color:var(--green)}
+.pathway-tab.active{background:var(--green);color:var(--navy);border-color:var(--green)}
+
+/* PATHWAY TIMELINE */
+.pathway-timeline{display:flex;flex-direction:column;gap:4px}
+
+/* Timeline phase divider */
+.tl-phase{font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:1px;color:var(--gray);margin:16px 0 4px 8px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tl-phase:first-child{margin-top:0}
+
+/* Timeline module card */
+.tl-mod{border-left:4px solid var(--dg);padding:16px;border-radius:0 var(--r) var(--r) 0;background:var(--n3);display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color .2s,opacity .2s,background .2s}
+.tl-mod:hover:not(.tl-lock){background:var(--n4)}
+.tl-mod.tl-done{border-left-color:var(--green)}
+.tl-mod.tl-prog{border-left-color:var(--blue)}
+.tl-mod.tl-lock{border-left-color:var(--dg);opacity:.5;cursor:not-allowed}
+.tl-mod .mc-i{font-size:var(--fs-xl);width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--r);background:var(--n4);flex-shrink:0}
+.tl-mod .mc-info{flex:1;min-width:0}
+.tl-mod .mc-t{font-size:var(--fs-base);font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tl-mod .mc-d{font-size:var(--fs-xs);color:var(--gray);margin-top:4px}
+.tl-mod .mc-dots{display:flex;gap:4px;margin-top:8px}
+.tl-mod .mc-st{font-size:var(--fs-sm);font-weight:600;flex-shrink:0}
+
+/* Track color pills */
+.track-pill{padding:2px 8px;border-radius:16px;font-size:var(--fs-2xs);font-weight:600;text-transform:uppercase;letter-spacing:.5px;line-height:1.3}
+.track-onboarding{background:rgba(0,224,184,.12);color:var(--green)}
+.track-upskilling{background:rgba(255,184,0,.12);color:var(--orange)}
+
+/* Phase pill inside timeline */
+.phase-pill{font-size:var(--fs-2xs);font-weight:500;color:var(--gray);letter-spacing:.3px}
+
 /* CERT */
 .cert{margin-top:24px;background:linear-gradient(145deg,var(--n3),var(--n2));border:1px solid var(--gb);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden}
 .cert::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,224,184,.03),transparent);pointer-events:none}

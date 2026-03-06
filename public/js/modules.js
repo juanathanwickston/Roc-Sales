@@ -9,9 +9,9 @@ let MODULES = [];
  * Load modules from CMS API. Called once on app init.
  * Returns the loaded array; also sets the global MODULES.
  */
-async function loadModules() {
+async function loadModules(pathwayId) {
   try {
-    const data = await API.getModules();
+    const data = await API.getModules(pathwayId);
     if (Array.isArray(data) && data.length > 0) {
       MODULES = data;
       console.log(`[CMS] Loaded ${MODULES.length} modules from API`);
