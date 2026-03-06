@@ -214,11 +214,11 @@ const Admin = {
     let h = '<div class="admin-table-card">';
     h += '<table class="admin-table">';
     h += '<thead><tr>';
-    h += `<th class="col-name sortable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
-    h += `<th class="col-role sortable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
-    h += `<th class="col-pathway sortable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
-    h += '<th class="col-status">Status</th>';
-    h += `<th class="col-login sortable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
+    h += `<th class="col-name sortable resizable" onclick="Admin.sortBy('name')">Name${arrow('name')}</th>`;
+    h += `<th class="col-role sortable resizable" onclick="Admin.sortBy('role')">Role${arrow('role')}</th>`;
+    h += `<th class="col-pathway sortable resizable" onclick="Admin.sortBy('pathway')">Pathway${arrow('pathway')}</th>`;
+    h += '<th class="col-status resizable">Status</th>';
+    h += `<th class="col-login sortable resizable" onclick="Admin.sortBy('lastLogin')">Last Login${arrow('lastLogin')}</th>`;
     h += '<th class="col-actions"></th>';
     h += '</tr></thead><tbody>';
 
@@ -233,9 +233,10 @@ const Admin = {
 
       h += `<tr${rowStyle}>`;
       h += `<td class="col-name"><div class="cell-name">${esc(fn)} ${esc(ln)}</div><div class="cell-username">${esc(u.username)}</div></td>`;
-      h += `<td class="col-role"><span class="role-badge role-${u.role}">${u.role}</span></td>`;
+      const roleLabel = u.role === 'ld_manager' ? 'LD Manager' : u.role;
+      h += `<td class="col-role"><span class="role-text">${roleLabel}</span></td>`;
       h += `<td class="col-pathway">${(u.pathways || []).length > 0 ? u.pathways.map(p => esc(p.name)).join(', ') : '<span class="text-muted">—</span>'}</td>`;
-      h += `<td class="col-status"><span class="${statusClass}">● ${status}</span></td>`;
+      h += `<td class="col-status"><span class="${statusClass}">${status}</span></td>`;
       h += `<td class="col-login">${lastLogin}</td>`;
       h += '<td class="col-actions">';
       if (u.role !== 'superuser') {

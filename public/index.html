@@ -567,26 +567,28 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 .admin-filter{padding:8px 16px;background:var(--n3);border:1px solid var(--gb);border-radius:var(--rs);color:var(--white);font-family:var(--font);font-size:var(--fs-sm);cursor:pointer;outline:none}
 
 /* ─── Table Card Container ─── */
-.admin-table-card{background:var(--n3);border:1px solid var(--gb);border-radius:12px;padding:4px 8px;overflow:hidden}
+.admin-table-card{background:var(--n3);border:1px solid var(--gb);border-radius:12px;padding:0;overflow:hidden}
 
 /* Table */
 .admin-table{width:100%;border-collapse:collapse;table-layout:fixed}
 
-/* Column widths: Name + Pathway flexible, rest fixed */
-.admin-table .col-name{width:auto}
-.admin-table .col-role{width:100px}
-.admin-table .col-pathway{width:auto;padding-left:24px}
-.admin-table .col-status{width:90px}
-.admin-table .col-login{width:100px}
-.admin-table .col-actions{width:64px;padding:0 16px;text-align:center}
+/* Column widths: comfortable defaults, resizable */
+.admin-table .col-name{width:22%}
+.admin-table .col-role{width:14%}
+.admin-table .col-pathway{width:28%}
+.admin-table .col-status{width:10%}
+.admin-table .col-login{width:14%}
+.admin-table .col-actions{width:60px;text-align:center}
+/* Resizable column headers */
+.admin-table th.resizable{overflow:hidden;resize:horizontal;min-width:60px}
 
 /* Headers: uppercase, muted */
-.admin-table th{text-align:left;font-size:var(--fs-2xs);font-weight:500;color:rgba(123,139,168,.6);letter-spacing:.5px;text-transform:uppercase;padding:16px 16px 8px;border-bottom:1px solid var(--gb);white-space:nowrap}
+.admin-table th{text-align:left;font-size:var(--fs-2xs);font-weight:500;color:rgba(123,139,168,.6);letter-spacing:.5px;text-transform:uppercase;padding:12px 16px 8px;border-bottom:1px solid var(--gb);white-space:nowrap}
 .admin-table th.sortable{cursor:pointer;user-select:none;transition:color .2s}
 .admin-table th.sortable:hover{color:var(--white)}
 
 /* Rows: 52px height, subtle dividers */
-.admin-table td{padding:0 16px;height:52px;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.03);font-size:var(--fs-sm);color:var(--white)}
+.admin-table td{padding:0 16px;height:48px;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.03);font-size:var(--fs-sm);color:var(--white)}
 .admin-table tbody tr:last-child td{border-bottom:none}
 .admin-table tbody tr:hover td{background:rgba(255,255,255,.02)}
 
@@ -598,16 +600,12 @@ body::after{width:400px;height:400px;bottom:-100px;right:-100px;background:rgba(
 /* Password Reset label */
 .pw-reset-label{font-size:var(--fs-2xs);font-weight:500;color:var(--orange);margin-left:4px}
 
-/* Role badges */
-.role-badge{font-size:12px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;padding:4px 10px;border-radius:6px;white-space:nowrap}
-.role-superuser{background:rgba(255,184,0,.12);color:var(--orange)}
-.role-ld_manager{background:rgba(168,85,247,.12);color:#a855f7}
-.role-manager{background:rgba(59,130,246,.12);color:var(--blue)}
-.role-rep{background:rgba(0,224,184,.12);color:var(--green)}
+/* Role text (plain) */
+.role-text{font-size:var(--fs-sm);font-weight:400;color:var(--lt);white-space:nowrap;text-transform:capitalize}
 
-/* Status */
-.status-active{color:var(--green);font-weight:500;font-size:var(--fs-sm);white-space:nowrap}
-.status-inactive{color:var(--red);font-weight:500;font-size:var(--fs-sm);white-space:nowrap}
+/* Status text (plain) */
+.status-active{color:var(--lt);font-weight:400;font-size:var(--fs-sm);white-space:nowrap}
+.status-inactive{color:var(--gray);font-weight:400;font-size:var(--fs-sm);white-space:nowrap}
 
 /* Last Login */
 .col-login{font-size:var(--fs-xs);color:var(--gray)}
