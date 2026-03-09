@@ -378,28 +378,32 @@ var callManager = {
     const callData = {
       conversationId: this.conversationId,
       duration: this.getDuration(),
-      // Transcript would come from Tavus API post-call
     };
 
-    // Leave the Daily room
+    // Leave the Daily room first (stops media)
     if (this.callObject) {
       this.callObject.leave().catch(console.error);
       this.callObject.destroy().catch(console.error);
       this.callObject = null;
     }
 
-    // Notify Tavus to end the conversation
-    if (this.conversationId) {
-      const token = localStorage.getItem('roc_token');
-      fetch(`/api/tavus/conversations/${this.conversationId}`, {
-        method: 'DELETE',
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      })
-        .catch(err => console.warn('[Call] End conversation cleanup error:', err));
-    }
-
-    // Transition to debrief
+    // IMPORTANT: Transition to debrief and run scoring BEFORE deleting
+    // the Tavus conversation — the DELETE destroys the transcript.
     app.onCallEnded(callData);
+
+    // Schedule Tavus conversation cleanup AFTER scoring has had time to fetch transcript
+    var convId = this.conversationId;
+    if (convId) {
+      setTimeout(function() {
+        var token = localStorage.getItem('roc_token');
+        fetch('/api/tavus/conversations/' + convId, {
+          method: 'DELETE',
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+        }).catch(function(err) {
+          console.warn('[Call] End conversation cleanup error:', err);
+        });
+      }, 15000); // 15s delay — gives scoring time to fetch transcript
+    }
   },
 
   /**

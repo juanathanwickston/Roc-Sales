@@ -55,23 +55,52 @@ var scoring = {
 
   /**
    * Attempt to get transcript from Tavus API.
-   * Falls back to null if unavailable.
+   * Retries with delays because Tavus needs time to finalize after call end.
+   * Falls back to null if unavailable after all attempts.
    */
   async getTranscript(callData) {
     if (!callData.conversationId) return null;
 
-    try {
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch(`/api/tavus/conversations/${callData.conversationId}`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      });
-      if (!res.ok) return null;
+    var maxAttempts = 4;
+    var delayMs = 3000; // 3 seconds between attempts
 
-      const data = await res.json();
-      return data.transcript || data.conversation_transcript || null;
-    } catch {
-      return null;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Wait before each attempt — Tavus needs time to process
+        if (attempt > 1) {
+          await new Promise(function(r) { setTimeout(r, delayMs); });
+        }
+
+        console.log('[Scoring] Fetching transcript, attempt ' + attempt + '/' + maxAttempts);
+
+        var token = localStorage.getItem('roc_token');
+        var res = await fetch('/api/tavus/conversations/' + callData.conversationId, {
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+        });
+        if (!res.ok) continue;
+
+        var data = await res.json();
+
+        // Tavus may return transcript under different field names
+        var transcript = data.transcript
+          || data.conversation_transcript
+          || data.call_transcript
+          || (data.properties && data.properties.transcript)
+          || null;
+
+        if (transcript && typeof transcript === 'string' && transcript.length > 20) {
+          console.log('[Scoring] Transcript retrieved (' + transcript.length + ' chars)');
+          return transcript;
+        }
+
+        console.log('[Scoring] Transcript not ready yet, attempt ' + attempt);
+      } catch (e) {
+        console.warn('[Scoring] Transcript fetch error:', e.message);
+      }
     }
+
+    console.warn('[Scoring] Transcript unavailable after ' + maxAttempts + ' attempts');
+    return null;
   },
 
   /**
