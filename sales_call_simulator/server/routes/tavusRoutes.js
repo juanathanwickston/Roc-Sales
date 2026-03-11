@@ -58,7 +58,6 @@ router.post('/conversations', async (req, res) => {
       conversational_context,
       custom_greeting,
       properties,
-      perception_analysis_queries,
       require_auth,
     } = req.body;
 
@@ -73,7 +72,6 @@ router.post('/conversations', async (req, res) => {
       ...(conversational_context && { conversational_context }),
       ...(custom_greeting && { custom_greeting }),
       ...(require_auth !== undefined && { require_auth }),
-      ...(perception_analysis_queries && { perception_analysis_queries }),
       properties: {
         max_call_duration: 1200, // 20 min default for training
         participant_left_timeout: 30,

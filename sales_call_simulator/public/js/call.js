@@ -51,7 +51,6 @@ const callManager = {
         if (cfg.conversational_context) conversationPayload.conversational_context = cfg.conversational_context;
         if (cfg.custom_greeting) conversationPayload.custom_greeting = cfg.custom_greeting;
         if (cfg.properties) conversationPayload.properties = cfg.properties;
-        if (cfg.perception_analysis_queries) conversationPayload.perception_analysis_queries = cfg.perception_analysis_queries;
         if (cfg.require_auth !== undefined) conversationPayload.require_auth = cfg.require_auth;
       }
 
