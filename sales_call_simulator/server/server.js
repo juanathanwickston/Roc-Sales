@@ -3,10 +3,12 @@
  * Pattern adapted from roc_academy/server/server.js
  */
 
-const express = require('express');
 const path = require('path');
+
+const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+
 const { config, validateConfig } = require('./config');
 const db = require('./db');
 
