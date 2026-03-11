@@ -14,14 +14,14 @@
       "max_call_duration": 1200,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
-      "enable_closed_captions": true,
-      "perception_analysis_queries": [
-        "How confident did the sales rep appear throughout the call?",
-        "Did the rep show genuine interest in the buyer's situation?",
-        "How did the rep handle objections or resistance?",
-        "Was the rep's energy level appropriate for a professional sales call?"
-      ]
-    }
+      "enable_closed_captions": true
+    },
+    "perception_analysis_queries": [
+      "How confident did the sales rep appear throughout the call?",
+      "Did the rep show genuine interest in the buyer's situation?",
+      "How did the rep handle objections or resistance?",
+      "Was the rep's energy level appropriate for a professional sales call?"
+    ]
   },
   "rubric": {
     "discovery_questions": {
