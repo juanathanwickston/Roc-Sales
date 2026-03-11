@@ -7,6 +7,7 @@ const express = require('express');
 
 const db = require('../db');
 const { tavusFetch } = require('../services/tavusClient');
+const { extractTranscript } = require('../services/tavusNormalizer');
 const { processSession } = require('../services/postCallProcessor');
 
 const router = express.Router();
@@ -14,7 +15,6 @@ const router = express.Router();
 // Tavus needs time to finalize the transcript after a call ends
 const TRANSCRIPT_RETRY_DELAY_MS = 3000;
 const MAX_TRANSCRIPT_ATTEMPTS = 4;
-const MIN_TRANSCRIPT_LENGTH = 20;
 
 // Valid session statuses and their allowed transitions
 const STATUS_TRANSITIONS = {
@@ -215,14 +215,10 @@ router.post('/:id/fetch-transcript', async (req, res) => {
         const data = await tavusFetch(`/conversations/${conversationId}`);
         rawResponse = JSON.stringify(data);
 
-        // Tavus may return transcript under different field names
-        const text = data.transcript
-          || data.conversation_transcript
-          || data.call_transcript
-          || (data.properties && data.properties.transcript)
-          || null;
+        // Use normalizer to extract transcript from vendor-specific fields
+        const text = extractTranscript(data);
 
-        if (text && typeof text === 'string' && text.length > MIN_TRANSCRIPT_LENGTH) {
+        if (text) {
           transcript = text;
           console.log(`[Sessions] Transcript retrieved (${text.length} chars)`);
           break;

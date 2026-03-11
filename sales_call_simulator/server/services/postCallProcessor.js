@@ -9,12 +9,12 @@
 
 const db = require('../db');
 const { tavusFetch } = require('./tavusClient');
+const { extractTranscript } = require('./tavusNormalizer');
 const { config } = require('../config');
 
 // Tavus needs time to finalize the transcript after a call ends
 const TRANSCRIPT_RETRY_DELAY_MS = 3000;
 const MAX_TRANSCRIPT_ATTEMPTS = 4;
-const MIN_TRANSCRIPT_LENGTH = 20;
 
 /**
  * Process a completed call session.
@@ -111,14 +111,10 @@ async function fetchAndStoreTranscript(sessionId) {
       const data = await tavusFetch(`/conversations/${conversationId}`);
       rawResponse = JSON.stringify(data);
 
-      // Tavus may return transcript under different field names
-      const text = data.transcript
-        || data.conversation_transcript
-        || data.call_transcript
-        || (data.properties && data.properties.transcript)
-        || null;
+      // Use normalizer to extract transcript from vendor-specific fields
+      const text = extractTranscript(data);
 
-      if (text && typeof text === 'string' && text.length > MIN_TRANSCRIPT_LENGTH) {
+      if (text) {
         transcript = text;
         console.log(`[PostCall] Transcript retrieved (${text.length} chars)`);
         break;
