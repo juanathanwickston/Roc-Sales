@@ -9,13 +9,13 @@
 
 const db = require('../db');
 const { tavusFetch } = require('./tavusClient');
-const { extractTranscript } = require('./tavusNormalizer');
+const {
+  extractTranscript,
+  TRANSCRIPT_RETRY_DELAY_MS,
+  MAX_TRANSCRIPT_ATTEMPTS,
+} = require('./tavusNormalizer');
 const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
-
-// Tavus needs time to finalize the transcript after a call ends
-const TRANSCRIPT_RETRY_DELAY_MS = 3000;
-const MAX_TRANSCRIPT_ATTEMPTS = 4;
 
 /**
  * Process a completed call session.

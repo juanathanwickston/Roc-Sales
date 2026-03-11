@@ -203,6 +203,9 @@ process.on('uncaughtException', (err) => {
 
 // --- Graceful Shutdown ---
 
+// Maximum time to wait for graceful shutdown before forcing exit
+const SHUTDOWN_TIMEOUT_MS = 10000;
+
 function shutdown(signal) {
   console.log(`\n[SERVER] ${signal} received. Shutting down gracefully...`);
   if (serverInstance) {
@@ -214,7 +217,7 @@ function shutdown(signal) {
   setTimeout(() => {
     console.error('[SERVER] Forced shutdown after timeout.');
     process.exit(1);
-  }, 10000);
+  }, SHUTDOWN_TIMEOUT_MS);
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

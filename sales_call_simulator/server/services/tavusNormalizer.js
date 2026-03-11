@@ -8,6 +8,10 @@
 // Minimum transcript length to be considered valid
 const MIN_TRANSCRIPT_LENGTH = 20;
 
+// Tavus needs time to finalize the transcript after a call ends
+const TRANSCRIPT_RETRY_DELAY_MS = 3000;
+const MAX_TRANSCRIPT_ATTEMPTS = 4;
+
 /**
  * Extract the transcript text from a raw Tavus conversation response.
  * Tavus has returned the transcript under different field names across API versions.
@@ -50,4 +54,10 @@ function extractConversationMeta(rawConversation) {
   };
 }
 
-module.exports = { extractTranscript, extractConversationMeta, MIN_TRANSCRIPT_LENGTH };
+module.exports = {
+  extractTranscript,
+  extractConversationMeta,
+  MIN_TRANSCRIPT_LENGTH,
+  TRANSCRIPT_RETRY_DELAY_MS,
+  MAX_TRANSCRIPT_ATTEMPTS,
+};

@@ -12,9 +12,9 @@ const { processSession } = require('../services/postCallProcessor');
 
 const router = express.Router();
 
-// Tavus needs time to finalize the transcript after a call ends
-const TRANSCRIPT_RETRY_DELAY_MS = 3000;
-const MAX_TRANSCRIPT_ATTEMPTS = 4;
+// Fetch retry constants shared with postCallProcessor.js
+// Both files have independent transcript fetch paths that need these values.
+const { TRANSCRIPT_RETRY_DELAY_MS, MAX_TRANSCRIPT_ATTEMPTS } = require('../services/tavusNormalizer');
 
 // Valid session statuses and their allowed transitions
 const STATUS_TRANSITIONS = {
