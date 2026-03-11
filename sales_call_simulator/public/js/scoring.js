@@ -3,15 +3,6 @@
  * Post-call evaluation using the scoring API (OpenAI GPT-4o).
  */
 
-// Maximum number of attempts to fetch transcript from Tavus after call ends
-const MAX_TRANSCRIPT_ATTEMPTS = 4;
-
-// Delay (ms) between transcript fetch attempts
-const TRANSCRIPT_RETRY_DELAY_MS = 3000;
-
-// Minimum transcript length (chars) to consider it valid
-const MIN_TRANSCRIPT_LENGTH = 20;
-
 // SVG score ring circumference (2 * PI * 54)
 const SCORE_RING_CIRCUMFERENCE = 339.29;
 
@@ -24,8 +15,7 @@ const scoring = {
     const contentEl = document.getElementById('debrief-content');
 
     try {
-      // Build a basic transcript summary from call data
-      // Note: In production, we'd fetch the real transcript from Tavus API
+      // Fetch transcript via backend (server handles Tavus API and storage)
       const transcript = await this.getTranscript(callData);
       const rubric = scenario?.rubric || {};
 
@@ -66,53 +56,47 @@ const scoring = {
   },
 
   /**
-   * Attempt to get transcript from Tavus API.
-   * Retries with delays because Tavus needs time to finalize after call end.
-   * Falls back to null if unavailable after all attempts.
+   * Fetch transcript from the backend.
+   * The server handles the Tavus API call, retry logic, and storage.
+   * Returns the transcript text or null if unavailable.
    */
   async getTranscript(callData) {
-    if (!callData.conversationId) return null;
-
-    const maxAttempts = MAX_TRANSCRIPT_ATTEMPTS;
-    const delayMs = TRANSCRIPT_RETRY_DELAY_MS;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        // Wait before each attempt - Tavus needs time to process
-        if (attempt > 1) {
-          await new Promise(function(r) { setTimeout(r, delayMs); });
-        }
-
-        console.log('[Scoring] Fetching transcript, attempt ' + attempt + '/' + maxAttempts);
-
-        const token = localStorage.getItem('roc_token');
-        const res = await fetch('/api/tavus/conversations/' + callData.conversationId, {
-          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
-        });
-        if (!res.ok) continue;
-
-        const data = await res.json();
-
-        // Tavus may return transcript under different field names
-        const transcript = data.transcript
-          || data.conversation_transcript
-          || data.call_transcript
-          || (data.properties && data.properties.transcript)
-          || null;
-
-        if (transcript && typeof transcript === 'string' && transcript.length > MIN_TRANSCRIPT_LENGTH) {
-          console.log('[Scoring] Transcript retrieved (' + transcript.length + ' chars)');
-          return transcript;
-        }
-
-        console.log('[Scoring] Transcript not ready yet, attempt ' + attempt);
-      } catch (e) {
-        console.warn('[Scoring] Transcript fetch error:', e.message);
-      }
+    if (!callData.sessionId) {
+      // No session ID - fall back to null (session creation may have failed)
+      console.warn('[Scoring] No session ID available for transcript fetch');
+      return null;
     }
 
-    console.warn('[Scoring] Transcript unavailable after ' + maxAttempts + ' attempts');
-    return null;
+    try {
+      console.log('[Scoring] Requesting transcript from backend...');
+
+      const token = localStorage.getItem('roc_token');
+      const res = await fetch(`/api/sessions/${callData.sessionId}/fetch-transcript`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        console.warn('[Scoring] Backend transcript fetch failed:', res.status);
+        return null;
+      }
+
+      const data = await res.json();
+
+      if (data.transcript) {
+        console.log(`[Scoring] Transcript received (${data.transcript.length} chars)`);
+      } else {
+        console.warn('[Scoring] Backend returned no transcript');
+      }
+
+      return data.transcript || null;
+    } catch (err) {
+      console.warn('[Scoring] Transcript fetch error:', err.message);
+      return null;
+    }
   },
 
   /**
