@@ -26,6 +26,83 @@ const STATUS_TRANSITIONS = {
   failed: [],
 };
 
+// Maximum sessions returned per request
+const MAX_PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 20;
+
+/**
+ * GET /api/sessions - List sessions with optional filters.
+ * Query: ?userId, ?scenarioId, ?status, ?limit (max 50), ?offset
+ * Returns sessions with joined score data, newest first.
+ */
+router.get('/', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+    const offset = parseInt(req.query.offset, 10) || 0;
+
+    // Build WHERE clauses from optional filters
+    const conditions = [];
+    const params = [];
+    let paramIndex = 1;
+
+    // Filter by user: explicit query param, or fall back to JWT user
+    const userId = req.query.userId || (req.user && req.user.userId) || null;
+    if (userId) {
+      conditions.push(`s.external_user_id = $${paramIndex}`);
+      params.push(userId);
+      paramIndex++;
+    }
+
+    if (req.query.scenarioId) {
+      conditions.push(`s.scenario_id = $${paramIndex}`);
+      params.push(req.query.scenarioId);
+      paramIndex++;
+    }
+
+    if (req.query.status) {
+      conditions.push(`s.status = $${paramIndex}`);
+      params.push(req.query.status);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Count total matching sessions
+    const countResult = await db.query(
+      `SELECT COUNT(*) AS total FROM simulation_sessions s ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    // Fetch sessions with joined scores
+    const result = await db.query(
+      `SELECT s.id, s.scenario_id, s.status, s.duration_seconds,
+              s.created_at, s.updated_at,
+              sc.overall_score, sc.overall_verdict
+       FROM simulation_sessions s
+       LEFT JOIN session_scores sc ON sc.session_id = s.id
+       ${whereClause}
+       ORDER BY s.created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      sessions: result.rows,
+      total,
+      limit,
+      offset,
+    });
+  } catch (err) {
+    console.error('[Sessions] List error:', err.message);
+    res.status(500).json({ error: 'Unable to retrieve sessions.' });
+  }
+});
+
 /**
  * POST /api/sessions - Create a new simulation session.
  * Body: { scenarioId }

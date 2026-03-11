@@ -694,6 +694,104 @@
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
+
+    /* ─── History Screen ─── */
+    .history-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+    .history-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      flex: 1;
+      min-width: 120px;
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 4px; }
+    .stat-label { font-size: var(--fs-xs); color: var(--gray); }
+
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .history-card {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .history-card:hover, .history-card:focus-visible {
+      border-color: rgba(59,130,246,.4);
+      outline: none;
+    }
+
+    .history-score-mini {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--fs-md);
+      font-weight: var(--fw-bold);
+      flex-shrink: 0;
+      border: 3px solid;
+    }
+    .history-score-mini.pass { border-color: var(--green); color: var(--green); }
+    .history-score-mini.needs-work { border-color: var(--orange); color: var(--orange); }
+    .history-score-mini.fail { border-color: var(--red); color: var(--red); }
+    .history-score-mini.pending { border-color: var(--gray); color: var(--gray); }
+
+    .history-card-info { flex: 1; min-width: 0; }
+    .history-card-title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-card-meta {
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .verdict-badge {
+      padding: 4px 8px;
+      border-radius: var(--r-sm);
+      font-size: var(--fs-2xs);
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      flex-shrink: 0;
+    }
+    .verdict-pass { background: rgba(0,224,184,.12); color: var(--green); }
+    .verdict-needs-work { background: rgba(255,184,0,.12); color: var(--orange); }
+    .verdict-fail { background: rgba(255,68,102,.12); color: var(--red); }
+    .verdict-pending { background: rgba(123,139,168,.12); color: var(--gray); }
+
+    .history-loading { text-align: center; padding: 48px 0; }
+    .history-loading p { color: var(--gray); font-size: var(--fs-sm); margin-top: 16px; }
+
+    @media (max-width: 767px) {
+      .history-main { padding: 16px; }
+      .history-stats { gap: 8px; }
+      .stat-card { padding: 12px; min-width: 80px; }
+      .stat-value { font-size: var(--fs-lg); }
+      .history-card { padding: 12px 16px; gap: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -702,7 +800,7 @@
 
   <!-- ═══════════════ SCREEN 1: SCENARIO SELECTION ═══════════════ -->
   <div id="screen-scenarios" class="screen active">
-    <header class="app-header">
+    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
         <div class="brand-icon" aria-hidden="true">🎙️</div>
         <div>
@@ -710,6 +808,7 @@
           <span class="header-subtitle">ROC Academy – Practice Mode</span>
         </div>
       </div>
+      <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
     </header>
 
     <main class="scenarios-main" aria-label="Scenario selection">
@@ -1044,10 +1143,69 @@
     </main>
   </div>
 
+  <!-- ═══════════════ SCREEN 5: SESSION HISTORY ═══════════════ -->
+  <div id="screen-history" class="screen">
+    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">📊</div>
+        <div>
+          <h1>Session History</h1>
+          <span class="header-subtitle">Your past simulation attempts</span>
+        </div>
+      </div>
+      <button id="btn-history-back" class="btn btn-ghost" aria-label="Back to scenarios">Back</button>
+    </header>
+
+    <main class="history-main" aria-label="Session history">
+      <!-- Loading state -->
+      <div id="history-loading" class="history-loading" aria-busy="true">
+        <div class="spinner spinner-large" role="status" aria-label="Loading history"></div>
+        <p>Loading your session history...</p>
+      </div>
+
+      <!-- Content (hidden until loaded) -->
+      <div id="history-content" style="display:none;">
+        <!-- Stats summary -->
+        <div class="history-stats">
+          <div class="stat-card">
+            <div id="stat-total" class="stat-value">0</div>
+            <div class="stat-label">Total Attempts</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-best" class="stat-value" style="color:var(--green);">-</div>
+            <div class="stat-label">Best Score</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-average" class="stat-value" style="color:var(--blue);">-</div>
+            <div class="stat-label">Average Score</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-pass-rate" class="stat-value" style="color:var(--green);">-</div>
+            <div class="stat-label">Pass Rate</div>
+          </div>
+        </div>
+
+        <!-- Session list -->
+        <div id="history-list" class="history-list" role="list">
+          <!-- Populated by history.js -->
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="history-empty" class="empty-state" style="display:none;">
+        <div class="empty-icon" aria-hidden="true">🎯</div>
+        <h3 class="empty-title">No sessions yet</h3>
+        <p class="empty-desc">Complete a practice call to see your history and track your improvement.</p>
+        <button id="btn-history-start" class="btn btn-primary">Start a Practice Call</button>
+      </div>
+    </main>
+  </div>
+
   <!-- Scripts -->
   <script src="https://unpkg.com/@daily-co/daily-js"></script>
   <script src="js/app.js"></script>
   <script src="js/call.js"></script>
   <script src="js/scoring.js"></script>
+  <script src="js/history.js"></script>
 </body>
 </html>

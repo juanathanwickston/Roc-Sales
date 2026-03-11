@@ -143,6 +143,25 @@ const app = {
         overlay.classList.remove('visible');
       });
     }
+
+    // --- History Navigation ---
+    const btnViewHistory = document.getElementById('btn-view-history');
+    if (btnViewHistory) {
+      btnViewHistory.addEventListener('click', function() {
+        app.showScreen('history');
+        if (typeof loadHistory === 'function') loadHistory();
+      });
+    }
+
+    const btnHistoryBack = document.getElementById('btn-history-back');
+    if (btnHistoryBack) {
+      btnHistoryBack.addEventListener('click', function() { app.showScreen('scenarios'); });
+    }
+
+    const btnHistoryStart = document.getElementById('btn-history-start');
+    if (btnHistoryStart) {
+      btnHistoryStart.addEventListener('click', function() { app.showScreen('scenarios'); });
+    }
   },
 
   /**
