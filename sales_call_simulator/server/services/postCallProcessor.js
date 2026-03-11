@@ -1,7 +1,7 @@
 /**
  * Post-Call Processor
  * Backend service that orchestrates the full post-call pipeline:
- * fetch transcript -> score -> persist results -> update session status.
+ * fetch transcript -> score -> persist results -> notify ROC Academy -> update session status.
  *
  * This runs entirely server-side. The frontend triggers it via
  * POST /api/sessions/:id/process and polls for completion.
@@ -10,6 +10,7 @@
 const db = require('../db');
 const { tavusFetch } = require('./tavusClient');
 const { extractTranscript } = require('./tavusNormalizer');
+const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
 
 // Tavus needs time to finalize the transcript after a call ends
@@ -37,12 +38,13 @@ async function processSession(sessionId) {
       return { status: 'completed', scored: false };
     }
 
-    // 2. Load session to get scenario info
+    // 2. Load session to get scenario and user info
     const session = await db.query(
-      'SELECT scenario_id FROM simulation_sessions WHERE id = $1',
+      'SELECT scenario_id, external_user_id FROM simulation_sessions WHERE id = $1',
       [sessionId]
     );
     const scenarioId = session.rows[0]?.scenario_id || 'unknown';
+    const userId = session.rows[0]?.external_user_id || null;
 
     // 3. Score the transcript
     const scorecard = await scoreTranscript(transcript, scenarioId);
@@ -56,7 +58,10 @@ async function processSession(sessionId) {
     // 4. Persist scoring results
     await persistScore(sessionId, scorecard);
 
-    // 5. Mark session as completed
+    // 5. Notify ROC Academy (fire-and-forget, does not block completion)
+    sendCompletionCallback({ sessionId, scorecard, scenarioId, userId }).catch(() => {});
+
+    // 6. Mark session as completed
     await updateStatus(sessionId, 'completed');
 
     console.log(`[PostCall] Session ${sessionId} fully processed (score: ${scorecard.overall_score})`);
