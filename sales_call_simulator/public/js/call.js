@@ -70,11 +70,11 @@ const callManager = {
       }
 
       const data = await res.json();
-      this.conversationId = data.conversation_id;
-      this.conversationUrl = data.conversation_url;
+      this.conversationId = data.conversationId;
+      this.conversationUrl = data.conversationUrl;
 
       if (!this.conversationUrl) {
-        throw new Error('No conversation_url returned from Tavus');
+        throw new Error('No conversationUrl returned from server');
       }
 
       console.log(`[Call] Conversation created: ${this.conversationId}`);

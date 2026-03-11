@@ -1,19 +1,22 @@
 /**
  * Tavus CVI API Proxy Routes
  * All Tavus API calls go through the server to keep the API key secure.
- * Pattern adapted from support_chatbot/app/api/chat.py
+ * Responses are normalized into internal shapes before reaching the frontend.
  */
 
 const express = require('express');
 
 const { tavusFetch } = require('../services/tavusClient');
+const { extractConversationMeta } = require('../services/tavusNormalizer');
 
 const router = express.Router();
 
 // --- Personas ---
 
 /**
- * GET /api/tavus/personas - List available personas
+ * GET /api/tavus/personas - List available personas.
+ * Persona data is passed through without normalization because
+ * persona config is authored by us, not by the Tavus runtime.
  */
 router.get('/personas', async (req, res) => {
   try {
@@ -26,7 +29,8 @@ router.get('/personas', async (req, res) => {
 });
 
 /**
- * GET /api/tavus/personas/:id - Get specific persona
+ * GET /api/tavus/personas/:id - Get specific persona.
+ * Persona data is passed through (see note above).
  */
 router.get('/personas/:id', async (req, res) => {
   try {
@@ -41,8 +45,9 @@ router.get('/personas/:id', async (req, res) => {
 // --- Conversations ---
 
 /**
- * POST /api/tavus/conversations - Start a new call session
+ * POST /api/tavus/conversations - Start a new call session.
  * Body: { persona_id, conversation_name?, conversational_context?, properties? }
+ * Returns normalized conversation data with stable internal field names.
  */
 router.post('/conversations', async (req, res) => {
   try {
@@ -85,7 +90,13 @@ router.post('/conversations', async (req, res) => {
     const userId = req.user?.userId || 'unknown';
     const username = req.user?.username || 'anonymous';
     console.log(`[Tavus] Conversation created: ${data.conversation_id} by user ${username} (${userId})`);
-    res.json(data);
+
+    // Normalize before sending to frontend
+    const meta = extractConversationMeta(data);
+    res.json({
+      conversationId: meta.conversationId,
+      conversationUrl: data.conversation_url || null,
+    });
   } catch (err) {
     console.error('[Tavus] Create conversation error:', err.message);
     res.status(err.status || 500).json({ error: 'Unable to create conversation. Please try again.' });
@@ -93,12 +104,14 @@ router.post('/conversations', async (req, res) => {
 });
 
 /**
- * GET /api/tavus/conversations/:id - Get conversation status
+ * GET /api/tavus/conversations/:id - Get conversation status.
+ * Returns normalized conversation metadata.
  */
 router.get('/conversations/:id', async (req, res) => {
   try {
     const data = await tavusFetch(`/conversations/${req.params.id}`);
-    res.json(data);
+    const meta = extractConversationMeta(data);
+    res.json(meta);
   } catch (err) {
     console.error('[Tavus] Get conversation error:', err.message);
     res.status(err.status || 500).json({ error: 'Unable to retrieve conversation.' });
@@ -106,7 +119,8 @@ router.get('/conversations/:id', async (req, res) => {
 });
 
 /**
- * DELETE /api/tavus/conversations/:id - End a conversation
+ * DELETE /api/tavus/conversations/:id - End a conversation.
+ * Returns our own status shape (Tavus DELETE has no body).
  */
 router.delete('/conversations/:id', async (req, res) => {
   try {

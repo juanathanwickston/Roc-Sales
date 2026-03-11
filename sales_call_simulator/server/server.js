@@ -83,10 +83,9 @@ app.use((req, res, next) => {
 
 // --- API Routes ---
 
-const { optionalAuth } = require('./middleware/auth');
+const { optionalAuth, verifyLaunchToken } = require('./middleware/auth');
 const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
-const scoringRoutes = require('./routes/scoringRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 
 // optionalAuth: populates req.user when JWT is present (integrated mode),
@@ -95,7 +94,6 @@ const sessionRoutes = require('./routes/sessionRoutes');
 
 app.use('/api/tavus', optionalAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
-app.use('/api/scoring', optionalAuth, scoringRoutes);
 app.use('/api/sessions', optionalAuth, sessionRoutes);
 
 // Health check
@@ -109,6 +107,38 @@ app.get('/api/health', async (req, res) => {
     openaiConfigured: !!config.OPENAI_API_KEY,
     db: dbStatus,
   });
+});
+
+// --- Launch Route ---
+
+/**
+ * GET /launch?token=... - ROC Academy signed launch entry point.
+ * Validates the JWT, then redirects to the simulator with launch context
+ * as query params. The frontend reads these params on load.
+ */
+app.get('/launch', (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Launch token is required' });
+  }
+
+  const launch = verifyLaunchToken(token);
+  if (!launch) {
+    return res.status(401).json({ error: 'Invalid or expired launch token' });
+  }
+
+  // Redirect to the app with launch context as query params
+  const params = new URLSearchParams({
+    scenarioId: launch.scenarioId,
+    userId: launch.userId,
+    ...(launch.courseId && { courseId: launch.courseId }),
+    ...(launch.moduleId && { moduleId: launch.moduleId }),
+    ...(launch.returnUrl && { returnUrl: launch.returnUrl }),
+  });
+
+  console.log(`[Launch] User ${launch.userId} launching scenario ${launch.scenarioId}`);
+  res.redirect(`/?${params.toString()}`);
 });
 
 // --- Static Files ---

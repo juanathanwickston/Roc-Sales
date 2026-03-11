@@ -219,7 +219,6 @@ function loadScenarioRubric(scenarioId) {
 
 /**
  * Build the scoring prompt from transcript and rubric.
- * Mirrors the prompt structure from scoringRoutes.js.
  */
 function buildScoringPrompt(transcript, rubric, scenarioId) {
   const rubricText = Object.entries(rubric)

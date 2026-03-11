@@ -52,11 +52,29 @@ const app = {
   scenarios: [],
 
   /**
-   * Initialize - load scenarios and bind all event listeners.
+   * Initialize - load scenarios, bind events, check for launch context.
    */
   async init() {
     await this.loadScenarios();
     this.bindEvents();
+
+    // Check for launch context from ROC Academy (set by GET /launch redirect)
+    const params = new URLSearchParams(window.location.search);
+    const launchScenarioId = params.get('scenarioId');
+    if (launchScenarioId) {
+      this.launchContext = {
+        userId: params.get('userId'),
+        courseId: params.get('courseId'),
+        moduleId: params.get('moduleId'),
+        returnUrl: params.get('returnUrl'),
+      };
+
+      // Clear URL params so refresh does not re-trigger launch
+      window.history.replaceState({}, '', window.location.pathname);
+
+      console.log(`[App] Launch context: scenario ${launchScenarioId}`);
+      this.selectScenario(launchScenarioId);
+    }
   },
 
   /**

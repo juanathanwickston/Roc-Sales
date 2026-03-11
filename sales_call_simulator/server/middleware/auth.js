@@ -53,4 +53,41 @@ function optionalAuth(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, optionalAuth };
+/**
+ * Verify a signed launch token from ROC Academy.
+ * Launch tokens include learner and module context for auto-setup.
+ * Returns the decoded payload or null if invalid/missing.
+ *
+ * Expected payload shape:
+ *   { userId, courseId, moduleId, scenarioId, returnUrl, iat, exp }
+ */
+function verifyLaunchToken(token) {
+  if (!token) return null;
+
+  // Dev bypass: no JWT_SECRET means tokens cannot be verified
+  if (!config.JWT_SECRET) return null;
+
+  try {
+    const payload = jwt.verify(token, config.JWT_SECRET);
+
+    // Ensure required fields are present
+    if (!payload.userId || !payload.scenarioId) {
+      console.warn('[Auth] Launch token missing required fields (userId, scenarioId)');
+      return null;
+    }
+
+    return {
+      userId: payload.userId,
+      courseId: payload.courseId || null,
+      moduleId: payload.moduleId || null,
+      scenarioId: payload.scenarioId,
+      returnUrl: payload.returnUrl || null,
+    };
+  } catch (err) {
+    console.warn('[Auth] Launch token verification failed:', err.message);
+    return null;
+  }
+}
+
+module.exports = { requireAuth, optionalAuth, verifyLaunchToken };
+
