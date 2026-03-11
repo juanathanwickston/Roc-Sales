@@ -14,7 +14,7 @@ const app = express();
 // Trust first proxy (Railway) — required for express-rate-limit
 app.set('trust proxy', 1);
 
-// ─── Middleware ───
+// --- Middleware ---
 
 // Security headers (relaxed CSP for Daily.co WebRTC)
 app.use(
@@ -57,10 +57,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting (adapted from support_chatbot/main.py)
+// Maximum API requests per minute per client
+const API_RATE_LIMIT_PER_MINUTE = 30;
+
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 30,
+  max: API_RATE_LIMIT_PER_MINUTE,
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -78,7 +80,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── API Routes ───
+// --- API Routes ---
 
 const { optionalAuth } = require('./middleware/auth');
 const tavusRoutes = require('./routes/tavusRoutes');
@@ -104,7 +106,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ─── Static Files ───
+// --- Static Files ---
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -115,7 +117,7 @@ app.get('*', (req, res) => {
   }
 });
 
-// ─── Error Handler ───
+// --- Error Handler ---
 
 app.use((err, req, res, _next) => {
   console.error('[Server Error]', err.stack || err.message);
@@ -124,19 +126,19 @@ app.use((err, req, res, _next) => {
   });
 });
 
-// ─── Start ───
+// --- Start ---
 
 validateConfig();
 
 const server = app.listen(config.PORT, () => {
-  console.log(`\n🎙️  Sales Call Simulator running on http://localhost:${config.PORT}`);
+  console.log(`\nSales Call Simulator running on http://localhost:${config.PORT}`);
   console.log(`   Environment: ${config.NODE_ENV}`);
-  console.log(`   Tavus API: ${config.TAVUS_API_KEY ? '✅ configured' : '❌ not set'}`);
-  console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? '✅ configured' : '❌ not set'}`);
-  console.log(`   Auth:      ${config.JWT_SECRET ? '✅ configured' : '⚠️  disabled (dev mode)'}\n`);
+  console.log(`   Tavus API: ${config.TAVUS_API_KEY ? 'configured' : 'NOT SET'}`);
+  console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? 'configured' : 'NOT SET'}`);
+  console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
 });
 
-// ─── Process Error Handlers ───
+// --- Process Error Handlers ---
 
 process.on('unhandledRejection', (err) => {
   console.error('[UNHANDLED REJECTION]', err);
@@ -146,7 +148,7 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-// ─── Graceful Shutdown ───
+// --- Graceful Shutdown ---
 
 function shutdown(signal) {
   console.log(`\n[SERVER] ${signal} received. Shutting down gracefully...`);

@@ -3,7 +3,19 @@
  * Post-call evaluation using the scoring API (OpenAI GPT-4o).
  */
 
-var scoring = {
+// Maximum number of attempts to fetch transcript from Tavus after call ends
+const MAX_TRANSCRIPT_ATTEMPTS = 4;
+
+// Delay (ms) between transcript fetch attempts
+const TRANSCRIPT_RETRY_DELAY_MS = 3000;
+
+// Minimum transcript length (chars) to consider it valid
+const MIN_TRANSCRIPT_LENGTH = 20;
+
+// SVG score ring circumference (2 * PI * 54)
+const SCORE_RING_CIRCUMFERENCE = 339.29;
+
+const scoring = {
   /**
    * Evaluate a completed call and render the scorecard.
    */
@@ -61,34 +73,34 @@ var scoring = {
   async getTranscript(callData) {
     if (!callData.conversationId) return null;
 
-    var maxAttempts = 4;
-    var delayMs = 3000; // 3 seconds between attempts
+    const maxAttempts = MAX_TRANSCRIPT_ATTEMPTS;
+    const delayMs = TRANSCRIPT_RETRY_DELAY_MS;
 
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        // Wait before each attempt — Tavus needs time to process
+        // Wait before each attempt - Tavus needs time to process
         if (attempt > 1) {
           await new Promise(function(r) { setTimeout(r, delayMs); });
         }
 
         console.log('[Scoring] Fetching transcript, attempt ' + attempt + '/' + maxAttempts);
 
-        var token = localStorage.getItem('roc_token');
-        var res = await fetch('/api/tavus/conversations/' + callData.conversationId, {
+        const token = localStorage.getItem('roc_token');
+        const res = await fetch('/api/tavus/conversations/' + callData.conversationId, {
           headers: token ? { 'Authorization': 'Bearer ' + token } : {},
         });
         if (!res.ok) continue;
 
-        var data = await res.json();
+        const data = await res.json();
 
         // Tavus may return transcript under different field names
-        var transcript = data.transcript
+        const transcript = data.transcript
           || data.conversation_transcript
           || data.call_transcript
           || (data.properties && data.properties.transcript)
           || null;
 
-        if (transcript && typeof transcript === 'string' && transcript.length > 20) {
+        if (transcript && typeof transcript === 'string' && transcript.length > MIN_TRANSCRIPT_LENGTH) {
           console.log('[Scoring] Transcript retrieved (' + transcript.length + ' chars)');
           return transcript;
         }
@@ -154,7 +166,7 @@ var scoring = {
    * Animate the score ring to the target value.
    */
   animateScoreRing(score, verdict) {
-    const circumference = 339.29; // 2 * PI * 54
+    const circumference = SCORE_RING_CIRCUMFERENCE;
     const offset = circumference - (score / 100) * circumference;
 
     const fillEl = document.getElementById('score-ring-fill');

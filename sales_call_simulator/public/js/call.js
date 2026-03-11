@@ -4,7 +4,13 @@
  * Handles WebRTC video/audio, call controls, and timer.
  */
 
-var callManager = {
+// Minimum call duration (seconds) before allowing end without confirmation
+const MIN_CALL_DURATION_SECONDS = 30;
+
+// Delay (ms) before Tavus conversation cleanup to give scoring time to fetch transcript
+const TAVUS_CLEANUP_DELAY_MS = 15000;
+
+const callManager = {
   callObject: null,
   conversationId: null,
   conversationUrl: null,
@@ -275,7 +281,7 @@ var callManager = {
     return Math.floor((Date.now() - this.startTime) / 1000);
   },
 
-  // ─── CALL CONTROLS ───
+  // --- Call Controls ---
 
   toggleMute() {
     if (!this.callObject) return;
@@ -318,7 +324,7 @@ var callManager = {
 
     // C7 fix: Custom modal instead of window.confirm()
     const duration = this.getDuration();
-    if (duration < 30) {
+    if (duration < MIN_CALL_DURATION_SECONDS) {
       const confirmed = await this.showConfirmModal(
         'End call early?',
         'The call just started. Are you sure you want to end it?'
@@ -387,22 +393,22 @@ var callManager = {
       this.callObject = null;
     }
 
-    // IMPORTANT: Transition to debrief and run scoring BEFORE deleting
-    // the Tavus conversation — the DELETE destroys the transcript.
+    // Transition to debrief and run scoring before deleting the Tavus
+    // conversation. The DELETE destroys the transcript on their side.
     app.onCallEnded(callData);
 
     // Schedule Tavus conversation cleanup AFTER scoring has had time to fetch transcript
     var convId = this.conversationId;
     if (convId) {
       setTimeout(function() {
-        var token = localStorage.getItem('roc_token');
+        const token = localStorage.getItem('roc_token');
         fetch('/api/tavus/conversations/' + convId, {
           method: 'DELETE',
           headers: token ? { 'Authorization': 'Bearer ' + token } : {},
         }).catch(function(err) {
           console.warn('[Call] End conversation cleanup error:', err);
         });
-      }, 15000); // 15s delay — gives scoring time to fetch transcript
+      }, TAVUS_CLEANUP_DELAY_MS);
     }
   },
 

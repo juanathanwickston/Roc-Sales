@@ -43,8 +43,8 @@ function validateConfig() {
   }
 
   if (warnings.length > 0) {
-    console.warn('\n[CONFIG] ⚠️  Missing configuration:');
-    warnings.forEach(w => console.warn(`  → ${w}`));
+    console.warn('\n[CONFIG] Missing configuration:');
+    warnings.forEach(w => console.warn(`  - ${w}`));
     console.warn('  Set these in your .env file. See .env.example for reference.\n');
   }
 
