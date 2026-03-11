@@ -14,6 +14,7 @@ const callManager = {
   callObject: null,
   conversationId: null,
   conversationUrl: null,
+  sessionId: null,
   timerInterval: null,
   startTime: null,
   isMuted: false,
@@ -28,7 +29,11 @@ const callManager = {
     this.cleanup();
 
     try {
-      // Step 1: Create conversation via our backend proxy
+      // Step 1: Create a session record to track this call attempt
+      this.updateLobbyStatus('Preparing session...');
+      this.sessionId = await this.createSession(scenario.id);
+
+      // Step 2: Create conversation via our backend proxy
       this.updateLobbyStatus('Creating conversation...');
 
       // C2 fix: Only send Tavus-accepted keys - never send rubric/coaching_notes
@@ -75,7 +80,12 @@ const callManager = {
       console.log(`[Call] Conversation created: ${this.conversationId}`);
       console.log(`[Call] URL: ${this.conversationUrl}`);
 
-      // Step 2: Join via Daily JS SDK
+      // Link the Tavus conversation ID to the session and mark as active
+      await this.updateSessionStatus('active', {
+        tavusConversationId: this.conversationId,
+      });
+
+      // Step 3: Join via Daily JS SDK
       this.updateLobbyStatus('Connecting to call...');
       await this.joinDaily();
     } catch (err) {
@@ -167,7 +177,7 @@ const callManager = {
       this.updateLobbyStatus('Waiting for AI buyer to join...');
 
       // Attach local video to PiP self-view
-      var localParticipant = call.participants().local;
+      const localParticipant = call.participants().local;
       if (localParticipant) {
         this.attachLocalTracks(localParticipant);
       }
@@ -183,7 +193,7 @@ const callManager = {
    * Attach local participant's video track to the PiP self-view element.
    */
   attachLocalTracks(participant) {
-    var localVideo = document.getElementById('local-video');
+    const localVideo = document.getElementById('local-video');
     if (
       localVideo &&
       participant.tracks.video &&
@@ -295,7 +305,7 @@ const callManager = {
     this.isCameraOff = !this.isCameraOff;
     this.callObject.setLocalVideo(!this.isCameraOff);
     // Update PiP visibility
-    var pip = document.getElementById('pip-container');
+    const pip = document.getElementById('pip-container');
     if (pip) pip.style.display = this.isCameraOff ? 'none' : '';
     this.updateControlStates();
   },
@@ -383,8 +393,14 @@ const callManager = {
 
     const callData = {
       conversationId: this.conversationId,
+      sessionId: this.sessionId,
       duration: this.getDuration(),
     };
+
+    // Update session status to ended
+    this.updateSessionStatus('ended', {
+      durationSeconds: callData.duration,
+    });
 
     // Leave the Daily room first (stops media)
     if (this.callObject) {
@@ -398,7 +414,7 @@ const callManager = {
     app.onCallEnded(callData);
 
     // Schedule Tavus conversation cleanup AFTER scoring has had time to fetch transcript
-    var convId = this.conversationId;
+    const convId = this.conversationId;
     if (convId) {
       setTimeout(function() {
         const token = localStorage.getItem('roc_token');
@@ -424,6 +440,74 @@ const callManager = {
     }
     this.conversationId = null;
     this.conversationUrl = null;
+    this.sessionId = null;
+  },
+
+  /**
+   * Create a session record in the database.
+   * Returns the session ID, or null if session creation fails.
+   * Non-blocking - call flow continues even if this fails.
+   */
+  async createSession(scenarioId) {
+    try {
+      const token = localStorage.getItem('roc_token');
+      const res = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ scenarioId }),
+      });
+
+      if (!res.ok) {
+        console.warn('[Call] Session creation failed:', res.status);
+        return null;
+      }
+
+      const session = await res.json();
+      console.log(`[Call] Session created: ${session.id}`);
+      return session.id;
+    } catch (err) {
+      console.warn('[Call] Session creation error:', err.message);
+      return null;
+    }
+  },
+
+  /**
+   * Update the session status in the database.
+   * Non-blocking - status update failures do not interrupt the call flow.
+   */
+  async updateSessionStatus(status, extras) {
+    if (!this.sessionId) return;
+
+    try {
+      const token = localStorage.getItem('roc_token');
+      const body = { status };
+
+      if (extras) {
+        if (extras.tavusConversationId) body.tavusConversationId = extras.tavusConversationId;
+        if (extras.durationSeconds !== undefined) body.durationSeconds = extras.durationSeconds;
+      }
+
+      const res = await fetch(`/api/sessions/${this.sessionId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        console.warn(`[Call] Session status update failed: ${res.status}`);
+        return;
+      }
+
+      console.log(`[Call] Session ${this.sessionId} -> ${status}`);
+    } catch (err) {
+      console.warn('[Call] Session status update error:', err.message);
+    }
   },
 
   /**
