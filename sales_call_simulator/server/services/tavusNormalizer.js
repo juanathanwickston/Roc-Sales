@@ -54,9 +54,41 @@ function extractConversationMeta(rawConversation) {
   };
 }
 
+/**
+ * Extract perception analysis data from a raw Tavus conversation response.
+ * The verbose response includes an application.perception_analysis event
+ * containing visual/behavioral analysis from Raven-1.
+ * Returns the perception data object, or null if not available.
+ */
+function extractPerceptionAnalysis(rawConversation) {
+  if (!rawConversation || typeof rawConversation !== 'object') {
+    return null;
+  }
+
+  // Tavus returns perception data under these possible keys (verbose mode)
+  const analysis = rawConversation.perception_analysis
+    || rawConversation['application.perception_analysis']
+    || (rawConversation.properties && rawConversation.properties.perception_analysis)
+    || null;
+
+  if (!analysis) {
+    return null;
+  }
+
+  // Normalize to a consistent shape for downstream consumers
+  return {
+    raw: analysis,
+    // If Tavus returns an array of query responses, map them
+    queries: Array.isArray(analysis) ? analysis : [],
+    // If Tavus returns a string summary, capture it
+    summary: typeof analysis === 'string' ? analysis : null,
+  };
+}
+
 module.exports = {
   extractTranscript,
   extractConversationMeta,
+  extractPerceptionAnalysis,
   MIN_TRANSCRIPT_LENGTH,
   TRANSCRIPT_RETRY_DELAY_MS,
   MAX_TRANSCRIPT_ATTEMPTS,

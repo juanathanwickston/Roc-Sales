@@ -412,4 +412,31 @@ router.get('/:id/score', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/sessions/:id/perception - Returns stored perception analysis.
+ * 404 if no perception data exists for this session.
+ */
+router.get('/:id/perception', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT raw_analysis, normalized_analysis, source, created_at
+       FROM session_perception_analysis WHERE session_id = $1`,
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Perception analysis not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('[Sessions] Get perception error:', err.message);
+    res.status(500).json({ error: 'Unable to retrieve perception analysis.' });
+  }
+});
+
 module.exports = router;

@@ -11,6 +11,7 @@ const db = require('../db');
 const { tavusFetch } = require('./tavusClient');
 const {
   extractTranscript,
+  extractPerceptionAnalysis,
   TRANSCRIPT_RETRY_DELAY_MS,
   MAX_TRANSCRIPT_ATTEMPTS,
 } = require('./tavusNormalizer');
@@ -29,8 +30,8 @@ async function processSession(sessionId) {
   await updateStatus(sessionId, 'processing');
 
   try {
-    // 1. Fetch transcript
-    const transcript = await fetchAndStoreTranscript(sessionId);
+    // 1. Fetch transcript (also stores raw conversation for perception extraction)
+    const { transcript, rawConversationData } = await fetchAndStoreTranscript(sessionId);
 
     if (!transcript) {
       console.warn(`[PostCall] No transcript available for session ${sessionId}`);
@@ -38,7 +39,10 @@ async function processSession(sessionId) {
       return { status: 'completed', scored: false };
     }
 
-    // 2. Load session to get scenario and user info
+    // 2. Extract and persist perception analysis (non-blocking)
+    await persistPerceptionAnalysis(sessionId, rawConversationData);
+
+    // 3. Load session to get scenario and user info
     const session = await db.query(
       'SELECT scenario_id, external_user_id FROM simulation_sessions WHERE id = $1',
       [sessionId]
@@ -46,7 +50,7 @@ async function processSession(sessionId) {
     const scenarioId = session.rows[0]?.scenario_id || 'unknown';
     const userId = session.rows[0]?.external_user_id || null;
 
-    // 3. Score the transcript
+    // 4. Score the transcript
     const scorecard = await scoreTranscript(transcript, scenarioId);
 
     if (!scorecard) {
@@ -55,13 +59,13 @@ async function processSession(sessionId) {
       return { status: 'completed', scored: false };
     }
 
-    // 4. Persist scoring results
+    // 5. Persist scoring results
     await persistScore(sessionId, scorecard);
 
-    // 5. Notify ROC Academy (fire-and-forget, does not block completion)
+    // 6. Notify ROC Academy (fire-and-forget, does not block completion)
     sendCompletionCallback({ sessionId, scorecard, scenarioId, userId }).catch(() => {});
 
-    // 6. Mark session as completed
+    // 7. Mark session as completed
     await updateStatus(sessionId, 'completed');
 
     console.log(`[PostCall] Session ${sessionId} fully processed (score: ${scorecard.overall_score})`);
@@ -101,9 +105,10 @@ async function fetchAndStoreTranscript(sessionId) {
     return null;
   }
 
-  // Fetch from Tavus with retry loop
+  // Fetch from Tavus with retry loop (verbose=true for perception analysis data)
   let transcript = null;
   let rawResponse = null;
+  let rawConversationData = null;
 
   for (let attempt = 1; attempt <= MAX_TRANSCRIPT_ATTEMPTS; attempt++) {
     if (attempt > 1) {
@@ -113,8 +118,9 @@ async function fetchAndStoreTranscript(sessionId) {
     console.log(`[PostCall] Fetching transcript, attempt ${attempt}/${MAX_TRANSCRIPT_ATTEMPTS}`);
 
     try {
-      const data = await tavusFetch(`/conversations/${conversationId}`);
+      const data = await tavusFetch(`/conversations/${conversationId}?verbose=true`);
       rawResponse = JSON.stringify(data);
+      rawConversationData = data;
 
       // Use normalizer to extract transcript from vendor-specific fields
       const text = extractTranscript(data);
@@ -133,7 +139,7 @@ async function fetchAndStoreTranscript(sessionId) {
 
   if (!transcript) {
     console.warn(`[PostCall] Transcript unavailable after ${MAX_TRANSCRIPT_ATTEMPTS} attempts`);
-    return null;
+    return { transcript: null, rawConversationData: null };
   }
 
   // Store in session_transcripts
@@ -146,7 +152,53 @@ async function fetchAndStoreTranscript(sessionId) {
   );
 
   console.log(`[PostCall] Transcript stored for session ${sessionId}`);
-  return transcript;
+  return { transcript, rawConversationData };
+}
+
+/**
+ * Extract and persist Tavus perception analysis data.
+ * Non-blocking: failure does not prevent scoring or completion.
+ * Sets perception_status to 'ready' on success or 'skipped' on failure/absence.
+ */
+async function persistPerceptionAnalysis(sessionId, rawConversationData) {
+  try {
+    if (!rawConversationData) {
+      await updatePerceptionStatus(sessionId, 'skipped');
+      return;
+    }
+
+    const perception = extractPerceptionAnalysis(rawConversationData);
+
+    if (!perception) {
+      console.log(`[PostCall] No perception analysis data for session ${sessionId}`);
+      await updatePerceptionStatus(sessionId, 'skipped');
+      return;
+    }
+
+    await db.query(
+      `INSERT INTO session_perception_analysis (session_id, raw_analysis, normalized_analysis)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (session_id)
+       DO UPDATE SET raw_analysis = $2, normalized_analysis = $3`,
+      [sessionId, JSON.stringify(perception.raw), JSON.stringify(perception)]
+    );
+
+    await updatePerceptionStatus(sessionId, 'ready');
+    console.log(`[PostCall] Perception analysis stored for session ${sessionId}`);
+  } catch (err) {
+    console.warn(`[PostCall] Perception analysis failed for session ${sessionId}:`, err.message);
+    await updatePerceptionStatus(sessionId, 'skipped').catch(() => {});
+  }
+}
+
+/**
+ * Update the perception_status column on a session.
+ */
+async function updatePerceptionStatus(sessionId, status) {
+  await db.query(
+    'UPDATE simulation_sessions SET perception_status = $1 WHERE id = $2',
+    [status, sessionId]
+  );
 }
 
 /**
