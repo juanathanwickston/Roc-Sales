@@ -233,7 +233,7 @@ const app = {
   },
 
   /**
-   * Called when a call ends - transition to debrief.
+   * Called when a call ends - trigger backend processing and poll for results.
    */
   async onCallEnded(callData) {
     this.showScreen('debrief');
@@ -241,7 +241,110 @@ const app = {
     document.getElementById('debrief-scenario-name').textContent = scenarioName;
     document.getElementById('debrief-loading').style.display = 'flex';
     document.getElementById('debrief-content').style.display = 'none';
-    await scoring.evaluate(callData, this.currentScenario);
+
+    if (!callData.sessionId) {
+      // No session - fall back to manual debrief
+      scoring.renderManualDebrief(callData, this.currentScenario);
+      return;
+    }
+
+    try {
+      // Trigger backend processing (fire-and-forget on server side)
+      const token = localStorage.getItem('roc_token');
+      const triggerRes = await fetch(`/api/sessions/${callData.sessionId}/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!triggerRes.ok) {
+        console.warn('[App] Backend processing trigger failed:', triggerRes.status);
+        scoring.renderManualDebrief(callData, this.currentScenario);
+        return;
+      }
+
+      // Poll for completion
+      const finalStatus = await this.pollSessionStatus(callData.sessionId);
+
+      if (finalStatus === 'completed') {
+        // Fetch and render the scorecard
+        const scorecard = await this.fetchScorecard(callData.sessionId);
+        if (scorecard) {
+          scoring.renderScorecard(scorecard, this.currentScenario);
+          toast('Performance evaluation complete', 'success');
+        } else {
+          scoring.renderManualDebrief(callData, this.currentScenario);
+        }
+      } else {
+        console.warn(`[App] Session ended with status: ${finalStatus}`);
+        toast('AI scoring unavailable - showing self-assessment', 'info');
+        scoring.renderManualDebrief(callData, this.currentScenario);
+      }
+    } catch (err) {
+      console.error('[App] Post-call processing error:', err);
+      toast('AI scoring unavailable - showing self-assessment', 'info');
+      scoring.renderManualDebrief(callData, this.currentScenario);
+    }
+  },
+
+  /**
+   * Poll session status until it reaches a terminal state (completed or failed).
+   * Returns the final status string.
+   */
+  async pollSessionStatus(sessionId) {
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_POLLS = 30;
+    const token = localStorage.getItem('roc_token');
+
+    for (let poll = 1; poll <= MAX_POLLS; poll++) {
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+
+        if (!res.ok) continue;
+
+        const session = await res.json();
+
+        if (session.status === 'completed' || session.status === 'failed') {
+          return session.status;
+        }
+
+        console.log(`[App] Polling session ${sessionId}: ${session.status} (${poll}/${MAX_POLLS})`);
+      } catch (err) {
+        console.warn('[App] Poll error:', err.message);
+      }
+    }
+
+    console.warn(`[App] Polling timed out after ${MAX_POLLS} attempts`);
+    return 'timeout';
+  },
+
+  /**
+   * Fetch the stored scorecard from the backend.
+   * Returns the scorecard object, or null if not found.
+   */
+  async fetchScorecard(sessionId) {
+    try {
+      const token = localStorage.getItem('roc_token');
+      const res = await fetch(`/api/sessions/${sessionId}/score`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) {
+        console.warn('[App] Scorecard fetch failed:', res.status);
+        return null;
+      }
+
+      return await res.json();
+    } catch (err) {
+      console.warn('[App] Scorecard fetch error:', err.message);
+      return null;
+    }
   },
 
   /**

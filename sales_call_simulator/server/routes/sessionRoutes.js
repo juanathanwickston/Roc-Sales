@@ -7,6 +7,7 @@ const express = require('express');
 
 const db = require('../db');
 const { tavusFetch } = require('../services/tavusClient');
+const { processSession } = require('../services/postCallProcessor');
 
 const router = express.Router();
 
@@ -253,6 +254,88 @@ router.post('/:id/fetch-transcript', async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Fetch transcript error:', err.message);
     res.status(500).json({ error: 'Unable to fetch transcript.' });
+  }
+});
+
+/**
+ * POST /api/sessions/:id/process - Trigger backend post-call processing.
+ * Starts the pipeline (fetch transcript -> score -> persist) asynchronously.
+ * Returns immediately so the frontend can poll for completion.
+ */
+router.post('/:id/process', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    // Verify session exists and is in the right state
+    const session = await db.query(
+      'SELECT id, status FROM simulation_sessions WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (session.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const currentStatus = session.rows[0].status;
+
+    // Only allow processing from 'ended' status
+    if (currentStatus !== 'ended') {
+      return res.status(422).json({
+        error: `Cannot process session in '${currentStatus}' status. Must be 'ended'.`,
+      });
+    }
+
+    // Fire-and-forget: start processing, respond immediately
+    processSession(req.params.id).catch((err) => {
+      console.error(`[Sessions] Background processing failed for ${req.params.id}:`, err.message);
+    });
+
+    res.json({ status: 'processing', message: 'Post-call processing started' });
+  } catch (err) {
+    console.error('[Sessions] Process trigger error:', err.message);
+    res.status(500).json({ error: 'Unable to start processing.' });
+  }
+});
+
+/**
+ * GET /api/sessions/:id/score - Retrieve stored scorecard.
+ * Returns the parsed scorecard from session_scores table.
+ */
+router.get('/:id/score', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT overall_score, overall_verdict, categories, top_strengths,
+              critical_improvements, coaching_tip, created_at
+       FROM session_scores WHERE session_id = $1`,
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Score not found' });
+    }
+
+    const row = result.rows[0];
+
+    // Reconstruct the scorecard shape the frontend expects
+    const scorecard = {
+      overall_score: row.overall_score,
+      overall_verdict: row.overall_verdict,
+      categories: row.categories || {},
+      top_strengths: row.top_strengths || [],
+      critical_improvements: row.critical_improvements || [],
+      coaching_tip: row.coaching_tip || '',
+    };
+
+    res.json(scorecard);
+  } catch (err) {
+    console.error('[Sessions] Get score error:', err.message);
+    res.status(500).json({ error: 'Unable to retrieve score.' });
   }
 });
 

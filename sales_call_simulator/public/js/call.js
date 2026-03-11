@@ -7,7 +7,7 @@
 // Minimum call duration (seconds) before allowing end without confirmation
 const MIN_CALL_DURATION_SECONDS = 30;
 
-// Delay (ms) before Tavus conversation cleanup to give scoring time to fetch transcript
+// Delay (ms) before Tavus conversation cleanup to give backend time to fetch transcript
 const TAVUS_CLEANUP_DELAY_MS = 15000;
 
 const callManager = {
@@ -409,11 +409,11 @@ const callManager = {
       this.callObject = null;
     }
 
-    // Transition to debrief and run scoring before deleting the Tavus
-    // conversation. The DELETE destroys the transcript on their side.
+    // Transition to debrief - backend handles scoring via POST /process
     app.onCallEnded(callData);
 
-    // Schedule Tavus conversation cleanup AFTER scoring has had time to fetch transcript
+    // Schedule Tavus conversation cleanup AFTER backend has had time to fetch transcript
+    // The DELETE destroys the conversation and transcript on Tavus' side
     const convId = this.conversationId;
     if (convId) {
       setTimeout(function() {

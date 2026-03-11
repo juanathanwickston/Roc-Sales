@@ -1,103 +1,13 @@
 /**
- * Sales Call Simulator - Scoring & Debrief
- * Post-call evaluation using the scoring API (OpenAI GPT-4o).
+ * Sales Call Simulator - Scoring Display
+ * Renders scorecard and debrief UI from backend-processed results.
+ * All scoring logic runs server-side via postCallProcessor.
  */
 
 // SVG score ring circumference (2 * PI * 54)
 const SCORE_RING_CIRCUMFERENCE = 339.29;
 
 const scoring = {
-  /**
-   * Evaluate a completed call and render the scorecard.
-   */
-  async evaluate(callData, scenario) {
-    const loadingEl = document.getElementById('debrief-loading');
-    const contentEl = document.getElementById('debrief-content');
-
-    try {
-      // Fetch transcript via backend (server handles Tavus API and storage)
-      const transcript = await this.getTranscript(callData);
-      const rubric = scenario?.rubric || {};
-
-      if (!transcript) {
-        // No transcript available - show a manual debrief
-        this.renderManualDebrief(callData, scenario);
-        return;
-      }
-
-      // Call scoring API with auth
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch('/api/scoring/evaluate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          transcript,
-          scenario_id: scenario?.id || 'unknown',
-          rubric,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Scoring failed');
-      }
-
-      const scorecard = await res.json();
-      this.renderScorecard(scorecard, scenario);
-      toast('Performance evaluation complete', 'success');
-    } catch (err) {
-      console.error('[Scoring] Error:', err);
-      toast('AI scoring unavailable - showing self-assessment', 'info');
-      this.renderManualDebrief(callData, scenario);
-    }
-  },
-
-  /**
-   * Fetch transcript from the backend.
-   * The server handles the Tavus API call, retry logic, and storage.
-   * Returns the transcript text or null if unavailable.
-   */
-  async getTranscript(callData) {
-    if (!callData.sessionId) {
-      // No session ID - fall back to null (session creation may have failed)
-      console.warn('[Scoring] No session ID available for transcript fetch');
-      return null;
-    }
-
-    try {
-      console.log('[Scoring] Requesting transcript from backend...');
-
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch(`/api/sessions/${callData.sessionId}/fetch-transcript`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (!res.ok) {
-        console.warn('[Scoring] Backend transcript fetch failed:', res.status);
-        return null;
-      }
-
-      const data = await res.json();
-
-      if (data.transcript) {
-        console.log(`[Scoring] Transcript received (${data.transcript.length} chars)`);
-      } else {
-        console.warn('[Scoring] Backend returned no transcript');
-      }
-
-      return data.transcript || null;
-    } catch (err) {
-      console.warn('[Scoring] Transcript fetch error:', err.message);
-      return null;
-    }
-  },
 
   /**
    * Render the full AI-generated scorecard.
