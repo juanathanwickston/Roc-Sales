@@ -1,7 +1,7 @@
 /**
- * Sales Call Simulator — App Controller
+ * Sales Call Simulator - App Controller
  * Manages screen transitions, scenario loading, and state.
- * NO inline onclick handlers — all bindings via addEventListener (CSP compliant).
+ * NO inline onclick handlers - all bindings via addEventListener (CSP compliant).
  */
 
 // --- Shared Helpers ---
@@ -52,7 +52,7 @@ const app = {
   scenarios: [],
 
   /**
-   * Initialize — load scenarios and bind all event listeners.
+   * Initialize - load scenarios and bind all event listeners.
    */
   async init() {
     await this.loadScenarios();
@@ -60,7 +60,7 @@ const app = {
   },
 
   /**
-   * Bind all static event listeners (CSP-safe — no inline onclick).
+   * Bind all static event listeners (CSP-safe - no inline onclick).
    */
   bindEvents() {
     // Lobby cancel
@@ -84,7 +84,7 @@ const app = {
     const btnRetry = document.getElementById('btn-retry');
     if (btnRetry) btnRetry.addEventListener('click', function() { app.retryScenario(); });
 
-    // Scenario card clicks — event delegation on the grid container
+    // Scenario card clicks - event delegation on the grid container
     const scenarioList = document.getElementById('scenario-list');
     if (scenarioList) {
       scenarioList.addEventListener('click', function(e) {
@@ -181,7 +181,7 @@ const app = {
   },
 
   /**
-   * Render a scenario card — uses data-scenario-id for event delegation.
+   * Render a scenario card - uses data-scenario-id for event delegation.
    * NO inline onclick.
    */
   renderScenarioCard(scenario) {
@@ -189,7 +189,7 @@ const app = {
     const duration = scenario.durationMinutes || scenario.duration_minutes;
     return '' +
       '<button class="scenario-card" data-scenario-id="' + esc(scenario.id) + '" role="listitem"' +
-        ' aria-label="' + esc(scenario.name) + ' — ' + diff + ' difficulty" type="button">' +
+        ' aria-label="' + esc(scenario.name) + ' - ' + diff + ' difficulty" type="button">' +
         '<div class="scenario-card-title">' +
           '<span>' + esc(scenario.name) + '</span>' +
           '<span class="difficulty-badge difficulty-' + diff + '">' + diff + '</span>' +
@@ -203,7 +203,7 @@ const app = {
   },
 
   /**
-   * User selected a scenario — fetch full details and start lobby.
+   * User selected a scenario - fetch full details and start lobby.
    */
   async selectScenario(scenarioId) {
     try {
@@ -224,7 +224,7 @@ const app = {
   },
 
   /**
-   * Cancel from lobby — return to scenarios.
+   * Cancel from lobby - return to scenarios.
    */
   cancelLobby() {
     callManager.cleanup();
@@ -233,7 +233,7 @@ const app = {
   },
 
   /**
-   * Called when a call ends — transition to debrief.
+   * Called when a call ends - transition to debrief.
    */
   async onCallEnded(callData) {
     this.showScreen('debrief');

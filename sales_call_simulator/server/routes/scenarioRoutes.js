@@ -11,7 +11,7 @@ const router = express.Router();
 
 const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
 
-// Cache scenarios at startup (H5 — no disk reads per request)
+// Cache scenarios at startup (H5 - no disk reads per request)
 let cachedScenarios = [];
 
 /**
@@ -36,7 +36,7 @@ function loadScenarios() {
 cachedScenarios = loadScenarios();
 
 /**
- * GET /api/scenarios — List all available scenarios (summary view)
+ * GET /api/scenarios - List all available scenarios (summary view)
  */
 router.get('/', (req, res) => {
   const summaries = cachedScenarios.map(s => ({
@@ -51,7 +51,7 @@ router.get('/', (req, res) => {
 });
 
 /**
- * GET /api/scenarios/:id — Get full scenario details
+ * GET /api/scenarios/:id - Get full scenario details
  */
 router.get('/:id', (req, res) => {
   const scenario = cachedScenarios.find(s => s.id === req.params.id);

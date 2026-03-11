@@ -35,7 +35,7 @@ function requireAuth(req, res, next) {
 }
 
 /**
- * Optional auth — sets req.user if token present, continues regardless.
+ * Optional auth - sets req.user if token present, continues regardless.
  */
 function optionalAuth(req, res, next) {
   const authHeader = req.headers.authorization;

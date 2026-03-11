@@ -27,7 +27,7 @@ router.post('/evaluate', async (req, res) => {
 
     if (!config.OPENAI_API_KEY) {
       return res.status(503).json({
-        error: 'Scoring unavailable — OPENAI_API_KEY not configured',
+        error: 'Scoring unavailable - OPENAI_API_KEY not configured',
       });
     }
 

@@ -10,7 +10,7 @@ const { config } = require('../config');
 const router = express.Router();
 
 /**
- * Internal helper — calls Tavus API with server-side API key.
+ * Internal helper - calls Tavus API with server-side API key.
  */
 async function tavusFetch(path, options = {}) {
   const url = `${config.TAVUS_API_URL}${path}`;
@@ -36,10 +36,10 @@ async function tavusFetch(path, options = {}) {
   return data;
 }
 
-// ─── PERSONAS ───
+// --- Personas ---
 
 /**
- * GET /api/tavus/personas — List available personas
+ * GET /api/tavus/personas - List available personas
  */
 router.get('/personas', async (req, res) => {
   try {
@@ -52,7 +52,7 @@ router.get('/personas', async (req, res) => {
 });
 
 /**
- * GET /api/tavus/personas/:id — Get specific persona
+ * GET /api/tavus/personas/:id - Get specific persona
  */
 router.get('/personas/:id', async (req, res) => {
   try {
@@ -64,10 +64,10 @@ router.get('/personas/:id', async (req, res) => {
   }
 });
 
-// ─── CONVERSATIONS ───
+// --- Conversations ---
 
 /**
- * POST /api/tavus/conversations — Start a new call session
+ * POST /api/tavus/conversations - Start a new call session
  * Body: { persona_id, conversation_name?, conversational_context?, properties? }
  */
 router.post('/conversations', async (req, res) => {
@@ -119,7 +119,7 @@ router.post('/conversations', async (req, res) => {
 });
 
 /**
- * GET /api/tavus/conversations/:id — Get conversation status
+ * GET /api/tavus/conversations/:id - Get conversation status
  */
 router.get('/conversations/:id', async (req, res) => {
   try {
@@ -132,7 +132,7 @@ router.get('/conversations/:id', async (req, res) => {
 });
 
 /**
- * DELETE /api/tavus/conversations/:id — End a conversation
+ * DELETE /api/tavus/conversations/:id - End a conversation
  */
 router.delete('/conversations/:id', async (req, res) => {
   try {

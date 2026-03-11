@@ -14,6 +14,9 @@ const config = {
   // OpenAI (post-call scoring)
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
 
+  // Database
+  DATABASE_URL: process.env.DATABASE_URL || '',
+
   // Server
   PORT: parseInt(process.env.PORT, 10) || 3001,
   NODE_ENV: process.env.NODE_ENV || 'development',
@@ -27,19 +30,22 @@ const config = {
 
 /**
  * Validate required configuration on startup.
- * Warns for missing keys instead of crashing — allows dev without all services.
+ * Warns for missing keys instead of crashing - allows dev without all services.
  */
 function validateConfig() {
   const warnings = [];
 
   if (!config.TAVUS_API_KEY) {
-    warnings.push('TAVUS_API_KEY is not set — Tavus API calls will fail.');
+    warnings.push('TAVUS_API_KEY is not set - Tavus API calls will fail.');
   }
   if (!config.OPENAI_API_KEY) {
-    warnings.push('OPENAI_API_KEY is not set — post-call scoring will be unavailable.');
+    warnings.push('OPENAI_API_KEY is not set - post-call scoring will be unavailable.');
+  }
+  if (!config.DATABASE_URL) {
+    warnings.push('DATABASE_URL is not set - sessions will not be persisted.');
   }
   if (!config.JWT_SECRET) {
-    warnings.push('JWT_SECRET is not set — auth will be disabled.');
+    warnings.push('JWT_SECRET is not set - auth will be disabled.');
   }
 
   if (warnings.length > 0) {

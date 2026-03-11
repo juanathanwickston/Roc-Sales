@@ -1,5 +1,5 @@
 /**
- * Sales Call Simulator — Scoring & Debrief
+ * Sales Call Simulator - Scoring & Debrief
  * Post-call evaluation using the scoring API (OpenAI GPT-4o).
  */
 
@@ -30,7 +30,7 @@ const scoring = {
       const rubric = scenario?.rubric || {};
 
       if (!transcript) {
-        // No transcript available — show a manual debrief
+        // No transcript available - show a manual debrief
         this.renderManualDebrief(callData, scenario);
         return;
       }
@@ -60,7 +60,7 @@ const scoring = {
       toast('Performance evaluation complete', 'success');
     } catch (err) {
       console.error('[Scoring] Error:', err);
-      toast('AI scoring unavailable — showing self-assessment', 'info');
+      toast('AI scoring unavailable - showing self-assessment', 'info');
       this.renderManualDebrief(callData, scenario);
     }
   },
@@ -172,7 +172,7 @@ const scoring = {
     const fillEl = document.getElementById('score-ring-fill');
     const numberEl = document.getElementById('score-number');
 
-    // Set color using CSS custom property (not color-only — verdict text exists)
+    // Set color using CSS custom property (not color-only - verdict text exists)
     if (verdict === 'fail') {
       fillEl.style.stroke = 'var(--red)';
     } else if (verdict === 'needs_work') {

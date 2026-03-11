@@ -1,5 +1,5 @@
 /**
- * Sales Call Simulator — Call Manager
+ * Sales Call Simulator - Call Manager
  * Integrates with Tavus CVI via the Daily JS SDK.
  * Handles WebRTC video/audio, call controls, and timer.
  */
@@ -31,7 +31,7 @@ const callManager = {
       // Step 1: Create conversation via our backend proxy
       this.updateLobbyStatus('Creating conversation...');
 
-      // C2 fix: Only send Tavus-accepted keys — never send rubric/coaching_notes
+      // C2 fix: Only send Tavus-accepted keys - never send rubric/coaching_notes
       const conversationPayload = {
         persona_id: scenario.persona_id,
       };
@@ -149,10 +149,10 @@ const callManager = {
       this.attachRemoteTracks(event.participant);
     });
 
-    // When remote participant leaves — call ended
+    // When remote participant leaves - call ended
     call.on('participant-left', (event) => {
       if (event.participant.local) return;
-      console.log('[Call] Remote participant left — call ending');
+      console.log('[Call] Remote participant left - call ending');
       this.handleCallEnd();
     });
 
@@ -161,7 +161,7 @@ const callManager = {
       console.error('[Call] Daily error:', event);
     });
 
-    // When we've joined successfully — attach local video to PiP
+    // When we've joined successfully - attach local video to PiP
     call.on('joined-meeting', () => {
       console.log('[Call] Local user joined meeting');
       this.updateLobbyStatus('Waiting for AI buyer to join...');

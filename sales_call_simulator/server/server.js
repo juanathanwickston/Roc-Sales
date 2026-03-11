@@ -1,5 +1,5 @@
 /**
- * Sales Call Simulator — Express Server
+ * Sales Call Simulator - Express Server
  * Pattern adapted from roc_academy/server/server.js
  */
 
@@ -8,10 +8,11 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { config, validateConfig } = require('./config');
+const db = require('./db');
 
 const app = express();
 
-// Trust first proxy (Railway) — required for express-rate-limit
+// Trust first proxy (Railway) - required for express-rate-limit
 app.set('trust proxy', 1);
 
 // --- Middleware ---
@@ -44,7 +45,7 @@ app.use(
   })
 );
 
-// CORS — accept requests from ROC Academy
+// CORS - accept requests from ROC Academy
 app.use((req, res, next) => {
   const allowedOrigins = [config.ROC_ACADEMY_URL, `http://localhost:${config.PORT}`];
   const origin = req.headers.origin;
@@ -96,13 +97,15 @@ app.use('/api/scenarios', scenarioRoutes); // Always public
 app.use('/api/scoring', optionalAuth, scoringRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const dbStatus = await db.healthCheck();
   res.json({
     status: 'ok',
     service: 'sales-call-simulator',
     timestamp: new Date().toISOString(),
     tavusConfigured: !!config.TAVUS_API_KEY,
     openaiConfigured: !!config.OPENAI_API_KEY,
+    db: dbStatus,
   });
 });
 
@@ -110,7 +113,7 @@ app.get('/api/health', (req, res) => {
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// SPA fallback — serve index.html for all non-API routes
+// SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api/')) {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
@@ -130,13 +133,31 @@ app.use((err, req, res, _next) => {
 
 validateConfig();
 
-const server = app.listen(config.PORT, () => {
-  console.log(`\nSales Call Simulator running on http://localhost:${config.PORT}`);
-  console.log(`   Environment: ${config.NODE_ENV}`);
-  console.log(`   Tavus API: ${config.TAVUS_API_KEY ? 'configured' : 'NOT SET'}`);
-  console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? 'configured' : 'NOT SET'}`);
-  console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
-});
+async function start() {
+  try {
+    await db.migrate();
+  } catch (err) {
+    console.error('[SERVER] Migration failed - aborting startup:', err.message);
+    process.exit(1);
+  }
+
+  const server = app.listen(config.PORT, () => {
+    console.log(`\nSales Call Simulator running on http://localhost:${config.PORT}`);
+    console.log(`   Environment: ${config.NODE_ENV}`);
+    console.log(`   Tavus API: ${config.TAVUS_API_KEY ? 'configured' : 'NOT SET'}`);
+    console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? 'configured' : 'NOT SET'}`);
+    console.log(`   Database:  ${config.DATABASE_URL ? 'configured' : 'NOT SET'}`);
+    console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
+  });
+
+  return server;
+}
+
+const serverPromise = start();
+
+// Used by shutdown handlers
+let serverInstance = null;
+serverPromise.then(s => { serverInstance = s; });
 
 // --- Process Error Handlers ---
 
@@ -152,10 +173,12 @@ process.on('uncaughtException', (err) => {
 
 function shutdown(signal) {
   console.log(`\n[SERVER] ${signal} received. Shutting down gracefully...`);
-  server.close(() => {
-    console.log('[SERVER] HTTP server closed.');
-    process.exit(0);
-  });
+  if (serverInstance) {
+    serverInstance.close(() => {
+      console.log('[SERVER] HTTP server closed.');
+      process.exit(0);
+    });
+  }
   setTimeout(() => {
     console.error('[SERVER] Forced shutdown after timeout.');
     process.exit(1);
