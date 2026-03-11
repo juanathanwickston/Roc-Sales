@@ -132,7 +132,7 @@ const app = {
    */
   showScreen(name) {
     document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-    var screen = document.getElementById('screen-' + name);
+    const screen = document.getElementById('screen-' + name);
     if (screen) {
       screen.classList.add('active');
       this.currentScreen = name;
