@@ -73,7 +73,7 @@ router.post('/conversations', async (req, res) => {
       ...(custom_greeting && { custom_greeting }),
       ...(require_auth !== undefined && { require_auth }),
       properties: {
-        max_call_duration: 1200, // 20 min default for training
+        max_call_duration: 600, // 10 min default for training
         participant_left_timeout: 30,
         participant_absent_timeout: 120,
         enable_closed_captions: true,
