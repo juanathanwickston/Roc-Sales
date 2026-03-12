@@ -8,14 +8,16 @@
 // Minimum transcript length to be considered valid
 const MIN_TRANSCRIPT_LENGTH = 20;
 
-// Tavus needs time to finalize the transcript after a call ends
-const TRANSCRIPT_INITIAL_DELAY_MS = 10000;
+// Tavus needs a brief window to finalize the transcript after a call ends
+const TRANSCRIPT_INITIAL_DELAY_MS = 3000;
 const TRANSCRIPT_RETRY_DELAY_MS = 5000;
-const MAX_TRANSCRIPT_ATTEMPTS = 10;
+const MAX_TRANSCRIPT_ATTEMPTS = 6;
 
 /**
  * Extract the transcript text from a raw Tavus conversation response.
- * Tavus has returned the transcript under different field names across API versions.
+ * Tavus returns the transcript as an array of {role, content} message objects
+ * under properties.transcript (confirmed via API docs / webhook schema).
+ * This function normalizes both array and string formats into a single string.
  * Returns the transcript string, or null if not available or too short.
  */
 function extractTranscript(rawConversation) {
@@ -23,13 +25,37 @@ function extractTranscript(rawConversation) {
     return null;
   }
 
-  const text = rawConversation.transcript
+  // Tavus primary location: properties.transcript (array of {role, content})
+  const raw = (rawConversation.properties && rawConversation.properties.transcript)
+    || rawConversation.transcript
     || rawConversation.conversation_transcript
     || rawConversation.call_transcript
-    || (rawConversation.properties && rawConversation.properties.transcript)
     || null;
 
-  if (!text || typeof text !== 'string' || text.length < MIN_TRANSCRIPT_LENGTH) {
+  if (!raw) {
+    return null;
+  }
+
+  let text;
+
+  if (Array.isArray(raw)) {
+    // Tavus format: [{role: "user", content: "..."}, {role: "assistant", content: "..."}]
+    // Filter out system messages (Tavus internal instructions) and join into readable text
+    const lines = raw
+      .filter((msg) => msg && msg.role && msg.role !== 'system' && msg.content)
+      .map((msg) => {
+        const role = msg.role === 'assistant' ? 'Celine' : 'Rep';
+        return `[${role}]: ${msg.content}`;
+      });
+
+    text = lines.join('\n');
+  } else if (typeof raw === 'string') {
+    text = raw;
+  } else {
+    return null;
+  }
+
+  if (!text || text.length < MIN_TRANSCRIPT_LENGTH) {
     return null;
   }
 

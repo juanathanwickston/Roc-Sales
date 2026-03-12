@@ -302,7 +302,7 @@ const app = {
         return;
       }
 
-      // Poll for completion
+      // Poll for completion with progressive UX updates
       const finalStatus = await this.pollSessionStatus(callData.sessionId);
 
       if (finalStatus === 'completed') {
@@ -314,6 +314,9 @@ const app = {
         } else {
           scoring.renderManualDebrief(callData, this.currentScenario);
         }
+      } else if (finalStatus === 'timeout') {
+        toast('Evaluation is taking longer than expected. Check back later for results.', 'info');
+        setTimeout(() => this.showScreen('scenarios'), 4000);
       } else {
         console.warn(`[App] Session ended with status: ${finalStatus}`);
         toast('AI scoring unavailable - showing self-assessment', 'info');
@@ -332,11 +335,22 @@ const app = {
    */
   async pollSessionStatus(sessionId) {
     const POLL_INTERVAL_MS = 2000;
-    const MAX_POLLS = 30;
+    const MAX_POLLS = 150; // 5 minutes max
     const token = localStorage.getItem('roc_token');
+    const loadingText = document.querySelector('#debrief-loading p');
 
     for (let poll = 1; poll <= MAX_POLLS; poll++) {
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
+      // Progressive UX messages
+      const elapsed = poll * 2;
+      if (loadingText) {
+        if (elapsed >= 90) {
+          loadingText.textContent = 'Still processing... you can leave this tab open in the background.';
+        } else if (elapsed >= 30) {
+          loadingText.textContent = 'Evaluating your call - this may take a minute or two.';
+        }
+      }
 
       try {
         const res = await fetch(`/api/sessions/${sessionId}`, {

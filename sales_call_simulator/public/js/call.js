@@ -397,7 +397,7 @@ const callManager = {
       duration: this.getDuration(),
     };
 
-    // Update session status to ended — MUST complete before POST /process
+    // Update session status to ended - MUST complete before POST /process
     await this.updateSessionStatus('ended', {
       durationSeconds: callData.duration,
     });
