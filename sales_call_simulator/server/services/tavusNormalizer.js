@@ -14,10 +14,27 @@ const TRANSCRIPT_RETRY_DELAY_MS = 5000;
 const TRANSCRIPT_MAX_WAIT_MS = 300000; // 5 minutes total ceiling
 
 /**
- * Extract the transcript text from a raw Tavus conversation response.
- * Tavus returns the transcript as an array of {role, content} message objects
- * under properties.transcript (confirmed via API docs / webhook schema).
- * This function normalizes both array and string formats into a single string.
+ * Find event properties in the Tavus verbose response events array.
+ * Tavus verbose responses contain an events[] array where each event has:
+ *   { event_type, properties, created_at, updated_at, message_type, timestamp }
+ * Confirmed via diagnostic logs (commit a215c86).
+ * Returns the properties object for the matching event, or null.
+ */
+function findEventProperties(rawConversation, eventType) {
+  if (!rawConversation || !Array.isArray(rawConversation.events)) {
+    return null;
+  }
+
+  const event = rawConversation.events.find((e) => e.event_type === eventType);
+  return (event && event.properties) || null;
+}
+
+/**
+ * Extract the transcript text from a raw Tavus verbose conversation response.
+ * Transcript lives at: events[].properties.transcript
+ * where event_type === 'application.transcription_ready'.
+ * properties.transcript is an array of {role, content} objects (14 entries confirmed).
+ * First entry is a system prompt - filtered out.
  * Returns the transcript string, or null if not available or too short.
  */
 function extractTranscript(rawConversation) {
@@ -25,12 +42,9 @@ function extractTranscript(rawConversation) {
     return null;
   }
 
-  // Tavus primary location: properties.transcript (array of {role, content})
-  const raw = (rawConversation.properties && rawConversation.properties.transcript)
-    || rawConversation.transcript
-    || rawConversation.conversation_transcript
-    || rawConversation.call_transcript
-    || null;
+  // Tavus verbose response: transcript is inside the events array
+  const props = findEventProperties(rawConversation, 'application.transcription_ready');
+  const raw = (props && props.transcript) || null;
 
   if (!raw) {
     return null;
@@ -82,9 +96,10 @@ function extractConversationMeta(rawConversation) {
 }
 
 /**
- * Extract perception analysis data from a raw Tavus conversation response.
- * The verbose response includes an application.perception_analysis event
- * containing visual/behavioral analysis from Raven-1.
+ * Extract perception analysis data from a raw Tavus verbose conversation response.
+ * Perception data lives at: events[].properties.analysis
+ * where event_type === 'application.perception_analysis'.
+ * properties contains a single key: "analysis" (confirmed via diagnostic logs).
  * Returns the perception data object, or null if not available.
  */
 function extractPerceptionAnalysis(rawConversation) {
@@ -92,11 +107,9 @@ function extractPerceptionAnalysis(rawConversation) {
     return null;
   }
 
-  // Tavus returns perception data under these possible keys (verbose mode)
-  const analysis = rawConversation.perception_analysis
-    || rawConversation['application.perception_analysis']
-    || (rawConversation.properties && rawConversation.properties.perception_analysis)
-    || null;
+  // Tavus verbose response: perception is inside the events array
+  const props = findEventProperties(rawConversation, 'application.perception_analysis');
+  const analysis = (props && props.analysis) || null;
 
   if (!analysis) {
     return null;

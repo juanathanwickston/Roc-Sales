@@ -134,18 +134,6 @@ async function fetchAndStoreTranscript(sessionId) {
       rawResponse = JSON.stringify(data);
       rawConversationData = data;
 
-      // Diagnostic: log the exact response structure so we can see where Tavus puts the transcript
-      const topKeys = Object.keys(data);
-      const hasTranscript = 'transcript' in data;
-      const hasProperties = 'properties' in data;
-      const transcriptType = hasTranscript ? (Array.isArray(data.transcript) ? 'array' : typeof data.transcript) : 'missing';
-      const propsKeys = hasProperties && data.properties ? Object.keys(data.properties) : [];
-      console.log(`[PostCall] Tavus response keys: [${topKeys.join(', ')}]`);
-      console.log(`[PostCall] transcript field: ${transcriptType}${hasTranscript ? ` (length: ${Array.isArray(data.transcript) ? data.transcript.length : String(data.transcript).length})` : ''}`);
-      if (hasProperties) {
-        console.log(`[PostCall] properties keys: [${propsKeys.join(', ')}]`);
-      }
-
       // Use normalizer to extract transcript from vendor-specific fields
       const text = extractTranscript(data);
 
