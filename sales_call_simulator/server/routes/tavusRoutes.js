@@ -119,6 +119,20 @@ router.get('/conversations/:id', async (req, res) => {
 });
 
 /**
+ * GET /api/tavus/conversations/:id/raw - DIAGNOSTIC: returns raw Tavus verbose response.
+ * Temporary endpoint for debugging transcript structure. Remove after diagnosis.
+ */
+router.get('/conversations/:id/raw', async (req, res) => {
+  try {
+    const data = await tavusFetch(`/conversations/${req.params.id}?verbose=true`);
+    res.json(data);
+  } catch (err) {
+    console.error('[Tavus] Raw conversation error:', err.message);
+    res.status(err.status || 500).json({ error: 'Unable to retrieve raw conversation.' });
+  }
+});
+
+/**
  * DELETE /api/tavus/conversations/:id - End a conversation.
  * Returns our own status shape (Tavus DELETE has no body).
  */
