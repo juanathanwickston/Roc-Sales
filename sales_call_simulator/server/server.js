@@ -182,6 +182,33 @@ async function start() {
     console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? 'configured' : 'NOT SET'}`);
     console.log(`   Database:  ${config.DATABASE_URL ? 'configured' : 'NOT SET'}`);
     console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
+
+    // DIAGNOSTIC: one-shot fetch to log raw Tavus verbose response structure
+    // Remove after diagnosis is complete
+    if (config.TAVUS_API_KEY) {
+      setTimeout(async () => {
+        try {
+          const diagConvId = 'c5473259e3833408';
+          console.log(`[DIAGNOSTIC] Fetching raw verbose response for ${diagConvId}...`);
+          const { tavusFetch } = require('./services/tavusClient');
+          const data = await tavusFetch(`/conversations/${diagConvId}?verbose=true`);
+          console.log(`[DIAGNOSTIC] Top-level keys: ${JSON.stringify(Object.keys(data))}`);
+          console.log(`[DIAGNOSTIC] Status: ${data.status}`);
+          console.log(`[DIAGNOSTIC] Has transcript: ${'transcript' in data}, type: ${typeof data.transcript}, isArray: ${Array.isArray(data.transcript)}`);
+          console.log(`[DIAGNOSTIC] Has properties: ${'properties' in data}`);
+          if (data.properties) {
+            console.log(`[DIAGNOSTIC] properties keys: ${JSON.stringify(Object.keys(data.properties))}`);
+            console.log(`[DIAGNOSTIC] Has properties.transcript: ${'transcript' in (data.properties || {})}`);
+          }
+          // Log first 500 chars of raw response to see the shape
+          const raw = JSON.stringify(data);
+          console.log(`[DIAGNOSTIC] Raw response (first 500 chars): ${raw.substring(0, 500)}`);
+          console.log(`[DIAGNOSTIC] Raw response length: ${raw.length} chars`);
+        } catch (err) {
+          console.error(`[DIAGNOSTIC] Failed: ${err.message}`);
+        }
+      }, 5000);
+    }
   });
 
   return server;
