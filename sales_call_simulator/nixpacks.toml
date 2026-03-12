@@ -1,13 +1,10 @@
 # Nixpacks Configuration
-# Prevents secrets from being baked into the Docker build layer.
-# Railway injects env vars at runtime automatically - they don't need
-# to be present during the build phase.
+# Only override the install command to use npm ci for deterministic installs.
+# Do not set a build command - this app has no build step (vanilla JS, no bundler).
+# Start command is set in railway.json.
 
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
-[phases.build]
-cmds = ["npm ci --production"]
-
-[start]
-cmd = "node server/server.js"
+[phases.install]
+cmds = ["npm ci"]
