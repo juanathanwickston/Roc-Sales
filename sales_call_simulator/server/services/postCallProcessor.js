@@ -90,7 +90,7 @@ async function fetchAndStoreTranscript(sessionId) {
 
   if (existing.rows.length > 0 && existing.rows[0].normalized_transcript) {
     console.log(`[PostCall] Transcript already stored for session ${sessionId}`);
-    return existing.rows[0].normalized_transcript;
+    return { transcript: existing.rows[0].normalized_transcript, rawConversationData: null };
   }
 
   // Get the Tavus conversation ID from the session

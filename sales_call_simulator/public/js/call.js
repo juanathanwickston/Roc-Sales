@@ -388,7 +388,7 @@ const callManager = {
   /**
    * Handle call ending (triggered by user or remote participant leaving).
    */
-  handleCallEnd() {
+  async handleCallEnd() {
     this.stopTimer();
 
     const callData = {
@@ -397,8 +397,8 @@ const callManager = {
       duration: this.getDuration(),
     };
 
-    // Update session status to ended
-    this.updateSessionStatus('ended', {
+    // Update session status to ended — MUST complete before POST /process
+    await this.updateSessionStatus('ended', {
       durationSeconds: callData.duration,
     });
 
