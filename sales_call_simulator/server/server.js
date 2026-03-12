@@ -183,27 +183,54 @@ async function start() {
     console.log(`   Database:  ${config.DATABASE_URL ? 'configured' : 'NOT SET'}`);
     console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
 
-    // DIAGNOSTIC: one-shot fetch to log raw Tavus verbose response structure
+    // DIAGNOSTIC: one-shot fetch to confirm events array structure
     // Remove after diagnosis is complete
     if (config.TAVUS_API_KEY) {
       setTimeout(async () => {
         try {
           const diagConvId = 'c5473259e3833408';
-          console.log(`[DIAGNOSTIC] Fetching raw verbose response for ${diagConvId}...`);
+          console.log(`[DIAGNOSTIC] Fetching events structure for ${diagConvId}...`);
           const { tavusFetch } = require('./services/tavusClient');
           const data = await tavusFetch(`/conversations/${diagConvId}?verbose=true`);
-          console.log(`[DIAGNOSTIC] Top-level keys: ${JSON.stringify(Object.keys(data))}`);
-          console.log(`[DIAGNOSTIC] Status: ${data.status}`);
-          console.log(`[DIAGNOSTIC] Has transcript: ${'transcript' in data}, type: ${typeof data.transcript}, isArray: ${Array.isArray(data.transcript)}`);
-          console.log(`[DIAGNOSTIC] Has properties: ${'properties' in data}`);
-          if (data.properties) {
-            console.log(`[DIAGNOSTIC] properties keys: ${JSON.stringify(Object.keys(data.properties))}`);
-            console.log(`[DIAGNOSTIC] Has properties.transcript: ${'transcript' in (data.properties || {})}`);
+
+          // Confirm events array exists
+          console.log(`[DIAGNOSTIC] events is array: ${Array.isArray(data.events)}, length: ${data.events ? data.events.length : 0}`);
+
+          // Log each event's keys and event_type
+          if (Array.isArray(data.events)) {
+            data.events.forEach((evt, i) => {
+              const keys = Object.keys(evt);
+              console.log(`[DIAGNOSTIC] events[${i}] keys: ${JSON.stringify(keys)}, event_type: ${evt.event_type || evt.type || 'N/A'}`);
+            });
+
+            // Find the transcription event and log its properties structure
+            const txnEvent = data.events.find(e => e.event_type === 'application.transcription_ready');
+            if (txnEvent) {
+              console.log(`[DIAGNOSTIC] FOUND transcription_ready event`);
+              console.log(`[DIAGNOSTIC] txnEvent.properties type: ${typeof txnEvent.properties}, isObj: ${typeof txnEvent.properties === 'object'}`);
+              if (txnEvent.properties) {
+                console.log(`[DIAGNOSTIC] txnEvent.properties keys: ${JSON.stringify(Object.keys(txnEvent.properties))}`);
+                const t = txnEvent.properties.transcript;
+                console.log(`[DIAGNOSTIC] properties.transcript type: ${typeof t}, isArray: ${Array.isArray(t)}, length: ${Array.isArray(t) ? t.length : 'N/A'}`);
+                if (Array.isArray(t) && t.length > 0) {
+                  console.log(`[DIAGNOSTIC] First entry keys: ${JSON.stringify(Object.keys(t[0]))}`);
+                  console.log(`[DIAGNOSTIC] First entry sample: ${JSON.stringify(t[0]).substring(0, 200)}`);
+                }
+              }
+            } else {
+              console.log(`[DIAGNOSTIC] transcription_ready event NOT FOUND`);
+              // Check if it uses a different key
+              const allTypes = data.events.map(e => e.event_type || e.type || 'unknown');
+              console.log(`[DIAGNOSTIC] All event types: ${JSON.stringify(allTypes)}`);
+            }
+
+            // Find perception analysis event
+            const paEvent = data.events.find(e => e.event_type === 'application.perception_analysis');
+            console.log(`[DIAGNOSTIC] perception_analysis event found: ${!!paEvent}`);
+            if (paEvent && paEvent.properties) {
+              console.log(`[DIAGNOSTIC] perception properties keys: ${JSON.stringify(Object.keys(paEvent.properties))}`);
+            }
           }
-          // Log first 500 chars of raw response to see the shape
-          const raw = JSON.stringify(data);
-          console.log(`[DIAGNOSTIC] Raw response (first 500 chars): ${raw.substring(0, 500)}`);
-          console.log(`[DIAGNOSTIC] Raw response length: ${raw.length} chars`);
         } catch (err) {
           console.error(`[DIAGNOSTIC] Failed: ${err.message}`);
         }
