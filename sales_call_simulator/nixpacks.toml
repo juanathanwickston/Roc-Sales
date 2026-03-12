@@ -1,0 +1,13 @@
+# Nixpacks Configuration
+# Prevents secrets from being baked into the Docker build layer.
+# Railway injects env vars at runtime automatically - they don't need
+# to be present during the build phase.
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = ["npm ci --production"]
+
+[start]
+cmd = "node server/server.js"
