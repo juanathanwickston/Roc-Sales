@@ -11,7 +11,7 @@ const MIN_TRANSCRIPT_LENGTH = 20;
 // Tavus needs a brief window to finalize the transcript after a call ends
 const TRANSCRIPT_INITIAL_DELAY_MS = 3000;
 const TRANSCRIPT_RETRY_DELAY_MS = 5000;
-const MAX_TRANSCRIPT_ATTEMPTS = 6;
+const TRANSCRIPT_MAX_WAIT_MS = 300000; // 5 minutes total ceiling
 
 /**
  * Extract the transcript text from a raw Tavus conversation response.
@@ -119,5 +119,5 @@ module.exports = {
   MIN_TRANSCRIPT_LENGTH,
   TRANSCRIPT_INITIAL_DELAY_MS,
   TRANSCRIPT_RETRY_DELAY_MS,
-  MAX_TRANSCRIPT_ATTEMPTS,
+  TRANSCRIPT_MAX_WAIT_MS,
 };

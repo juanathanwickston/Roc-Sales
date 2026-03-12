@@ -14,7 +14,7 @@ const {
   extractPerceptionAnalysis,
   TRANSCRIPT_INITIAL_DELAY_MS,
   TRANSCRIPT_RETRY_DELAY_MS,
-  MAX_TRANSCRIPT_ATTEMPTS,
+  TRANSCRIPT_MAX_WAIT_MS,
 } = require('./tavusNormalizer');
 const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
@@ -107,25 +107,44 @@ async function fetchAndStoreTranscript(sessionId) {
   }
 
   // Fetch from Tavus with retry loop (verbose=true for perception analysis data)
+  // No fixed attempt limit - polls until data arrives or 5-minute ceiling
   let transcript = null;
   let rawResponse = null;
   let rawConversationData = null;
 
-  // Initial delay: give Tavus time to finalize transcript after call ends
+  // Initial delay: give Tavus a moment to finalize after call ends
   console.log(`[PostCall] Waiting ${TRANSCRIPT_INITIAL_DELAY_MS / 1000}s before first transcript fetch...`);
   await new Promise((resolve) => setTimeout(resolve, TRANSCRIPT_INITIAL_DELAY_MS));
 
-  for (let attempt = 1; attempt <= MAX_TRANSCRIPT_ATTEMPTS; attempt++) {
+  const startTime = Date.now();
+  let attempt = 0;
+
+  while (Date.now() - startTime < TRANSCRIPT_MAX_WAIT_MS) {
+    attempt++;
+
     if (attempt > 1) {
       await new Promise((resolve) => setTimeout(resolve, TRANSCRIPT_RETRY_DELAY_MS));
     }
 
-    console.log(`[PostCall] Fetching transcript, attempt ${attempt}/${MAX_TRANSCRIPT_ATTEMPTS}`);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[PostCall] Fetching transcript, attempt ${attempt} (${elapsed}s elapsed)`);
 
     try {
       const data = await tavusFetch(`/conversations/${conversationId}?verbose=true`);
       rawResponse = JSON.stringify(data);
       rawConversationData = data;
+
+      // Diagnostic: log the exact response structure so we can see where Tavus puts the transcript
+      const topKeys = Object.keys(data);
+      const hasTranscript = 'transcript' in data;
+      const hasProperties = 'properties' in data;
+      const transcriptType = hasTranscript ? (Array.isArray(data.transcript) ? 'array' : typeof data.transcript) : 'missing';
+      const propsKeys = hasProperties && data.properties ? Object.keys(data.properties) : [];
+      console.log(`[PostCall] Tavus response keys: [${topKeys.join(', ')}]`);
+      console.log(`[PostCall] transcript field: ${transcriptType}${hasTranscript ? ` (length: ${Array.isArray(data.transcript) ? data.transcript.length : String(data.transcript).length})` : ''}`);
+      if (hasProperties) {
+        console.log(`[PostCall] properties keys: [${propsKeys.join(', ')}]`);
+      }
 
       // Use normalizer to extract transcript from vendor-specific fields
       const text = extractTranscript(data);
@@ -143,8 +162,9 @@ async function fetchAndStoreTranscript(sessionId) {
   }
 
   if (!transcript) {
-    console.warn(`[PostCall] Transcript unavailable after ${MAX_TRANSCRIPT_ATTEMPTS} attempts`);
-    return { transcript: null, rawConversationData: null };
+    const totalElapsed = Math.round((Date.now() - startTime) / 1000);
+    console.warn(`[PostCall] Transcript unavailable after ${totalElapsed}s (${attempt} attempts)`);
+    return { transcript: null, rawConversationData };
   }
 
   // Store in session_transcripts
