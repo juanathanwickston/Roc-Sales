@@ -12,6 +12,7 @@ const { tavusFetch } = require('./tavusClient');
 const {
   extractTranscript,
   extractPerceptionAnalysis,
+  TRANSCRIPT_INITIAL_DELAY_MS,
   TRANSCRIPT_RETRY_DELAY_MS,
   MAX_TRANSCRIPT_ATTEMPTS,
 } = require('./tavusNormalizer');
@@ -102,13 +103,17 @@ async function fetchAndStoreTranscript(sessionId) {
   const conversationId = session.rows[0]?.tavus_conversation_id;
   if (!conversationId) {
     console.warn(`[PostCall] No Tavus conversation ID for session ${sessionId}`);
-    return null;
+    return { transcript: null, rawConversationData: null };
   }
 
   // Fetch from Tavus with retry loop (verbose=true for perception analysis data)
   let transcript = null;
   let rawResponse = null;
   let rawConversationData = null;
+
+  // Initial delay: give Tavus time to finalize transcript after call ends
+  console.log(`[PostCall] Waiting ${TRANSCRIPT_INITIAL_DELAY_MS / 1000}s before first transcript fetch...`);
+  await new Promise((resolve) => setTimeout(resolve, TRANSCRIPT_INITIAL_DELAY_MS));
 
   for (let attempt = 1; attempt <= MAX_TRANSCRIPT_ATTEMPTS; attempt++) {
     if (attempt > 1) {

@@ -8,7 +8,7 @@
 const MIN_CALL_DURATION_SECONDS = 30;
 
 // Delay (ms) before Tavus conversation cleanup to give backend time to fetch transcript
-const TAVUS_CLEANUP_DELAY_MS = 15000;
+
 
 const callManager = {
   callObject: null,
@@ -411,21 +411,6 @@ const callManager = {
 
     // Transition to debrief - backend handles scoring via POST /process
     app.onCallEnded(callData);
-
-    // Schedule Tavus conversation cleanup AFTER backend has had time to fetch transcript
-    // The DELETE destroys the conversation and transcript on Tavus' side
-    const convId = this.conversationId;
-    if (convId) {
-      setTimeout(function() {
-        const token = localStorage.getItem('roc_token');
-        fetch('/api/tavus/conversations/' + convId, {
-          method: 'DELETE',
-          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
-        }).catch(function(err) {
-          console.warn('[Call] End conversation cleanup error:', err);
-        });
-      }, TAVUS_CLEANUP_DELAY_MS);
-    }
   },
 
   /**
