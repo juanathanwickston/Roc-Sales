@@ -65,21 +65,23 @@ function extractTranscript(rawConversation) {
     });
 
     // Deduplicate progressive entries:
-    // Tavus sends incremental updates where each entry grows.
-    // Walk backward: if entry[i] content starts with or is contained in entry[i+1]
-    // content (same role), discard entry[i] and keep entry[i+1].
+    // Tavus sends incremental speech-to-text updates. Each update for the same
+    // speaker contains all previous words plus new ones, but the raw entries can
+    // have garbled/interleaved text at the end. Compare using first 5 words as
+    // a fingerprint: if consecutive same-role entries share the same opening words,
+    // keep only the longest (most complete) version.
     const deduplicated = [];
     for (var i = 0; i < messages.length; i++) {
       var current = messages[i];
       var next = (i + 1 < messages.length) ? messages[i + 1] : null;
 
-      // If next message has the same role and its content starts with
-      // or contains the current content, skip current (it is a partial)
       if (next && next.role === current.role) {
-        var currentTrimmed = current.content.trim();
-        var nextTrimmed = next.content.trim();
-        if (nextTrimmed.indexOf(currentTrimmed.substring(0, Math.min(40, currentTrimmed.length))) === 0) {
-          // Current is a prefix of next - skip it
+        // Compare first 5 words of each entry
+        var currentWords = current.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
+        var nextWords = next.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
+
+        if (currentWords === nextWords) {
+          // Same opening words, same role - skip the shorter (current) entry
           continue;
         }
       }
