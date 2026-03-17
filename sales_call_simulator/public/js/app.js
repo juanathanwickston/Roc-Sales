@@ -162,6 +162,59 @@ const app = {
     if (btnHistoryStart) {
       btnHistoryStart.addEventListener('click', function() { app.showScreen('scenarios'); });
     }
+
+    // --- Debrief: Back to History ---
+    const btnBackHistory = document.getElementById('btn-back-history');
+    if (btnBackHistory) {
+      btnBackHistory.addEventListener('click', function() {
+        app.showScreen('history');
+        if (typeof loadHistory === 'function') loadHistory(historyCurrentPage);
+      });
+    }
+
+    // --- Debrief: Tab Switching ---
+    const debriefTabs = document.getElementById('debrief-tabs');
+    if (debriefTabs) {
+      debriefTabs.addEventListener('click', function(e) {
+        const tab = e.target.closest('.debrief-tab');
+        if (tab && tab.dataset.tab && typeof switchDebriefTab === 'function') {
+          switchDebriefTab(tab.dataset.tab);
+        }
+      });
+    }
+
+    // --- Transcript: Copy & Download ---
+    const btnCopy = document.getElementById('btn-copy-transcript');
+    if (btnCopy) {
+      btnCopy.addEventListener('click', function() { if (typeof copyTranscript === 'function') copyTranscript(); });
+    }
+
+    const btnDownload = document.getElementById('btn-download-transcript');
+    if (btnDownload) {
+      btnDownload.addEventListener('click', function() { if (typeof downloadTranscript === 'function') downloadTranscript(); });
+    }
+
+    // --- History: Pagination ---
+    const btnPagePrev = document.getElementById('btn-page-prev');
+    if (btnPagePrev) {
+      btnPagePrev.addEventListener('click', function() {
+        if (typeof historyCurrentPage !== 'undefined' && historyCurrentPage > 0) {
+          loadHistory(historyCurrentPage - 1);
+        }
+      });
+    }
+
+    const btnPageNext = document.getElementById('btn-page-next');
+    if (btnPageNext) {
+      btnPageNext.addEventListener('click', function() {
+        if (typeof historyCurrentPage !== 'undefined' && typeof HISTORY_PAGE_SIZE !== 'undefined' && typeof historyTotalSessions !== 'undefined') {
+          var totalPages = Math.ceil(historyTotalSessions / HISTORY_PAGE_SIZE);
+          if (historyCurrentPage < totalPages - 1) {
+            loadHistory(historyCurrentPage + 1);
+          }
+        }
+      });
+    }
   },
 
   /**
@@ -273,6 +326,9 @@ const app = {
    * Called when a call ends - trigger backend processing and poll for results.
    */
   async onCallEnded(callData) {
+    // Reset debrief to live-call mode (hide back button, show Try Another/Retry, hide tabs)
+    if (typeof resetDebriefForLiveCall === 'function') resetDebriefForLiveCall();
+
     this.showScreen('debrief');
     const scenarioName = this.currentScenario ? this.currentScenario.name : 'Sales Call Simulation';
     document.getElementById('debrief-scenario-name').textContent = scenarioName;

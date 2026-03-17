@@ -616,6 +616,127 @@
     /* Debrief actions */
     .debrief-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 
+    /* ─── Debrief Tab Bar ─── */
+    .debrief-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--n3);
+      border-radius: var(--rs);
+      padding: 4px;
+      margin-bottom: 32px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .debrief-tab {
+      flex: 1;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-medium);
+      cursor: pointer;
+      color: var(--gray);
+      background: transparent;
+      transition: all .2s;
+    }
+    .debrief-tab:hover { color: var(--white); }
+    .debrief-tab.active {
+      background: var(--blue);
+      color: #fff;
+      font-weight: var(--fw-semibold);
+    }
+
+    /* ─── Transcript View ─── */
+    .transcript-panel { display: none; }
+    .transcript-panel.active { display: block; }
+
+    .transcript-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: flex-end;
+    }
+    .transcript-toolbar .btn { min-height: 36px; padding: 6px 16px; font-size: var(--fs-xs); }
+
+    .transcript-messages {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 24px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .transcript-msg {
+      padding: 12px 16px;
+      border-radius: var(--rs);
+      margin-bottom: 8px;
+      font-size: var(--fs-sm);
+      line-height: var(--lh-relaxed);
+    }
+    .transcript-msg:last-child { margin-bottom: 0; }
+    .transcript-msg-rep {
+      background: rgba(59,130,246,.08);
+      border-left: 3px solid var(--blue);
+    }
+    .transcript-msg-buyer {
+      background: rgba(167,139,250,.08);
+      border-left: 3px solid var(--purple);
+    }
+    .transcript-role {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      margin-bottom: 4px;
+    }
+    .transcript-msg-rep .transcript-role { color: var(--blue); }
+    .transcript-msg-buyer .transcript-role { color: var(--purple); }
+    .transcript-text { color: var(--white); }
+
+    .transcript-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--gray);
+    }
+
+    /* ─── Pagination ─── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-top: 24px;
+      padding: 16px 0;
+    }
+    .pagination-info {
+      font-size: var(--fs-xs);
+      color: var(--gray);
+    }
+    .pagination .btn { min-height: 36px; padding: 6px 16px; font-size: var(--fs-xs); }
+    .pagination .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* Back button for debrief */
+    .btn-back {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--gb);
+      color: var(--gray);
+      padding: 6px 16px;
+      border-radius: var(--rs);
+      font-family: inherit;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-medium);
+      cursor: pointer;
+      transition: all .2s;
+      min-height: 36px;
+    }
+    .btn-back:hover { color: var(--white); border-color: rgba(59,130,246,.4); }
+    .btn-back.visible { display: flex; }
+
     /* ─── Buttons ─── */
     .btn {
       padding: 8px 24px;
@@ -670,6 +791,8 @@
       .lobby-card { padding: 24px 16px; }
       .debrief-actions { flex-direction: column; }
       .debrief-actions .btn { width: 100%; }
+      .transcript-messages { max-height: 400px; padding: 16px; }
+      .transcript-msg { padding: 8px 12px; }
     }
 
     /* ─── Tablet (768-1023px) ─── */
@@ -1065,7 +1188,7 @@
 
   <!-- ═══════════════ SCREEN 4: DEBRIEF / SCORECARD ═══════════════ -->
   <div id="screen-debrief" class="screen">
-    <header class="app-header">
+    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
         <div class="brand-icon" aria-hidden="true">📊</div>
         <div>
@@ -1073,6 +1196,7 @@
           <span class="header-subtitle" id="debrief-scenario-name">Module 1 – Discovery Call</span>
         </div>
       </div>
+      <button id="btn-back-history" class="btn-back" aria-label="Back to session history">← Back to History</button>
     </header>
 
     <main class="debrief-main" aria-label="Call debrief and scorecard">
@@ -1083,6 +1207,14 @@
       </div>
 
       <div id="debrief-content" class="debrief-content" style="display:none;">
+        <!-- Tab bar -->
+        <div id="debrief-tabs" class="debrief-tabs" style="display:none;">
+          <button class="debrief-tab active" data-tab="evaluation" id="tab-evaluation">Evaluation</button>
+          <button class="debrief-tab" data-tab="transcript" id="tab-transcript">Transcript</button>
+        </div>
+
+        <!-- Evaluation panel (existing content wrapped) -->
+        <div id="panel-evaluation">
         <!-- Overall score -->
         <div class="score-hero">
           <div id="score-ring" class="score-ring" role="img" aria-label="Overall score">
@@ -1135,9 +1267,24 @@
         </div>
 
         <!-- Actions -->
-        <div class="debrief-actions">
+        <div id="debrief-live-actions" class="debrief-actions">
           <button id="btn-try-another" class="btn btn-primary">Try Another Scenario</button>
           <button id="btn-retry" class="btn btn-secondary">Retry This Scenario</button>
+        </div>
+        </div><!-- /panel-evaluation -->
+
+        <!-- Transcript panel (hidden by default) -->
+        <div id="panel-transcript" class="transcript-panel">
+          <div class="transcript-toolbar">
+            <button id="btn-copy-transcript" class="btn btn-ghost" aria-label="Copy transcript">📋 Copy</button>
+            <button id="btn-download-transcript" class="btn btn-ghost" aria-label="Download transcript">⬇ Download .txt</button>
+          </div>
+          <div id="transcript-body" class="transcript-messages">
+            <div class="transcript-empty">
+              <div class="spinner"></div>
+              <p>Loading transcript...</p>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -1188,6 +1335,13 @@
         <!-- Session list -->
         <div id="history-list" class="history-list" role="list">
           <!-- Populated by history.js -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="history-pagination" class="pagination" style="display:none;">
+          <button id="btn-page-prev" class="btn btn-ghost" disabled>← Prev</button>
+          <span id="pagination-info" class="pagination-info">Page 1</span>
+          <button id="btn-page-next" class="btn btn-ghost">Next →</button>
         </div>
       </div>
 
