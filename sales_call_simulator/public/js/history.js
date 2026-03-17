@@ -209,12 +209,15 @@ async function viewSessionScore(sessionId) {
     // Match scenario by finding which rubric's category keys match scorecard categories
     var scenario = null;
     if (results[1].ok) {
-      var scenarios = await results[1].json();
-      var scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
-      scenario = scenarios.find(function(s) {
-        if (!s.rubric) return false;
-        return Object.keys(s.rubric).sort().join(',') === scoreCatKeys;
-      }) || null;
+      var scenariosData = await results[1].json();
+      var scenariosList = scenariosData.scenarios || scenariosData || [];
+      if (Array.isArray(scenariosList)) {
+        var scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
+        scenario = scenariosList.find(function(s) {
+          if (!s.rubric) return false;
+          return Object.keys(s.rubric).sort().join(',') === scoreCatKeys;
+        }) || null;
+      }
     }
 
     // Use existing scoring module to render
