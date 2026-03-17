@@ -164,6 +164,8 @@ const scoring = {
     const notes = scenario?.coaching_notes;
     const notesEl = document.getElementById('coaching-notes');
 
+    if (!notesEl) return;
+
     if (!notes) {
       notesEl.style.display = 'none';
       return;
