@@ -23,11 +23,11 @@ const scoring = {
     // Verdict text (H4: includes text label, not color-only)
     const verdictEl = document.getElementById('score-verdict');
     const verdictMap = {
-      pass: '✅ Great Job!',
-      needs_work: '📝 Needs Improvement',
-      fail: '💪 Keep Practicing',
+      pass: 'Great Job!',
+      needs_work: 'Needs Improvement',
+      fail: 'Keep Practicing',
     };
-    verdictEl.textContent = verdictMap[scorecard.overall_verdict] || '📋 Reviewed';
+    verdictEl.textContent = verdictMap[scorecard.overall_verdict] || 'Reviewed';
 
     // Coaching tip
     document.getElementById('score-coaching-tip').textContent =
@@ -168,14 +168,14 @@ const scoring = {
 
     // Show a simplified debrief without AI scoring
     document.getElementById('score-number').textContent = '—';
-    document.getElementById('score-verdict').textContent = '📋 Self-Assessment Required';
+    document.getElementById('score-verdict').textContent = 'Self-Assessment Required';
     document.getElementById('score-coaching-tip').textContent =
       'AI scoring is unavailable for this call. Review the coaching notes below and rate your own performance.';
 
     // Clear categories with empty state
     document.getElementById('score-categories').innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📊</div>
+        <div class="empty-icon"></div>
         <div class="empty-title">Automated scoring unavailable</div>
         <div class="empty-desc">
           Complete a full call session for AI-powered feedback.

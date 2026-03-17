@@ -286,8 +286,8 @@ const app = {
         '</div>' +
         '<div class="scenario-card-desc">' + esc(scenario.description || '') + '</div>' +
         '<div class="scenario-card-meta">' +
-          (scenario.module ? '<span>📋 ' + esc(scenario.module) + '</span>' : '') +
-          (duration ? '<span>⏱ ' + duration + ' min</span>' : '') +
+          (scenario.module ? '<span>' + esc(scenario.module) + '</span>' : '') +
+          (duration ? '<span>' + duration + ' min</span>' : '') +
         '</div>' +
       '</button>';
   },
