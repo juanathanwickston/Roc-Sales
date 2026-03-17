@@ -8,7 +8,7 @@ const express = require('express');
 const db = require('../db');
 const { tavusFetch } = require('../services/tavusClient');
 const { extractTranscript } = require('../services/tavusNormalizer');
-const { processSession, generateCoachingAnalysis } = require('../services/postCallProcessor');
+const { processSession, generateCoachingAnalysis, scoreTranscript } = require('../services/postCallProcessor');
 
 const router = express.Router();
 
@@ -607,6 +607,74 @@ router.post('/:id/generate-coaching', async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Generate coaching error:', err.message);
     res.status(500).json({ error: 'Unable to generate coaching analysis.' });
+  }
+});
+/**
+ * POST /api/sessions/:id/rescore - Re-score an existing session with the current rubric.
+ * Used to backfill mechanical scoring for sessions scored with the old subjective rubric.
+ */
+router.post('/:id/rescore', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const sessionId = req.params.id;
+
+    // Get transcript
+    const txResult = await db.query(
+      'SELECT normalized_transcript FROM session_transcripts WHERE session_id = $1',
+      [sessionId]
+    );
+    if (txResult.rows.length === 0 || !txResult.rows[0].normalized_transcript) {
+      return res.status(404).json({ error: 'Transcript not found for this session.' });
+    }
+
+    // Get scenario_id
+    const sessionResult = await db.query(
+      'SELECT scenario_id FROM simulation_sessions WHERE id = $1',
+      [sessionId]
+    );
+    const scenarioId = sessionResult.rows[0]?.scenario_id || 'unknown';
+
+    const transcript = txResult.rows[0].normalized_transcript;
+    const scorecard = await scoreTranscript(transcript, scenarioId);
+
+    if (!scorecard) {
+      return res.status(500).json({ error: 'Scoring failed.' });
+    }
+
+    // Persist new score
+    const rawResponse = JSON.stringify(scorecard);
+    const categories = JSON.stringify(scorecard.categories || {});
+    const topStrengths = JSON.stringify(scorecard.top_strengths || []);
+    const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
+
+    await db.query(
+      `INSERT INTO session_scores
+         (session_id, raw_response, overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (session_id)
+       DO UPDATE SET
+         raw_response = $2, overall_score = $3, overall_verdict = $4,
+         categories = $5, top_strengths = $6, critical_improvements = $7, coaching_tip = $8`,
+      [
+        sessionId,
+        rawResponse,
+        scorecard.overall_score || 0,
+        scorecard.overall_verdict || 'unknown',
+        categories,
+        topStrengths,
+        criticalImprovements,
+        scorecard.coaching_tip || '',
+      ]
+    );
+
+    console.log(`[Sessions] Re-scored session ${sessionId}: ${scorecard.overall_score}/100`);
+    res.json({ success: true, scorecard });
+  } catch (err) {
+    console.error('[Sessions] Rescore error:', err.message);
+    res.status(500).json({ error: 'Unable to rescore session.' });
   }
 });
 

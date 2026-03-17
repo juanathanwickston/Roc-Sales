@@ -603,4 +603,4 @@ async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
   }
 }
 
-module.exports = { processSession, generateCoachingAnalysis };
+module.exports = { processSession, generateCoachingAnalysis, scoreTranscript };
