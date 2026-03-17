@@ -380,4 +380,143 @@ async function updateStatus(sessionId, status) {
   console.log(`[PostCall] Session ${sessionId} -> ${status}`);
 }
 
-module.exports = { processSession };
+/**
+ * Load curriculum source material for a scenario.
+ * Reads the corresponding .md file from the curriculum/ directory.
+ * Returns the curriculum text, or a generic fallback if not found.
+ */
+function loadCurriculum(scenarioId) {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const curriculumDir = path.join(__dirname, '..', 'curriculum');
+
+    // Map scenarioId to curriculum filename: module1_identifying_customer -> module1_identifying_customer.md
+    const filePath = path.join(curriculumDir, scenarioId + '.md');
+
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, 'utf8');
+    }
+
+    // Fallback: list available files
+    console.warn(`[PostCall] No curriculum found for scenario ${scenarioId}`);
+  } catch (err) {
+    console.warn(`[PostCall] Could not load curriculum for scenario ${scenarioId}:`, err.message);
+  }
+
+  return 'No specific curriculum available for this module. Evaluate based on general sales best practices.';
+}
+
+/**
+ * Build the coaching prompt from transcript, curriculum, and scorecard.
+ */
+function buildCoachingPrompt({ transcript, curriculum, scorecard, scenarioId }) {
+  const scoreSummary = `Overall Score: ${scorecard.overall_score}/100 (${scorecard.overall_verdict})
+Top Strengths: ${(scorecard.top_strengths || []).join('; ')}
+Critical Improvements: ${(scorecard.critical_improvements || []).join('; ')}
+Coaching Tip: ${scorecard.coaching_tip || 'N/A'}`;
+
+  return {
+    system: `You are an expert sales coach providing detailed, constructive, paragraph-form feedback on a sales call simulation. You have access to the training curriculum the rep is studying and their scorecard results.
+
+Your coaching analysis must directly reference the curriculum source material. Specifically:
+- Reference specific frameworks (BANT, CHAMP) from the curriculum when relevant.
+- Reference the sales funnel stages (Suspect, Lead, Prospect) when relevant.
+- Reference the successful outcome criteria from the curriculum.
+- Reference customer-focused vs product-focused selling distinctions.
+
+Write a coaching analysis with FOUR sections. Return valid JSON with this exact structure:
+{
+  "call_summary": "<2-3 sentences about what happened on the call>",
+  "module_alignment": "<paragraph explaining how the rep's performance maps to the curriculum's teaching, referencing specific concepts>",
+  "key_moments": [
+    {
+      "moment": "<brief label, e.g. 'Fee discussion at 3:20'>",
+      "what_happened": "<what the rep actually said or did>",
+      "recommendation": "<what the curriculum teaches they should have done instead>"
+    }
+  ],
+  "action_items": [
+    "<concrete practice item for next call>",
+    "<concrete practice item for next call>"
+  ]
+}
+
+Include 3-4 key moments. Include 2-3 action items. Be specific — cite exact phrases from the transcript. Be constructive, not harsh.`,
+
+    user: `SCENARIO: ${scenarioId || 'Sales Call Simulation'}
+
+CURRICULUM SOURCE MATERIAL:
+${curriculum}
+
+SCORECARD RESULTS:
+${scoreSummary}
+
+CALL TRANSCRIPT:
+${transcript}
+
+Generate the coaching analysis. Return JSON only.`,
+  };
+}
+
+/**
+ * Generate coaching analysis for a session using GPT-4o.
+ * Takes transcript, scenarioId, and scorecard as an options object.
+ * Returns the coaching JSON, or null on failure.
+ */
+async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
+  if (!config.OPENAI_API_KEY) {
+    console.warn('[PostCall] Coaching skipped: no OpenAI API key');
+    return null;
+  }
+
+  if (!transcript) {
+    console.warn('[PostCall] Coaching skipped: no transcript');
+    return null;
+  }
+
+  try {
+    const curriculum = loadCurriculum(scenarioId);
+    const prompt = buildCoachingPrompt({ transcript, curriculum, scorecard, scenarioId });
+
+    console.log(`[PostCall] Generating coaching analysis for scenario ${scenarioId}...`);
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prompt.system },
+          { role: 'user', content: prompt.user },
+        ],
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    try {
+      const coaching = JSON.parse(data.choices[0].message.content);
+      console.log(`[PostCall] Coaching analysis generated for scenario ${scenarioId}`);
+      return coaching;
+    } catch (parseErr) {
+      console.error('[PostCall] Failed to parse coaching response:', parseErr.message);
+      return null;
+    }
+  } catch (err) {
+    console.error('[PostCall] Coaching generation failed:', err.message);
+    return null;
+  }
+}
+
+module.exports = { processSession, generateCoachingAnalysis };

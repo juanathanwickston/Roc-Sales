@@ -8,7 +8,7 @@ const express = require('express');
 const db = require('../db');
 const { tavusFetch } = require('../services/tavusClient');
 const { extractTranscript } = require('../services/tavusNormalizer');
-const { processSession } = require('../services/postCallProcessor');
+const { processSession, generateCoachingAnalysis } = require('../services/postCallProcessor');
 
 const router = express.Router();
 
@@ -413,6 +413,35 @@ router.get('/:id/score', async (req, res) => {
 });
 
 /**
+ * GET /api/sessions/:id/coaching - Retrieve stored coaching analysis.
+ * Returns the coaching_analysis JSONB from session_scores table.
+ * 404 if no coaching analysis exists for this session.
+ */
+router.get('/:id/coaching', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const result = await db.query(
+      'SELECT coaching_analysis FROM session_scores WHERE session_id = $1',
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].coaching_analysis) {
+      return res.status(404).json({ error: 'Coaching analysis not found' });
+    }
+
+    res.json({
+      coaching_analysis: result.rows[0].coaching_analysis,
+    });
+  } catch (err) {
+    console.error('[Sessions] Get coaching error:', err.message);
+    res.status(500).json({ error: 'Unable to retrieve coaching analysis.' });
+  }
+});
+
+/**
  * GET /api/sessions/:id/transcript - Retrieve stored transcript.
  * Returns the normalized transcript text from session_transcripts table.
  * 404 if no transcript exists for this session.
@@ -512,6 +541,72 @@ router.post('/renormalize-all', async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Re-normalization error:', err.message);
     res.status(500).json({ error: 'Re-normalization failed.' });
+  }
+});
+
+/**
+ * POST /api/sessions/:id/generate-coaching - Generate coaching for an existing scored session.
+ * Used to backfill coaching for sessions that were scored before the coaching feature existed.
+ */
+router.post('/:id/generate-coaching', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const sessionId = req.params.id;
+
+    // Get transcript
+    const txResult = await db.query(
+      'SELECT normalized_transcript FROM session_transcripts WHERE session_id = $1',
+      [sessionId]
+    );
+    if (txResult.rows.length === 0 || !txResult.rows[0].normalized_transcript) {
+      return res.status(404).json({ error: 'Transcript not found for this session.' });
+    }
+
+    // Get scorecard
+    const scoreResult = await db.query(
+      'SELECT overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip FROM session_scores WHERE session_id = $1',
+      [sessionId]
+    );
+    if (scoreResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Score not found for this session.' });
+    }
+
+    // Get scenario_id
+    const sessionResult = await db.query(
+      'SELECT scenario_id FROM simulation_sessions WHERE id = $1',
+      [sessionId]
+    );
+    const scenarioId = sessionResult.rows[0]?.scenario_id || 'unknown';
+
+    const transcript = txResult.rows[0].normalized_transcript;
+    const scorecard = {
+      overall_score: scoreResult.rows[0].overall_score,
+      overall_verdict: scoreResult.rows[0].overall_verdict,
+      categories: scoreResult.rows[0].categories || {},
+      top_strengths: scoreResult.rows[0].top_strengths || [],
+      critical_improvements: scoreResult.rows[0].critical_improvements || [],
+      coaching_tip: scoreResult.rows[0].coaching_tip || '',
+    };
+
+    const coaching = await generateCoachingAnalysis({ transcript, scenarioId, scorecard });
+
+    if (!coaching) {
+      return res.status(500).json({ error: 'Coaching generation failed.' });
+    }
+
+    // Persist coaching analysis
+    await db.query(
+      'UPDATE session_scores SET coaching_analysis = $1 WHERE session_id = $2',
+      [JSON.stringify(coaching), sessionId]
+    );
+
+    res.json({ success: true, coaching_analysis: coaching });
+  } catch (err) {
+    console.error('[Sessions] Generate coaching error:', err.message);
+    res.status(500).json({ error: 'Unable to generate coaching analysis.' });
   }
 });
 

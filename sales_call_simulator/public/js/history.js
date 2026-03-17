@@ -15,6 +15,7 @@ let historyCurrentPage = 0;
 let historyTotalSessions = 0;
 let currentDetailSessionId = null;
 let cachedTranscript = null;
+let cachedCoaching = null;
 
 /**
  * Load session history from the API and render the history screen.
@@ -186,8 +187,8 @@ async function viewSessionScore(sessionId) {
   if (liveActions) liveActions.style.display = 'none';
   if (tabsEl) tabsEl.style.display = '';
 
-  // Reset to evaluation tab
-  switchDebriefTab('evaluation');
+  // Reset to scorecard tab
+  switchDebriefTab('scorecard');
 
   var loadingEl = document.getElementById('debrief-loading');
   var contentEl = document.getElementById('debrief-content');
@@ -215,7 +216,7 @@ async function viewSessionScore(sessionId) {
 }
 
 /**
- * Switch between Evaluation and Transcript tabs in the debrief view.
+ * Switch between Scorecard, Coaching, and Transcript tabs in the debrief view.
  */
 function switchDebriefTab(tabName) {
   // Update tab active state
@@ -228,21 +229,115 @@ function switchDebriefTab(tabName) {
     }
   }
 
-  // Show/hide panels
+  // Get all panels
   var evalPanel = document.getElementById('panel-evaluation');
+  var coachPanel = document.getElementById('panel-coaching');
   var txPanel = document.getElementById('panel-transcript');
 
-  if (tabName === 'evaluation') {
+  // Hide all panels
+  if (evalPanel) evalPanel.style.display = 'none';
+  if (coachPanel) coachPanel.classList.remove('active');
+  if (txPanel) txPanel.classList.remove('active');
+
+  // Show selected panel
+  if (tabName === 'scorecard') {
     if (evalPanel) evalPanel.style.display = '';
-    if (txPanel) txPanel.classList.remove('active');
+  } else if (tabName === 'coaching') {
+    if (coachPanel) coachPanel.classList.add('active');
+    // Load coaching if not cached
+    if (!cachedCoaching && currentDetailSessionId) {
+      loadCoaching(currentDetailSessionId);
+    }
   } else if (tabName === 'transcript') {
-    if (evalPanel) evalPanel.style.display = 'none';
     if (txPanel) txPanel.classList.add('active');
     // Load transcript if not cached
     if (!cachedTranscript && currentDetailSessionId) {
       loadTranscript(currentDetailSessionId);
     }
   }
+}
+
+/**
+ * Fetch and render coaching analysis for a session.
+ */
+async function loadCoaching(sessionId) {
+  var loadingEl = document.getElementById('coaching-loading');
+  var contentEl = document.getElementById('coaching-content');
+  var emptyEl = document.getElementById('coaching-empty');
+
+  // Show loading state
+  if (loadingEl) loadingEl.style.display = '';
+  if (contentEl) contentEl.style.display = 'none';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  try {
+    var res = await fetch('/api/sessions/' + sessionId + '/coaching');
+    if (!res.ok) throw new Error('Coaching not found');
+
+    var data = await res.json();
+    cachedCoaching = data.coaching_analysis || null;
+
+    if (!cachedCoaching) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+
+    renderCoaching(cachedCoaching);
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = '';
+  } catch (err) {
+    console.error('[History] Coaching fetch error:', err.message);
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = '';
+  }
+}
+
+/**
+ * Render coaching analysis JSON into the coaching panel.
+ */
+function renderCoaching(coaching) {
+  // Call Summary
+  var summaryEl = document.getElementById('coaching-call-summary');
+  if (summaryEl) summaryEl.textContent = coaching.call_summary || '';
+
+  // Module Alignment
+  var alignEl = document.getElementById('coaching-module-alignment');
+  if (alignEl) alignEl.textContent = coaching.module_alignment || '';
+
+  // Key Moments
+  var momentsEl = document.getElementById('coaching-key-moments');
+  if (momentsEl) {
+    var moments = coaching.key_moments || [];
+    momentsEl.innerHTML = moments.map(function(m) {
+      return '<div class="coaching-moment">' +
+        '<div class="coaching-moment-label">' + escHtml(m.moment || '') + '</div>' +
+        '<p><strong>What happened:</strong> ' + escHtml(m.what_happened || '') + '</p>' +
+        '<p><strong>Recommendation:</strong> ' + escHtml(m.recommendation || '') + '</p>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Action Items
+  var actionsEl = document.getElementById('coaching-action-items');
+  if (actionsEl) {
+    var items = coaching.action_items || [];
+    actionsEl.innerHTML = items.map(function(item) {
+      return '<div class="coaching-action-item">' +
+        '<div class="coaching-action-bullet"></div>' +
+        '<span>' + escHtml(item) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+/**
+ * Escape HTML to prevent XSS in coaching content.
+ */
+function escHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 /**
@@ -349,8 +444,17 @@ function resetDebriefForLiveCall() {
   if (liveActions) liveActions.style.display = '';
   if (tabsEl) tabsEl.style.display = 'none';
 
+  // Reset coaching panel to loading state
+  var coachLoading = document.getElementById('coaching-loading');
+  var coachContent = document.getElementById('coaching-content');
+  var coachEmpty = document.getElementById('coaching-empty');
+  if (coachLoading) coachLoading.style.display = '';
+  if (coachContent) coachContent.style.display = 'none';
+  if (coachEmpty) coachEmpty.style.display = 'none';
+
   currentDetailSessionId = null;
   cachedTranscript = null;
+  cachedCoaching = null;
 }
 
 // --- Utility Functions ---

@@ -624,7 +624,7 @@
       border-radius: var(--rs);
       padding: 4px;
       margin-bottom: 32px;
-      max-width: 320px;
+      max-width: 480px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -647,6 +647,66 @@
       color: #fff;
       font-weight: var(--fw-semibold);
     }
+
+    /* ─── Coaching Panel ─── */
+    .coaching-panel { display: none; }
+    .coaching-panel.active { display: block; }
+    .coaching-section {
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .coaching-section:last-child { margin-bottom: 0; }
+    .coaching-section-title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--white);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .coaching-section p, .coaching-section li {
+      font-size: var(--fs-sm);
+      color: var(--gray);
+      line-height: var(--lh-relaxed);
+    }
+    .coaching-moment {
+      padding: 12px 16px;
+      background: rgba(59,130,246,.06);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 var(--rs) var(--rs) 0;
+      margin-bottom: 12px;
+    }
+    .coaching-moment:last-child { margin-bottom: 0; }
+    .coaching-moment-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+    .coaching-moment p { margin: 4px 0; }
+    .coaching-action-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .coaching-action-bullet {
+      width: 6px;
+      height: 6px;
+      min-width: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      margin-top: 7px;
+    }
+    .coaching-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--gray);
+    }
+    .coaching-empty p { margin-top: 12px; font-size: var(--fs-sm); }
 
     /* ─── Transcript View ─── */
     .transcript-panel { display: none; }
@@ -1211,7 +1271,8 @@
       <div id="debrief-content" class="debrief-content" style="display:none;">
         <!-- Tab bar -->
         <div id="debrief-tabs" class="debrief-tabs" style="display:none;">
-          <button class="debrief-tab active" data-tab="evaluation" id="tab-evaluation">Evaluation</button>
+          <button class="debrief-tab active" data-tab="scorecard" id="tab-scorecard">Scorecard</button>
+          <button class="debrief-tab" data-tab="coaching" id="tab-coaching">Coaching</button>
           <button class="debrief-tab" data-tab="transcript" id="tab-transcript">Transcript</button>
         </div>
 
@@ -1274,6 +1335,35 @@
           <button id="btn-retry" class="btn btn-secondary">Retry This Scenario</button>
         </div>
         </div><!-- /panel-evaluation -->
+
+        <!-- Coaching panel (hidden by default) -->
+        <div id="panel-coaching" class="coaching-panel">
+          <div id="coaching-loading" class="coaching-empty">
+            <div class="spinner"></div>
+            <p>Loading coaching analysis...</p>
+          </div>
+          <div id="coaching-content" style="display:none;">
+            <div class="coaching-section">
+              <div class="coaching-section-title">Call Summary</div>
+              <p id="coaching-call-summary"></p>
+            </div>
+            <div class="coaching-section">
+              <div class="coaching-section-title">Module Alignment</div>
+              <p id="coaching-module-alignment"></p>
+            </div>
+            <div class="coaching-section">
+              <div class="coaching-section-title">Key Moments</div>
+              <div id="coaching-key-moments"></div>
+            </div>
+            <div class="coaching-section">
+              <div class="coaching-section-title">Action Items</div>
+              <div id="coaching-action-items"></div>
+            </div>
+          </div>
+          <div id="coaching-empty" class="coaching-empty" style="display:none;">
+            <p>Coaching analysis is not available for this session.</p>
+          </div>
+        </div>
 
         <!-- Transcript panel (hidden by default) -->
         <div id="panel-transcript" class="transcript-panel">
