@@ -469,4 +469,50 @@ router.get('/:id/perception', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/sessions/renormalize-all - Re-normalize all stored transcripts.
+ * Runs existing raw_transcript data through the updated normalizer to fix
+ * duplicates, em dashes, and interleaved text. One-time migration utility.
+ */
+router.post('/renormalize-all', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const result = await db.query(
+      'SELECT session_id, raw_transcript FROM session_transcripts WHERE raw_transcript IS NOT NULL'
+    );
+
+    let updated = 0;
+    let skipped = 0;
+
+    for (const row of result.rows) {
+      try {
+        const rawData = JSON.parse(row.raw_transcript);
+        const normalized = extractTranscript(rawData);
+
+        if (normalized) {
+          await db.query(
+            'UPDATE session_transcripts SET normalized_transcript = $1 WHERE session_id = $2',
+            [normalized, row.session_id]
+          );
+          updated++;
+        } else {
+          skipped++;
+        }
+      } catch (parseErr) {
+        console.warn('[Sessions] Re-normalize parse error for session ' + row.session_id + ':', parseErr.message);
+        skipped++;
+      }
+    }
+
+    console.log('[Sessions] Re-normalization complete: ' + updated + ' updated, ' + skipped + ' skipped');
+    res.json({ updated, skipped, total: result.rows.length });
+  } catch (err) {
+    console.error('[Sessions] Re-normalization error:', err.message);
+    res.status(500).json({ error: 'Re-normalization failed.' });
+  }
+});
+
 module.exports = router;

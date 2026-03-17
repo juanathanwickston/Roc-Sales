@@ -33,8 +33,14 @@ function findEventProperties(rawConversation, eventType) {
  * Extract the transcript text from a raw Tavus verbose conversation response.
  * Transcript lives at: events[].properties.transcript
  * where event_type === 'application.transcription_ready'.
- * properties.transcript is an array of {role, content} objects (14 entries confirmed).
- * First entry is a system prompt - filtered out.
+ * properties.transcript is an array of {role, content} objects.
+ *
+ * Tavus returns progressive/incremental entries: each update contains all
+ * previous text plus new words. This function deduplicates by keeping only
+ * the final (longest) version of consecutive same-role entries.
+ *
+ * Also strips em dashes and cleans whitespace for readability.
+ *
  * Returns the transcript string, or null if not available or too short.
  */
 function extractTranscript(rawConversation) {
@@ -53,18 +59,44 @@ function extractTranscript(rawConversation) {
   let text;
 
   if (Array.isArray(raw)) {
-    // Tavus format: [{role: "user", content: "..."}, {role: "assistant", content: "..."}]
-    // Filter out system messages (Tavus internal instructions) and join into readable text
-    const lines = raw
-      .filter((msg) => msg && msg.role && msg.role !== 'system' && msg.content)
-      .map((msg) => {
-        const role = msg.role === 'assistant' ? 'Celine' : 'Rep';
-        return `[${role}]: ${msg.content}`;
-      });
+    // Filter out system messages (Tavus internal instructions)
+    const messages = raw.filter(function(msg) {
+      return msg && msg.role && msg.role !== 'system' && msg.content;
+    });
+
+    // Deduplicate progressive entries:
+    // Tavus sends incremental updates where each entry grows.
+    // Walk backward: if entry[i] content starts with or is contained in entry[i+1]
+    // content (same role), discard entry[i] and keep entry[i+1].
+    const deduplicated = [];
+    for (var i = 0; i < messages.length; i++) {
+      var current = messages[i];
+      var next = (i + 1 < messages.length) ? messages[i + 1] : null;
+
+      // If next message has the same role and its content starts with
+      // or contains the current content, skip current (it is a partial)
+      if (next && next.role === current.role) {
+        var currentTrimmed = current.content.trim();
+        var nextTrimmed = next.content.trim();
+        if (nextTrimmed.indexOf(currentTrimmed.substring(0, Math.min(40, currentTrimmed.length))) === 0) {
+          // Current is a prefix of next - skip it
+          continue;
+        }
+      }
+
+      deduplicated.push(current);
+    }
+
+    // Map to readable format and clean text
+    var lines = deduplicated.map(function(msg) {
+      var role = msg.role === 'assistant' ? 'Celine' : 'Rep';
+      var content = cleanTranscriptText(msg.content);
+      return '[' + role + ']: ' + content;
+    });
 
     text = lines.join('\n');
   } else if (typeof raw === 'string') {
-    text = raw;
+    text = cleanTranscriptText(raw);
   } else {
     return null;
   }
@@ -74,6 +106,21 @@ function extractTranscript(rawConversation) {
   }
 
   return text;
+}
+
+/**
+ * Clean transcript text by stripping em dashes, collapsing whitespace,
+ * and trimming lines. Preserves sentence structure.
+ */
+function cleanTranscriptText(text) {
+  if (!text) return '';
+  return text
+    .replace(/\u2014/g, ', ')   // em dash
+    .replace(/\u2013/g, ', ')   // en dash
+    .replace(/---/g, ', ')      // triple hyphen used as em dash
+    .replace(/--/g, ', ')       // double hyphen used as em dash
+    .replace(/\s{2,}/g, ' ')    // collapse multiple spaces
+    .trim();
 }
 
 /**

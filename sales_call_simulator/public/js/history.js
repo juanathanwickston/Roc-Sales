@@ -95,8 +95,8 @@ function renderHistoryStats(sessions) {
   const passes = scored.filter(function(s) { return s.overall_score >= PASS_THRESHOLD; }).length;
   const passRate = Math.round((passes / scored.length) * 100);
 
-  document.getElementById('stat-best').textContent = best;
-  document.getElementById('stat-average').textContent = average;
+  document.getElementById('stat-best').textContent = best + '/100';
+  document.getElementById('stat-average').textContent = average + '/100';
   document.getElementById('stat-pass-rate').textContent = passRate + '%';
 }
 
