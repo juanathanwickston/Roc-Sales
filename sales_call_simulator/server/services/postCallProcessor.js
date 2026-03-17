@@ -241,7 +241,7 @@ async function scoreTranscript(transcript, scenarioId) {
         { role: 'system', content: prompt.system },
         { role: 'user', content: prompt.user },
       ],
-      temperature: 0.3,
+      temperature: 0.2,
       response_format: { type: 'json_object' },
     }),
   });
@@ -254,7 +254,8 @@ async function scoreTranscript(transcript, scenarioId) {
   const data = await response.json();
 
   try {
-    const scorecard = JSON.parse(data.choices[0].message.content);
+    const extraction = JSON.parse(data.choices[0].message.content);
+    const scorecard = calculateMechanicalScore(extraction, rubric);
     console.log(`[PostCall] Scored scenario ${scenarioId}: overall ${scorecard.overall_score}/100`);
     return scorecard;
   } catch (parseErr) {
@@ -288,51 +289,111 @@ function loadScenarioRubric(scenarioId) {
 }
 
 /**
- * Build the scoring prompt from transcript and rubric.
+ * Build the scoring prompt from transcript and behavioral checklist rubric.
+ * GPT-4o only observes YES/NO per behavior with exact transcript quotes.
+ * Score calculation happens server-side in calculateMechanicalScore.
  */
 function buildScoringPrompt(transcript, rubric, scenarioId) {
-  const rubricText = Object.entries(rubric)
-    .map(([cat, details]) => {
-      const weight = details.weight || 25;
-      const criteria = details.criteria || cat;
-      return `- ${cat} (${weight}% weight): ${criteria}`;
-    })
-    .join('\n');
+  // Build behavior list from rubric
+  const behaviorList = [];
+  for (const [catName, catData] of Object.entries(rubric)) {
+    const behaviors = catData.behaviors || [];
+    for (const b of behaviors) {
+      behaviorList.push(`- ${b.id}: ${b.description}`);
+    }
+  }
+  const behaviorText = behaviorList.join('\n');
 
   return {
-    system: `You are an expert sales coach evaluating a sales call simulation. You are rigorous but constructive. You evaluate based on observable evidence in the transcript - not assumptions.
+    system: `You are an expert sales call evaluator. Your ONLY job is to determine whether specific behaviors were observed in the transcript.
 
-Score each rubric category on a scale of 0-100. Provide specific evidence from the transcript for each score. Be honest - a score of 50 means average, 70 means good, 90+ means exceptional.
+RULES:
+1. For each behavior, determine if it was OBSERVED or NOT OBSERVED in the transcript.
+2. If OBSERVED, provide the EXACT quote from the transcript as evidence. Copy the words verbatim.
+3. If NOT OBSERVED, set evidence to "NOT OBSERVED". Do not infer or assume.
+4. Do NOT paraphrase. Do NOT summarize. Only use exact words from the transcript.
+5. A behavior is only OBSERVED if there is a direct, literal quote that proves it.
+6. Also provide top_strengths (2 items) and critical_improvements (3 items) based ONLY on observed evidence.
+7. Provide a single coaching_tip with one actionable recommendation.
 
 Return a JSON object with this exact structure:
 {
-  "overall_score": <number 0-100>,
-  "overall_verdict": "<pass|needs_work|fail>",
-  "categories": {
-    "<category_name>": {
-      "score": <number 0-100>,
-      "weight": <number>,
-      "evidence": "<specific quote or behavior from transcript>",
-      "feedback": "<what was done well and what to improve>",
-      "verdict": "<strong|adequate|weak>"
+  "checklist": {
+    "<behavior_id>": {
+      "observed": true|false,
+      "evidence": "<exact transcript quote or NOT OBSERVED>"
     }
   },
-  "top_strengths": ["<strength 1>", "<strength 2>"],
-  "critical_improvements": ["<improvement 1>", "<improvement 2>", "<improvement 3>"],
-  "coaching_tip": "<one actionable tip for next time>"
-}
-
-Verdict thresholds: pass >= 70, needs_work 50-69, fail < 50`,
+  "top_strengths": ["<strength based on observed evidence>", "<strength based on observed evidence>"],
+  "critical_improvements": ["<improvement based on missing behaviors>", "<improvement>", "<improvement>"],
+  "coaching_tip": "<one actionable tip>"
+}`,
 
     user: `SCENARIO: ${scenarioId || 'Sales Call Simulation'}
 
-RUBRIC:
-${rubricText}
+BEHAVIORS TO EVALUATE:
+${behaviorText}
 
 CALL TRANSCRIPT:
 ${transcript}
 
-Evaluate this call against the rubric. Return JSON only.`,
+Evaluate each behavior. Return JSON only.`,
+  };
+}
+
+/**
+ * Calculate mechanical score from GPT-4o checklist extraction and rubric behaviors.
+ * Returns a backward-compatible scorecard object.
+ */
+function calculateMechanicalScore(extraction, rubric) {
+  const checklist = extraction.checklist || {};
+  let totalScore = 0;
+  const categories = {};
+
+  for (const [catName, catData] of Object.entries(rubric)) {
+    const behaviors = catData.behaviors || [];
+    let catEarned = 0;
+    let catPossible = 0;
+    const observed = [];
+    const missed = [];
+
+    for (const b of behaviors) {
+      catPossible += b.points;
+      const result = checklist[b.id];
+      if (result && result.observed === true) {
+        catEarned += b.points;
+        observed.push(b.id);
+      } else {
+        missed.push(b.id);
+      }
+    }
+
+    totalScore += catEarned;
+    const catPct = catPossible > 0 ? Math.round((catEarned / catPossible) * 100) : 0;
+    const verdict = catPct >= 70 ? 'strong' : (catPct >= 50 ? 'adequate' : 'weak');
+
+    categories[catName] = {
+      score: catPct,
+      weight: catData.weight,
+      earned: catEarned,
+      possible: catPossible,
+      observed_count: observed.length,
+      total_count: behaviors.length,
+      verdict: verdict,
+      evidence: checklist,
+    };
+  }
+
+  const overallVerdict = totalScore >= 70 ? 'pass' : (totalScore >= 50 ? 'needs_work' : 'fail');
+
+  return {
+    overall_score: totalScore,
+    overall_verdict: overallVerdict,
+    categories: categories,
+    checklist: checklist,
+    top_strengths: extraction.top_strengths || [],
+    critical_improvements: extraction.critical_improvements || [],
+    coaching_tip: extraction.coaching_tip || '',
   };
 }
 
@@ -409,6 +470,8 @@ function loadCurriculum(scenarioId) {
 
 /**
  * Build the coaching prompt from transcript, curriculum, and scorecard.
+ * Produces 5 sections: call_overview, coaches_analysis, playbook, stats, next_call_focus.
+ * Strict language constraints: no em dashes, no emojis, no exclamation marks.
  */
 function buildCoachingPrompt({ transcript, curriculum, scorecard, scenarioId }) {
   const scoreSummary = `Overall Score: ${scorecard.overall_score}/100 (${scorecard.overall_verdict})
@@ -416,33 +479,51 @@ Top Strengths: ${(scorecard.top_strengths || []).join('; ')}
 Critical Improvements: ${(scorecard.critical_improvements || []).join('; ')}
 Coaching Tip: ${scorecard.coaching_tip || 'N/A'}`;
 
-  return {
-    system: `You are an expert sales coach providing detailed, constructive, paragraph-form feedback on a sales call simulation. You have access to the training curriculum the rep is studying and their scorecard results.
+  // Build stats from checklist if available
+  let statsContext = '';
+  if (scorecard.categories) {
+    statsContext = Object.entries(scorecard.categories)
+      .map(([name, data]) => `${name}: ${data.observed_count || 0}/${data.total_count || 0} behaviors observed`)
+      .join('\n');
+  }
 
-Your coaching analysis must directly reference the curriculum source material. Specifically:
-- Reference specific frameworks (BANT, CHAMP) from the curriculum when relevant.
+  return {
+    system: `You are an expert sales coach providing detailed, constructive feedback on a sales call simulation. You have access to the training curriculum and the scorecard results.
+
+LANGUAGE RULES (strict, no exceptions):
+- Do NOT use em dashes, en dashes, or double hyphens. Use commas or periods instead.
+- Do NOT use emojis or unicode symbols.
+- Do NOT use exclamation marks.
+- Use professional, direct tone. Like a sharp sales manager in a coaching session.
+- Commas and periods only for punctuation.
+
+ANTI-HALLUCINATION RULES (strict, no exceptions):
+- Every claim about what the rep did or said MUST include an exact quote from the transcript.
+- If a behavior was NOT observed, say so explicitly. Do not infer or assume it happened.
+- Do NOT paraphrase the transcript. Use exact words.
+- If the rep did not do something, state that they did not do it.
+
+Your coaching analysis must directly reference the curriculum source material:
+- Reference specific frameworks (BANT, CHAMP) when relevant.
 - Reference the sales funnel stages (Suspect, Lead, Prospect) when relevant.
 - Reference the successful outcome criteria from the curriculum.
 - Reference customer-focused vs product-focused selling distinctions.
 
-Write a coaching analysis with FOUR sections. Return valid JSON with this exact structure:
+Return valid JSON with this exact structure:
 {
-  "call_summary": "<2-3 sentences about what happened on the call>",
-  "module_alignment": "<paragraph explaining how the rep's performance maps to the curriculum's teaching, referencing specific concepts>",
-  "key_moments": [
+  "call_overview": "<2-3 sentences about what happened on the call. Include only facts supported by the transcript.>",
+  "coaches_analysis": "<paragraph explaining how the rep's performance maps to the curriculum. Reference specific curriculum concepts. Note what was done well and what was missed.>",
+  "playbook": [
     {
-      "moment": "<brief label, e.g. 'Fee discussion at 3:20'>",
-      "what_happened": "<what the rep actually said or did>",
-      "recommendation": "<what the curriculum teaches they should have done instead>"
+      "situation": "<brief label for the moment>",
+      "what_you_said": "<exact quote from transcript>",
+      "what_to_say": "<scripted alternative the rep can memorize and practice>"
     }
   ],
-  "action_items": [
-    "<concrete practice item for next call>",
-    "<concrete practice item for next call>"
-  ]
+  "next_call_focus": "<one single priority for the next call. Not two, not three. One.>"
 }
 
-Include 3-4 key moments. Include 2-3 action items. Be specific — cite exact phrases from the transcript. Be constructive, not harsh.`,
+Include 3-4 playbook items. For each, use the rep's EXACT words in what_you_said, and provide a ready-to-use script in what_to_say that follows the curriculum's teaching.`,
 
     user: `SCENARIO: ${scenarioId || 'Sales Call Simulation'}
 
@@ -451,6 +532,9 @@ ${curriculum}
 
 SCORECARD RESULTS:
 ${scoreSummary}
+
+BEHAVIOR STATS:
+${statsContext}
 
 CALL TRANSCRIPT:
 ${transcript}

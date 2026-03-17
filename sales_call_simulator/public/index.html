@@ -687,6 +687,87 @@
       margin-bottom: 4px;
     }
     .coaching-moment p { margin: 4px 0; }
+    .coaching-playbook-item {
+      padding: 16px;
+      background: var(--n3);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      margin-bottom: 12px;
+    }
+    .coaching-playbook-item:last-child { margin-bottom: 0; }
+    .coaching-playbook-situation {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: var(--blue);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .coaching-playbook-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .coaching-playbook-col-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: var(--gray);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .coaching-playbook-col-label.what-to-say { color: var(--green); }
+    .coaching-playbook-col p {
+      font-size: var(--fs-sm);
+      color: var(--white);
+      line-height: var(--lh-relaxed);
+      font-style: italic;
+    }
+    .coaching-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .coaching-stats-row:last-child { margin-bottom: 0; }
+    .coaching-stats-label {
+      font-size: var(--fs-sm);
+      color: var(--gray);
+      width: 160px;
+      min-width: 160px;
+    }
+    .coaching-stats-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: var(--n3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .coaching-stats-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .coaching-stats-count {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--white);
+      min-width: 36px;
+      text-align: right;
+    }
+    .coaching-focus-box {
+      background: rgba(59,130,246,.08);
+      border: 1px solid var(--blue);
+      border-radius: var(--r);
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .coaching-focus-box p {
+      font-size: var(--fs-base);
+      color: var(--white);
+      line-height: var(--lh-relaxed);
+      font-weight: var(--fw-medium);
+    }
     .coaching-action-item {
       display: flex;
       align-items: flex-start;
@@ -1344,20 +1425,24 @@
           </div>
           <div id="coaching-content" style="display:none;">
             <div class="coaching-section">
-              <div class="coaching-section-title">Call Summary</div>
-              <p id="coaching-call-summary"></p>
+              <div class="coaching-section-title">Call Overview</div>
+              <p id="coaching-call-overview"></p>
             </div>
             <div class="coaching-section">
-              <div class="coaching-section-title">Module Alignment</div>
-              <p id="coaching-module-alignment"></p>
+              <div class="coaching-section-title">Coach's Analysis</div>
+              <p id="coaching-coaches-analysis"></p>
             </div>
             <div class="coaching-section">
-              <div class="coaching-section-title">Key Moments</div>
-              <div id="coaching-key-moments"></div>
+              <div class="coaching-section-title">Playbook</div>
+              <div id="coaching-playbook"></div>
             </div>
             <div class="coaching-section">
-              <div class="coaching-section-title">Action Items</div>
-              <div id="coaching-action-items"></div>
+              <div class="coaching-section-title">Your Stats</div>
+              <div id="coaching-stats"></div>
+            </div>
+            <div class="coaching-section">
+              <div class="coaching-section-title">Next Call Focus</div>
+              <div id="coaching-next-focus" class="coaching-focus-box"></div>
             </div>
           </div>
           <div id="coaching-empty" class="coaching-empty" style="display:none;">

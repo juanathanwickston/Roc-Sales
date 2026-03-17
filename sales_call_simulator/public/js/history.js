@@ -271,11 +271,21 @@ async function loadCoaching(sessionId) {
   if (emptyEl) emptyEl.style.display = 'none';
 
   try {
-    var res = await fetch('/api/sessions/' + sessionId + '/coaching');
-    if (!res.ok) throw new Error('Coaching not found');
+    // Fetch coaching and score data in parallel
+    var coachRes = fetch('/api/sessions/' + sessionId + '/coaching');
+    var scoreRes = fetch('/api/sessions/' + sessionId + '/score');
+    var results = await Promise.all([coachRes, scoreRes]);
 
-    var data = await res.json();
-    cachedCoaching = data.coaching_analysis || null;
+    if (!results[0].ok) throw new Error('Coaching not found');
+
+    var coachData = await results[0].json();
+    cachedCoaching = coachData.coaching_analysis || null;
+
+    // Get score data for stats (non-blocking if unavailable)
+    var scoreData = null;
+    if (results[1].ok) {
+      scoreData = await results[1].json();
+    }
 
     if (!cachedCoaching) {
       if (loadingEl) loadingEl.style.display = 'none';
@@ -283,7 +293,7 @@ async function loadCoaching(sessionId) {
       return;
     }
 
-    renderCoaching(cachedCoaching);
+    renderCoaching(cachedCoaching, scoreData);
     if (loadingEl) loadingEl.style.display = 'none';
     if (contentEl) contentEl.style.display = '';
   } catch (err) {
@@ -295,39 +305,65 @@ async function loadCoaching(sessionId) {
 
 /**
  * Render coaching analysis JSON into the coaching panel.
+ * Sections: Call Overview, Coach's Analysis, Playbook, Your Stats, Next Call Focus.
  */
-function renderCoaching(coaching) {
-  // Call Summary
-  var summaryEl = document.getElementById('coaching-call-summary');
-  if (summaryEl) summaryEl.textContent = coaching.call_summary || '';
+function renderCoaching(coaching, scoreData) {
+  // Call Overview
+  var overviewEl = document.getElementById('coaching-call-overview');
+  if (overviewEl) overviewEl.textContent = coaching.call_overview || '';
 
-  // Module Alignment
-  var alignEl = document.getElementById('coaching-module-alignment');
-  if (alignEl) alignEl.textContent = coaching.module_alignment || '';
+  // Coach's Analysis
+  var analysisEl = document.getElementById('coaching-coaches-analysis');
+  if (analysisEl) analysisEl.textContent = coaching.coaches_analysis || '';
 
-  // Key Moments
-  var momentsEl = document.getElementById('coaching-key-moments');
-  if (momentsEl) {
-    var moments = coaching.key_moments || [];
-    momentsEl.innerHTML = moments.map(function(m) {
-      return '<div class="coaching-moment">' +
-        '<div class="coaching-moment-label">' + escHtml(m.moment || '') + '</div>' +
-        '<p><strong>What happened:</strong> ' + escHtml(m.what_happened || '') + '</p>' +
-        '<p><strong>Recommendation:</strong> ' + escHtml(m.recommendation || '') + '</p>' +
+  // Playbook (side-by-side: what you said / what to say)
+  var playbookEl = document.getElementById('coaching-playbook');
+  if (playbookEl) {
+    var plays = coaching.playbook || [];
+    playbookEl.innerHTML = plays.map(function(p) {
+      return '<div class="coaching-playbook-item">' +
+        '<div class="coaching-playbook-situation">' + escHtml(p.situation || '') + '</div>' +
+        '<div class="coaching-playbook-columns">' +
+          '<div class="coaching-playbook-col">' +
+            '<div class="coaching-playbook-col-label">What You Said</div>' +
+            '<p>"' + escHtml(p.what_you_said || '') + '"</p>' +
+          '</div>' +
+          '<div class="coaching-playbook-col">' +
+            '<div class="coaching-playbook-col-label what-to-say">What To Say</div>' +
+            '<p>"' + escHtml(p.what_to_say || '') + '"</p>' +
+          '</div>' +
+        '</div>' +
       '</div>';
     }).join('');
   }
 
-  // Action Items
-  var actionsEl = document.getElementById('coaching-action-items');
-  if (actionsEl) {
-    var items = coaching.action_items || [];
-    actionsEl.innerHTML = items.map(function(item) {
-      return '<div class="coaching-action-item">' +
-        '<div class="coaching-action-bullet"></div>' +
-        '<span>' + escHtml(item) + '</span>' +
+  // Your Stats (from scorecard categories)
+  var statsEl = document.getElementById('coaching-stats');
+  if (statsEl && scoreData && scoreData.categories) {
+    statsEl.innerHTML = Object.entries(scoreData.categories).map(function(entry) {
+      var name = entry[0];
+      var data = entry[1];
+      var observed = data.observed_count || 0;
+      var total = data.total_count || 0;
+      var pct = total > 0 ? Math.round((observed / total) * 100) : 0;
+      var barColor = pct >= 70 ? 'var(--green)' : (pct >= 50 ? 'var(--orange)' : 'var(--red)');
+      var displayName = name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      return '<div class="coaching-stats-row">' +
+        '<span class="coaching-stats-label">' + escHtml(displayName) + '</span>' +
+        '<div class="coaching-stats-bar-wrap">' +
+          '<div class="coaching-stats-bar" style="width:' + pct + '%;background:' + barColor + '"></div>' +
+        '</div>' +
+        '<span class="coaching-stats-count">' + observed + '/' + total + '</span>' +
       '</div>';
     }).join('');
+  } else if (statsEl) {
+    statsEl.innerHTML = '<p style="color:var(--gray);font-size:var(--fs-sm);">Stats not available for this session.</p>';
+  }
+
+  // Next Call Focus
+  var focusEl = document.getElementById('coaching-next-focus');
+  if (focusEl) {
+    focusEl.innerHTML = '<p>' + escHtml(coaching.next_call_focus || '') + '</p>';
   }
 }
 

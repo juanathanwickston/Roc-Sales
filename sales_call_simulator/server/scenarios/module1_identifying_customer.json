@@ -20,19 +20,40 @@
   "rubric": {
     "discovery_questions": {
       "weight": 30,
-      "criteria": "Asked open-ended questions about the prospect's business, pain points, and current payment processing situation BEFORE presenting any Payroc solutions. Demonstrated customer-focused (not product-focused) selling."
+      "behaviors": [
+        { "id": "D1", "description": "Asked open-ended questions BEFORE presenting solutions", "points": 5 },
+        { "id": "D2", "description": "Asked about current pain points or frustrations", "points": 5 },
+        { "id": "D3", "description": "Asked about current payment processing situation", "points": 5 },
+        { "id": "D4", "description": "Asked about specific needs or problems to solve", "points": 5 },
+        { "id": "D5", "description": "Asked follow-up questions to quantify or deepen pain points", "points": 5 },
+        { "id": "D6", "description": "Kept conversation focused on payment processing, not POS", "points": 5 }
+      ]
     },
     "qualification_framework": {
       "weight": 30,
-      "criteria": "Applied BANT (Budget, Authority, Need, Timeline) or CHAMP (Challenges, Authority, Money, Prioritization) framework. Asked about decision-makers (Marco), budget alignment, defined needs, and timeline/urgency."
+      "behaviors": [
+        { "id": "Q1", "description": "Asked about or identified decision-makers", "points": 7 },
+        { "id": "Q2", "description": "Asked about budget, current fees, or financial impact", "points": 7 },
+        { "id": "Q3", "description": "Asked why this is a priority right now", "points": 6 },
+        { "id": "Q4", "description": "Asked about timeline, urgency, or contract dates", "points": 5 },
+        { "id": "Q5", "description": "Asked about the decision process", "points": 5 }
+      ]
     },
     "funnel_awareness": {
       "weight": 20,
-      "criteria": "Treated the prospect appropriately for their funnel stage (suspect to lead to prospect). Did NOT assume the prospect was ready to buy. Properly identified engagement signals before advancing."
+      "behaviors": [
+        { "id": "F1", "description": "Treated prospect as a suspect, did not assume ready to buy", "points": 7 },
+        { "id": "F2", "description": "Did not push product features before understanding needs", "points": 7 },
+        { "id": "F3", "description": "Identified engagement signals before advancing the conversation", "points": 6 }
+      ]
     },
     "next_step_close": {
       "weight": 20,
-      "criteria": "Proposed a clear, low-commitment next step (e.g., demo with Marco present). Did NOT push for a close on the first call. Set expectations for follow-up."
+      "behaviors": [
+        { "id": "N1", "description": "Earned the right to propose a next step appointment", "points": 7 },
+        { "id": "N2", "description": "Did not push for a sale or close on the first call", "points": 7 },
+        { "id": "N3", "description": "Set clear expectations for follow-up timing and format", "points": 6 }
+      ]
     }
   },
   "coaching_notes": {
@@ -41,7 +62,7 @@
       "Lead = demonstrated interest through action",
       "Prospect = qualified with confirmed need, budget, authority, timeline",
       "Customer-focused reps ask before they tell",
-      "CHAMP leads with challenges — usually gets better engagement",
+      "CHAMP leads with challenges, usually gets better engagement",
       "This module focuses on PAYMENT PROCESSING, not POS"
     ],
     "common_mistakes": [
@@ -50,7 +71,7 @@
       "Not asking about other decision-makers (authority)",
       "Failing to quantify pain points",
       "Pushing for a close instead of a follow-up",
-      "Skipping stages — trying to close before discovering pain"
+      "Skipping stages, trying to close before discovering pain"
     ]
   }
 }
