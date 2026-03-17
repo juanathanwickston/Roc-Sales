@@ -20,10 +20,10 @@ const scoring = {
     const score = scorecard.overall_score || 0;
     this.animateScoreRing(score, scorecard.overall_verdict);
 
-    // Verdict text (H4: includes text label, not color-only)
+    // Verdict text
     const verdictEl = document.getElementById('score-verdict');
     const verdictMap = {
-      pass: 'Great Job!',
+      pass: 'Great Job',
       needs_work: 'Needs Improvement',
       fail: 'Keep Practicing',
     };
@@ -33,8 +33,10 @@ const scoring = {
     document.getElementById('score-coaching-tip').textContent =
       scorecard.coaching_tip || '';
 
-    // Category breakdown
-    this.renderCategories(scorecard.categories || {});
+    // Category breakdown (pass rubric for expandable details)
+    const rubric = (scenario && scenario.rubric) ? scenario.rubric : {};
+    const checklist = scorecard.checklist || {};
+    this.renderCategories(scorecard.categories || {}, rubric, checklist);
 
     // Strengths
     const strengthsEl = document.getElementById('score-strengths');
@@ -60,22 +62,16 @@ const scoring = {
    * Animate the score ring to the target value.
    */
   animateScoreRing(score, verdict) {
-    const circumference = SCORE_RING_CIRCUMFERENCE;
-    const offset = circumference - (score / 100) * circumference;
-
     const fillEl = document.getElementById('score-ring-fill');
     const numberEl = document.getElementById('score-number');
 
-    // Set color using CSS custom property (not color-only - verdict text exists)
-    if (verdict === 'fail') {
-      fillEl.style.stroke = 'var(--red)';
-    } else if (verdict === 'needs_work') {
-      fillEl.style.stroke = 'var(--orange)';
-    } else {
-      fillEl.style.stroke = 'var(--green)';
-    }
+    // Color based on score
+    const color = (score >= 70) ? 'var(--green)' : ((score >= 50) ? 'var(--orange)' : 'var(--red)');
+    fillEl.style.stroke = color;
 
-    // Animate after a brief delay
+    // Calculate offset for ring
+    const offset = SCORE_RING_CIRCUMFERENCE - (score / 100) * SCORE_RING_CIRCUMFERENCE;
+
     setTimeout(() => {
       fillEl.style.strokeDashoffset = offset;
     }, 100);
@@ -99,24 +95,56 @@ const scoring = {
   },
 
   /**
-   * Render category score rows (H4: text labels alongside color bars).
+   * Render expandable category score rows with behavior details.
+   * Collapsed by default. Clicking expands to show individual behaviors.
    */
-  renderCategories(categories) {
+  renderCategories(categories, rubric, checklist) {
     const container = document.getElementById('score-categories');
     container.innerHTML = Object.entries(categories)
       .map(([name, data]) => {
-        // M6 fix: explicit parentheses for ternary clarity
         const verdict = data.verdict || ((data.score >= 70) ? 'Strong' : ((data.score >= 50) ? 'Adequate' : 'Weak'));
         const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        // Bar color
         const barColor = (data.score >= 70) ? 'var(--green)' : ((data.score >= 50) ? 'var(--orange)' : 'var(--red)');
+        const countText = (data.observed_count !== undefined && data.total_count !== undefined)
+          ? ` (${data.observed_count}/${data.total_count})`
+          : '';
+
+        // Build behavior detail rows from rubric
+        const rubricCat = rubric[name];
+        let behaviorsHtml = '';
+        if (rubricCat && rubricCat.behaviors && Object.keys(checklist).length > 0) {
+          behaviorsHtml = rubricCat.behaviors.map(b => {
+            const result = checklist[b.id];
+            const observed = result && result.observed === true;
+            const statusClass = observed ? 'observed' : 'missed';
+            const statusIcon = observed ? '&#10003;' : '&#10005;';
+            const evidenceText = (observed && result.evidence && result.evidence !== 'NOT OBSERVED')
+              ? `<div class="behavior-evidence">"${esc(result.evidence)}"</div>`
+              : '';
+            return `<div class="behavior-item">
+              <div class="behavior-status ${statusClass}">${statusIcon}</div>
+              <div>
+                <div class="behavior-desc">${esc(b.description)}</div>
+                ${evidenceText}
+              </div>
+            </div>`;
+          }).join('');
+        }
+
+        const hasBehaviors = behaviorsHtml.length > 0;
+        const chevronSvg = '<svg class="category-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5V3z"/></svg>';
+
         return `
           <div class="category-row">
-            <span class="category-name">${esc(displayName)}</span>
-            <div class="category-bar-wrap">
-              <div class="category-bar" style="width:0;background:${barColor}" data-target="${data.score}%"></div>
+            <div class="category-header"${hasBehaviors ? ' onclick="this.parentElement.classList.toggle(\'expanded\')"' : ''}>
+              ${hasBehaviors ? chevronSvg : '<span style="width:16px"></span>'}
+              <span class="category-name">${esc(displayName)}</span>
+              <div class="category-bar-wrap">
+                <div class="category-bar" style="width:0;background:${barColor}" data-target="${data.score}%"></div>
+              </div>
+              <span class="category-score">${data.score}/100${countText}</span>
             </div>
-            <span class="category-score">${data.score}/100 · ${esc(verdict)}</span>
+            ${hasBehaviors ? `<div class="category-behaviors">${behaviorsHtml}</div>` : ''}
           </div>`;
       })
       .join('');
@@ -160,14 +188,13 @@ const scoring = {
 
   /**
    * Render a manual debrief when scoring is unavailable.
-   * M10 fix: uses CSS classes instead of inline styles.
    */
   renderManualDebrief(callData, scenario) {
     const loadingEl = document.getElementById('debrief-loading');
     const contentEl = document.getElementById('debrief-content');
 
     // Show a simplified debrief without AI scoring
-    document.getElementById('score-number').textContent = '—';
+    document.getElementById('score-number').textContent = '\u2014';
     document.getElementById('score-verdict').textContent = 'Self-Assessment Required';
     document.getElementById('score-coaching-tip').textContent =
       'AI scoring is unavailable for this call. Review the coaching notes below and rate your own performance.';

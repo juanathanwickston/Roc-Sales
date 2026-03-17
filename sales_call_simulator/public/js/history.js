@@ -197,14 +197,29 @@ async function viewSessionScore(sessionId) {
   contentEl.style.display = 'none';
 
   try {
-    var res = await fetch('/api/sessions/' + sessionId + '/score');
-    if (!res.ok) throw new Error('Score not found');
+    // Fetch score and scenarios in parallel
+    var scoreRes = fetch('/api/sessions/' + sessionId + '/score');
+    var scenariosRes = fetch('/api/scenarios');
+    var results = await Promise.all([scoreRes, scenariosRes]);
 
-    var scorecard = await res.json();
+    if (!results[0].ok) throw new Error('Score not found');
+
+    var scorecard = await results[0].json();
+
+    // Match scenario by finding which rubric's category keys match scorecard categories
+    var scenario = null;
+    if (results[1].ok) {
+      var scenarios = await results[1].json();
+      var scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
+      scenario = scenarios.find(function(s) {
+        if (!s.rubric) return false;
+        return Object.keys(s.rubric).sort().join(',') === scoreCatKeys;
+      }) || null;
+    }
 
     // Use existing scoring module to render
     if (typeof scoring !== 'undefined' && scoring.renderScorecard) {
-      scoring.renderScorecard(scorecard);
+      scoring.renderScorecard(scorecard, scenario);
     }
   } catch (err) {
     console.error('[History] Score fetch error:', err.message);
