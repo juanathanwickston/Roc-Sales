@@ -14,6 +14,9 @@ logger.setLevel(config.logLevel);
 
 const app = express();
 
+// Trust first proxy (Railway reverse proxy)
+app.set('trust proxy', 1);
+
 // Security middleware
 const security = createSecurityMiddleware();
 security.forEach(mw => app.use(mw));

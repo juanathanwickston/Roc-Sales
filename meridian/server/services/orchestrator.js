@@ -1,7 +1,7 @@
 const { createDeepgramStream } = require('./deepgram');
 const { createClaudeEngine } = require('./claude');
 const { synthesize } = require('./inworld');
-const pool = require('../db/pool');
+const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
 
 const SILENCE_PROMPT_5S = 'You still there?';

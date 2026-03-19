@@ -1,6 +1,6 @@
 const { WebSocketServer } = require('ws');
 const { URL } = require('url');
-const pool = require('../db/pool');
+const { pool } = require('../db/pool');
 const sessionQueries = require('../db/queries/sessions');
 const { createOrchestrator } = require('../services/orchestrator');
 
