@@ -1,0 +1,57 @@
+/* ===========================================
+   Meridian Design System Tokens
+   Source: UI/UX Interaction Patterns Standard
+   =========================================== */
+
+/* Brand Tokens */
+:root {
+    --navy: #0A1628;
+    --navy-card: #152240;
+    --cobalt: #3B82F6;
+    --mint: #00E0B8;
+    --red: #FF4466;
+    --gray: #7B8BA8;
+    --sky: #F4F7FE;
+    --border-blue: rgba(59, 130, 246, 0.12);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light Theme (default) */
+[data-theme="light"] {
+    --bg: #F0F2F5;
+    --glass: rgba(255, 255, 255, 0.82);
+    --glass-border: rgba(10, 22, 40, 0.08);
+    --text-1: #0A1628;
+    --text-2: #7B8BA8;
+    --btn-bg: rgba(10, 22, 40, 0.05);
+    --btn-hover: rgba(10, 22, 40, 0.1);
+    --btn-border: rgba(10, 22, 40, 0.08);
+    --shadow: 0 8px 40px rgba(10, 22, 40, 0.1);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --bg: #060B14;
+    --glass: rgba(15, 25, 45, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --text-1: #ffffff;
+    --text-2: rgba(255, 255, 255, 0.45);
+    --btn-bg: rgba(255, 255, 255, 0.07);
+    --btn-hover: rgba(255, 255, 255, 0.14);
+    --btn-border: rgba(255, 255, 255, 0.08);
+    --shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Typography */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+    color: var(--text-1);
+    margin: 0;
+    padding: 0;
+}
+
+/* Spacing Scale (4px base unit) */
+/* xs: 4px, sm: 8px, md: 16px, lg: 24px, xl: 32px, 2xl: 48px */
