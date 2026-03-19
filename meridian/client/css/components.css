@@ -1,0 +1,190 @@
+/* ===========================================
+   Meridian Shared Component Styles
+   Source: Prototype live_session.html
+   =========================================== */
+
+/* Reset */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Utility: hide elements without inline styles */
+.hidden {
+    display: none;
+}
+
+/* Base */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-1);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background 0.5s var(--ease);
+}
+
+/* Glass Surface (shared treatment for floating elements) */
+.glass-surface {
+    background: var(--glass);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    transition: all 0.4s var(--ease);
+}
+
+/* Circular Button (44x44, used for mic toggle, theme toggle) */
+.btn-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    color: var(--text-1);
+    outline: none;
+}
+
+.btn-circle:hover {
+    background: var(--btn-hover);
+    transform: scale(1.05);
+}
+
+.btn-circle:active {
+    transform: scale(0.97);
+}
+
+.btn-circle svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Pill Button (end session, return to dashboard) */
+.btn-pill {
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 100px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    letter-spacing: 0.2px;
+    outline: none;
+    white-space: nowrap;
+}
+
+.btn-pill:hover {
+    transform: scale(1.03);
+}
+
+.btn-pill:active {
+    transform: scale(0.97);
+}
+
+/* Danger variant (end session) */
+.btn-pill--danger {
+    background: var(--end-bg);
+    color: #ffffff;
+}
+
+.btn-pill--danger:hover {
+    background: var(--end-hover);
+}
+
+/* Outlined variant (return button) */
+.btn-pill--outlined {
+    background: var(--btn-bg);
+    color: var(--text-1);
+    border: 1px solid var(--btn-border);
+}
+
+.btn-pill--outlined:hover {
+    background: var(--btn-hover);
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-2);
+    letter-spacing: 0.3px;
+    padding: 10px 24px;
+    border-radius: 100px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s var(--ease);
+    z-index: 150;
+    /* Glass surface properties inlined for the toast */
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+}
+
+.toast--visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Status Dot (breathing animation) */
+.status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--mint);
+    flex-shrink: 0;
+    animation: breathe 2.5s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes breathe {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+}
+
+@keyframes slide-up {
+    from { transform: translateY(60px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pip-in {
+    from { transform: translateY(20px) scale(0.9); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 640px) {
+    .btn-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .btn-circle svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .btn-pill {
+        height: 40px;
+        padding: 0 18px;
+        font-size: 12px;
+    }
+}

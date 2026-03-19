@@ -24,7 +24,10 @@ app.use(express.json({ limit: '1mb' }));
 // Static file serving
 app.use(express.static(path.join(__dirname, '..', 'client')));
 
-// Routes
+// Page routes
+app.use('/', require('./routes/pages'));
+
+// API routes
 app.use('/api/health', require('./routes/health'));
 app.use('/api/sessions', require('./routes/sessions'));
 

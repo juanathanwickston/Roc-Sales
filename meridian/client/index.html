@@ -9,13 +9,46 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
     <main>
         <section id="landing" aria-label="Welcome">
             <h1>Meridian</h1>
-            <p>Platform is running. Phase 2 will build the live session UI.</p>
+            <p id="landing-status">Ready to start a practice session.</p>
+            <button id="start-btn" class="btn-pill btn-pill--outlined" aria-label="Start a new session">Start Session</button>
+            <p id="landing-error" role="alert" aria-live="polite"></p>
         </section>
     </main>
+
+    <script type="module">
+        const startBtn = document.getElementById('start-btn');
+        const statusEl = document.getElementById('landing-status');
+        const errorEl = document.getElementById('landing-error');
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.disabled = true;
+            statusEl.textContent = 'Creating session...';
+            errorEl.textContent = '';
+
+            try {
+                const res = await fetch('/api/sessions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to create session');
+                }
+
+                const data = await res.json();
+                window.location.href = `/session?session=${data.id}`;
+            } catch (err) {
+                startBtn.disabled = false;
+                statusEl.textContent = 'Ready to start a practice session.';
+                errorEl.textContent = 'Unable to create session. Please try again.';
+            }
+        });
+    </script>
 </body>
 </html>
