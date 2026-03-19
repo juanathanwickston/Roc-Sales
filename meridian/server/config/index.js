@@ -31,7 +31,7 @@ module.exports = {
     },
     cartesia: {
         apiKey: process.env.CARTESIA_API_KEY,
-        voiceId: process.env.CARTESIA_VOICE_ID || 'a0e99841-438c-4a64-b679-ae501e7d6091'
+        voiceId: process.env.CARTESIA_VOICE_ID || 'cbaf8084-f009-4838-a096-07ee2e6612b1'
     },
     replicate: {
         apiToken: process.env.REPLICATE_API_TOKEN || null
