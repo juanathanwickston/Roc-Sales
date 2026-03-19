@@ -72,6 +72,7 @@ function createGeminiLiveSession(sessionId, callbacks) {
         const liveConfig = {
             responseModalities: [Modality.AUDIO],
             systemInstruction: systemInstruction,
+            temperature: 1.0,
             speechConfig: {
                 voiceConfig: {
                     prebuiltVoiceConfig: {
