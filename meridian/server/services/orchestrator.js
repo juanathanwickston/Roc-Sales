@@ -4,9 +4,16 @@ const { synthesize } = require('./cartesia');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
 
-const SILENCE_PROMPT_5S = 'You still there?';
-const SILENCE_PROMPT_10S = 'I had another call coming in, should I take that or...';
-const SILENCE_PROMPT_15S = 'Alright, I think we will pick this up another time.';
+const SILENCE_PROMPT_5S = "You still there?";
+const SILENCE_PROMPT_10S = "I had another call coming in, should I take that or...";
+const SILENCE_PROMPT_15S = "Alright, I think we'll pick this up another time.";
+
+// Filler phrases for latency masking (randomized per use)
+const FILLER_PHRASES = [
+    'Well...',
+    'So...',
+    'I mean...'
+];
 
 /**
  * Creates a per-session orchestrator that ties Deepgram, Claude, and Cartesia
@@ -123,8 +130,15 @@ function createOrchestrator(sessionId, sendToClient) {
         claude.on('ttft', (ttftMs) => {
             if (ttftMs > 800 && !ttftHandled) {
                 ttftHandled = true;
-                // Latency masking: send filler while Claude thinks
-                sendToClient({ type: 'ai_text', text: 'So...', isFinal: false });
+                // Latency masking: synthesize a filler phrase while Claude thinks
+                const filler = FILLER_PHRASES[Math.floor(Math.random() * FILLER_PHRASES.length)];
+                synthesize(filler).then((audioBuffer) => {
+                    if (!isDestroyed && isProcessing) {
+                        sendToClient({ type: 'ai_audio', data: audioBuffer });
+                    }
+                }).catch(() => {
+                    // Filler is best-effort, do not block the pipeline
+                });
             }
         });
 
@@ -147,8 +161,8 @@ function createOrchestrator(sessionId, sendToClient) {
                     isFinal: false
                 });
 
-                // Queue TTS for this sentence
-                const ttsPromise = synthesizeSentence(sentenceText, emotionTag);
+                // Queue TTS for this sentence (SSML tags are inline in the text)
+                const ttsPromise = synthesizeSentence(sentenceText);
                 sentencePromises.push(ttsPromise);
             });
 
@@ -209,18 +223,15 @@ function createOrchestrator(sessionId, sendToClient) {
     /**
      * Convert a single sentence to speech and send the audio to the client.
      */
-    async function synthesizeSentence(text, emotionTag) {
+    async function synthesizeSentence(text) {
         if (isDestroyed || !isProcessing) return;
 
         try {
             sendToClient({ type: 'status', state: 'speaking' });
 
-            // Pass emotion tag to Cartesia TTS
-            const ttsText = text;
-
-            const audioBuffer = await synthesize(ttsText, {
-                signal: currentAbortController ? currentAbortController.signal : undefined,
-                emotionTag: emotionTag
+            // Text contains inline SSML tags from Claude, pass directly to Cartesia
+            const audioBuffer = await synthesize(text, {
+                signal: currentAbortController ? currentAbortController.signal : undefined
             });
 
             if (!isDestroyed && isProcessing) {

@@ -5,28 +5,50 @@ const config = require('../config');
 const EventEmitter = require('events');
 
 const PROMPTS_DIR = path.join(__dirname, '..', '..', 'prompts');
+const VOICE_BASE_FILE = 'voice_base.md';
 
 /**
  * Creates a Claude conversation engine for a single session.
  * Maintains conversation history and streams responses sentence by sentence.
+ *
+ * System prompt is built from two layers:
+ * 1. voice_base.md: universal speech pattern rules (contractions, fillers, SSML)
+ * 2. persona file: character identity, objections, backstory
  */
-function createClaudeEngine(promptFile = 'default_buyer_v1.md') {
+function createClaudeEngine(personaFile = 'karen_chen_v1.md') {
     const emitter = new EventEmitter();
     const client = new Anthropic({ apiKey: config.claude.apiKey });
     const conversationHistory = [];
     let systemPrompt = '';
 
-    // Load system prompt from file
-    const promptPath = path.join(PROMPTS_DIR, promptFile);
+    // Load voice base (universal speech rules)
+    const voiceBasePath = path.join(PROMPTS_DIR, VOICE_BASE_FILE);
+    let voiceBasePrompt = '';
     try {
-        systemPrompt = fs.readFileSync(promptPath, 'utf-8').trim();
+        voiceBasePrompt = fs.readFileSync(voiceBasePath, 'utf-8').trim();
     } catch (err) {
-        console.error('[claude] Failed to load prompt file', {
-            path: promptPath,
+        console.error('[claude] Failed to load voice base prompt', {
+            path: voiceBasePath,
             error: err.message
         });
-        throw new Error('System prompt not found');
+        throw new Error('Voice base prompt not found');
     }
+
+    // Load persona-specific prompt
+    const personaPath = path.join(PROMPTS_DIR, personaFile);
+    let personaPrompt = '';
+    try {
+        personaPrompt = fs.readFileSync(personaPath, 'utf-8').trim();
+    } catch (err) {
+        console.error('[claude] Failed to load persona prompt', {
+            path: personaPath,
+            error: err.message
+        });
+        throw new Error('Persona prompt not found');
+    }
+
+    // Combine: voice rules first, then persona
+    systemPrompt = voiceBasePrompt + '\n\n' + personaPrompt;
 
     /**
      * Sends user text to Claude and streams the response.
@@ -167,19 +189,33 @@ function createClaudeEngine(promptFile = 'default_buyer_v1.md') {
 /**
  * Extracts complete sentences from a text buffer.
  * Handles emotion tags like [skeptical] at the start of sentences.
+ * Preserves SSML tags (break, speed, volume, emotion) without
+ * splitting on periods inside angle brackets.
  * Returns { complete: [{text, emotionTag}], remaining: string }.
  */
 function extractSentences(buffer) {
     const complete = [];
-    // Split on sentence endings followed by a space or end of string
+    // Strip SSML tags temporarily to find real sentence boundaries,
+    // then map positions back to the original text with SSML intact
+    const ssmlPlaceholder = '\x00';
+    const ssmlTags = [];
+    const stripped = buffer.replace(/<[^>]+\/?>/g, (match, offset) => {
+        ssmlTags.push({ match, offset });
+        return ssmlPlaceholder.repeat(match.length);
+    });
+
     const sentencePattern = /([^.!?]*[.!?])(?:\s|$)/g;
     let lastIndex = 0;
-    let match;
+    let sentenceMatch;
 
-    while ((match = sentencePattern.exec(buffer)) !== null) {
-        const sentence = match[1].trim();
-        if (sentence) {
-            const tag = extractEmotionTag(sentence);
+    while ((sentenceMatch = sentencePattern.exec(stripped)) !== null) {
+        // Get the original text (with SSML tags) for this range
+        const start = sentenceMatch.index;
+        const end = start + sentenceMatch[1].length;
+        const originalSentence = buffer.substring(start, end).trim();
+
+        if (originalSentence) {
+            const tag = extractEmotionTag(originalSentence);
             complete.push(tag);
         }
         lastIndex = sentencePattern.lastIndex;
