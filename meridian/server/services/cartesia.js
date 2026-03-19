@@ -59,16 +59,11 @@ async function synthesize(text, options = {}) {
         language: 'en'
     };
 
-    // Add generation_config with emotion (single string, NOT array)
-    // and speed for natural pacing
+    // Cartesia generation_config.emotion accepts a single string, not an array.
+    // Speed accepts a float [-1.0, 1.0] where 0 = default. Omit to use default.
     if (emotionValue) {
         requestBody.generation_config = {
-            emotion: emotionValue,
-            speed: 'normal'
-        };
-    } else {
-        requestBody.generation_config = {
-            speed: 'normal'
+            emotion: emotionValue
         };
     }
 
