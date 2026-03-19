@@ -119,9 +119,9 @@ function createOrchestrator(sessionId, sendToClient) {
 
         await geminiSession.init();
 
-        // AI greets first when the call connects, like a real person answering
-        sendToClient({ type: 'status', state: 'thinking' });
-        geminiSession.sendAudio(Buffer.alloc(0));
+        // Buyer answers the phone first, like a real inbound call
+        sendToClient({ type: 'status', state: 'speaking' });
+        geminiSession.sendText('The phone is ringing and you just picked up. Answer it in character.');
 
         startSilenceTimer();
     }
