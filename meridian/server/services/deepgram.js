@@ -6,7 +6,10 @@ const DEEPGRAM_OPTIONS = {
     model: config.deepgram.model,
     language: 'en-US',
     smart_format: true,
-    endpointing: config.deepgram.endpointing
+    endpointing: config.deepgram.endpointing,
+    encoding: 'linear16',
+    sample_rate: 16000,
+    channels: 1
 };
 
 /**
