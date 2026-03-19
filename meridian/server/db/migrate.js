@@ -7,12 +7,26 @@ const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 const TRACKING_TABLE = '_migrations';
 
 async function migrate() {
+    // Check DATABASE_URL before attempting connection
+    if (!process.env.DATABASE_URL) {
+        console.error('[migrate] DATABASE_URL is not set. Cannot connect to database.');
+        console.error('[migrate] Available env vars:', Object.keys(process.env).filter(k => k.includes('PG') || k.includes('DATABASE') || k.includes('DB')).join(', ') || 'none matching PG/DATABASE/DB');
+        process.exit(1);
+    }
+
+    console.log('[migrate] Connecting to database...');
+
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+        connectionTimeoutMillis: 10000
     });
 
     try {
+        // Test connection first
+        await pool.query('SELECT 1');
+        console.log('[migrate] Database connected');
+
         // Create tracking table if it does not exist
         await pool.query(`
             CREATE TABLE IF NOT EXISTS ${TRACKING_TABLE} (
@@ -52,7 +66,10 @@ async function migrate() {
             console.log(`[migrate] Applied ${count} migration(s)`);
         }
     } catch (err) {
-        console.error(`[migrate] Migration failed: ${err.message}`);
+        console.error('[migrate] Migration failed');
+        console.error('[migrate] Error name:', err.name);
+        console.error('[migrate] Error message:', err.message);
+        console.error('[migrate] Error code:', err.code);
         process.exit(1);
     } finally {
         await pool.end();
