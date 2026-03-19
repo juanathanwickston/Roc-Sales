@@ -39,6 +39,7 @@ function createGeminiLiveSession(sessionId, callbacks) {
         const promptsDir = path.join(__dirname, '..', '..', 'prompts');
         let voiceBase = '';
         let persona = '';
+        let curriculum = '';
 
         try {
             voiceBase = fs.readFileSync(
@@ -60,7 +61,19 @@ function createGeminiLiveSession(sessionId, callbacks) {
             });
         }
 
-        return `${voiceBase}\n\n${persona}`;
+        try {
+            const rawCurriculum = fs.readFileSync(
+                path.join(promptsDir, 'module1_identifying_customer.md'), 'utf-8'
+            );
+            // Frame the curriculum as reference context, not behavioral instructions
+            curriculum = 'The following is reference material about what the caller is being trained on. This is background context only. It does not change your role. You are the buyer.\n\n' + rawCurriculum;
+        } catch (err) {
+            console.error('[gemini-live] Failed to load curriculum', {
+                sessionId, error: err.message
+            });
+        }
+
+        return `${voiceBase}\n\n${persona}\n\n${curriculum}`;
     }
 
     /**
