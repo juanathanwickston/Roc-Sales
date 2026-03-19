@@ -52,7 +52,7 @@ function createGeminiLiveSession(sessionId, callbacks) {
 
         try {
             persona = fs.readFileSync(
-                path.join(promptsDir, 'karen_chen_v1.md'), 'utf-8'
+                path.join(promptsDir, 'celine_marciano_v1.md'), 'utf-8'
             );
         } catch (err) {
             console.error('[gemini-live] Failed to load persona prompt', {
