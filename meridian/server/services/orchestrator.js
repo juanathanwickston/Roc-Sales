@@ -121,7 +121,7 @@ function createOrchestrator(sessionId, sendToClient) {
 
         // Buyer answers the phone first, like a real inbound call
         sendToClient({ type: 'status', state: 'speaking' });
-        geminiSession.sendText('The phone is ringing and you just picked up. Answer it in character.');
+        geminiSession.sendText('Someone is calling you. Pick up and say hello.');
 
         startSilenceTimer();
     }
