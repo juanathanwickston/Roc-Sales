@@ -161,8 +161,8 @@ function createOrchestrator(sessionId, sendToClient) {
                     isFinal: false
                 });
 
-                // Queue TTS for this sentence (SSML tags are inline in the text)
-                const ttsPromise = synthesizeSentence(sentenceText);
+                // Queue TTS for this sentence with emotion for expressive delivery
+                const ttsPromise = synthesizeSentence(sentenceText, emotionTag);
                 sentencePromises.push(ttsPromise);
             });
 
@@ -223,15 +223,16 @@ function createOrchestrator(sessionId, sendToClient) {
     /**
      * Convert a single sentence to speech and send the audio to the client.
      */
-    async function synthesizeSentence(text) {
+    async function synthesizeSentence(text, emotionTag) {
         if (isDestroyed || !isProcessing) return;
 
         try {
             sendToClient({ type: 'status', state: 'speaking' });
 
-            // Text contains inline SSML tags from Claude, pass directly to Cartesia
+            // Pass emotion tag to Cartesia for expressive delivery
             const audioBuffer = await synthesize(text, {
-                signal: currentAbortController ? currentAbortController.signal : undefined
+                signal: currentAbortController ? currentAbortController.signal : undefined,
+                emotionTag: emotionTag
             });
 
             if (!isDestroyed && isProcessing) {
