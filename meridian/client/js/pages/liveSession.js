@@ -172,6 +172,8 @@ function handleStatus(state) {
     switch (state) {
         case 'listening':
             elements.personaStatus.textContent = 'Listening...';
+            // Cancel any queued/playing AI audio on barge-in
+            audioPlayer.cancel();
             break;
         case 'thinking':
             elements.personaStatus.textContent = 'Thinking...';
