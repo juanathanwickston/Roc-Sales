@@ -1,4 +1,4 @@
-const requiredNow = ['PORT', 'DATABASE_URL', 'CLAUDE_API_KEY', 'DEEPGRAM_API_KEY', 'INWORLD_API_KEY'];
+const requiredNow = ['PORT', 'DATABASE_URL', 'CLAUDE_API_KEY', 'DEEPGRAM_API_KEY', 'CARTESIA_API_KEY'];
 const requiredLater = ['REPLICATE_API_TOKEN'];
 
 const missing = requiredNow.filter(key => !process.env[key]);
@@ -29,10 +29,9 @@ module.exports = {
         model: 'nova-3',
         endpointing: 800
     },
-    inworld: {
-        apiKey: process.env.INWORLD_API_KEY,
-        voiceId: process.env.INWORLD_VOICE_ID || 'Clive',
-        modelId: 'inworld-tts-1.5-max'
+    cartesia: {
+        apiKey: process.env.CARTESIA_API_KEY,
+        voiceId: process.env.CARTESIA_VOICE_ID || 'a0e99841-438c-4a64-b679-ae501e7d6091'
     },
     replicate: {
         apiToken: process.env.REPLICATE_API_TOKEN || null

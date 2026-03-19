@@ -1,6 +1,6 @@
 const { createDeepgramStream } = require('./deepgram');
 const { createClaudeEngine } = require('./claude');
-const { synthesize } = require('./inworld');
+const { synthesize } = require('./cartesia');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
 
@@ -9,7 +9,7 @@ const SILENCE_PROMPT_10S = 'I had another call coming in, should I take that or.
 const SILENCE_PROMPT_15S = 'Alright, I think we will pick this up another time.';
 
 /**
- * Creates a per-session orchestrator that ties Deepgram, Claude, and Inworld
+ * Creates a per-session orchestrator that ties Deepgram, Claude, and Cartesia
  * together into a single conversation pipeline.
  */
 function createOrchestrator(sessionId, sendToClient) {
@@ -92,7 +92,7 @@ function createOrchestrator(sessionId, sendToClient) {
     /**
      * Process a completed user utterance through the full pipeline:
      * 1. Send to Claude
-     * 2. Stream sentences to Inworld TTS
+     * 2. Stream sentences to Cartesia TTS
      * 3. Send audio back to client
      */
     async function handleUserUtterance(text) {
@@ -215,11 +215,12 @@ function createOrchestrator(sessionId, sendToClient) {
         try {
             sendToClient({ type: 'status', state: 'speaking' });
 
-            // Prepend emotion tag for Inworld TTS
-            const ttsText = emotionTag ? `[${emotionTag}] ${text}` : text;
+            // Pass emotion tag to Cartesia TTS
+            const ttsText = text;
 
             const audioBuffer = await synthesize(ttsText, {
-                signal: currentAbortController ? currentAbortController.signal : undefined
+                signal: currentAbortController ? currentAbortController.signal : undefined,
+                emotionTag: emotionTag
             });
 
             if (!isDestroyed && isProcessing) {

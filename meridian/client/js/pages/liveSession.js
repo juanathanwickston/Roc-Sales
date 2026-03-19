@@ -157,7 +157,7 @@ function handleAiText(text, isFinal) {
 }
 
 /**
- * Handle AI audio chunks from Inworld TTS.
+ * Handle AI audio chunks from Cartesia TTS.
  */
 function handleAiAudio(audioData) {
     audioPlayer.enqueue(audioData);

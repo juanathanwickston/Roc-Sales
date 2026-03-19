@@ -40,7 +40,7 @@ Required for Phase 1:
 | `DATABASE_URL` | Your PostgreSQL connection string (Railway auto-injects this) |
 | `DAILY_API_KEY` | Daily.co dashboard, Developers section |
 
-Not required until later phases: `CLAUDE_API_KEY`, `DEEPGRAM_API_KEY`, `INWORLD_API_KEY`, `REPLICATE_API_TOKEN`.
+Not required until later phases: `CLAUDE_API_KEY`, `DEEPGRAM_API_KEY`, `CARTESIA_API_KEY`, `REPLICATE_API_TOKEN`.
 
 ---
 
