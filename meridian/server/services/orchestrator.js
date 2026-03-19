@@ -27,6 +27,7 @@ function createOrchestrator(sessionId, sendToClient) {
     let isProcessing = false;
     let turnNumber = 0;
     let currentAbortController = null;
+    let currentContextId = null;
     let silenceTimer = null;
     let silenceStage = 0;
     let isDestroyed = false;
@@ -115,7 +116,7 @@ function createOrchestrator(sessionId, sendToClient) {
         const currentTurn = turnNumber;
 
         // Generate context ID for prosodic continuity within this turn
-        const currentContextId = createContextId();
+        currentContextId = createContextId();
 
         // Save user transcript
         saveTranscript(sessionId, 'user', text, currentTurn).catch((err) => {
@@ -139,7 +140,7 @@ function createOrchestrator(sessionId, sendToClient) {
                 ttftHandled = true;
                 // Latency masking: synthesize a filler phrase while Claude thinks
                 const filler = FILLER_PHRASES[Math.floor(Math.random() * FILLER_PHRASES.length)];
-                synthesize(filler).then((audioBuffer) => {
+                synthesize(filler, { emotionTag: 'friendly', contextId: currentContextId }).then((audioBuffer) => {
                     if (!isDestroyed && isProcessing) {
                         sendToClient({ type: 'ai_audio', data: audioBuffer });
                     }
