@@ -13,8 +13,7 @@
     "migrate": "node server/db/migrate.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
-    "@deepgram/sdk": "^3.9.0",
+    "@google/genai": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

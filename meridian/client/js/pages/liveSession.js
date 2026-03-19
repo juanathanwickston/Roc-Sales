@@ -125,7 +125,7 @@ function cacheElements() {
 }
 
 /**
- * Handle user transcript from Deepgram.
+ * Handle user transcript from Gemini Live.
  */
 function handleTranscript(text, isFinal) {
     if (!elements.captionsText) return;
@@ -139,7 +139,7 @@ function handleTranscript(text, isFinal) {
 }
 
 /**
- * Handle AI response text from Claude.
+ * Handle AI response text from Gemini Live.
  */
 function handleAiText(text, isFinal) {
     if (!elements.captionsText) return;
@@ -157,7 +157,7 @@ function handleAiText(text, isFinal) {
 }
 
 /**
- * Handle AI audio chunks from Cartesia TTS.
+ * Handle AI audio chunks from Gemini Live.
  */
 function handleAiAudio(audioData) {
     audioPlayer.enqueue(audioData);

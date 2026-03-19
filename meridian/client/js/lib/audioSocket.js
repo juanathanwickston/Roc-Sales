@@ -53,7 +53,7 @@ async function connect(sessionId, micStream, callbacks) {
 
         ws.onmessage = (event) => {
             if (event.data instanceof ArrayBuffer) {
-                // Binary = AI audio (MP3)
+                // Binary = AI audio (PCM)
                 if (onAiAudio) onAiAudio(event.data);
             } else {
                 // JSON message
@@ -91,7 +91,7 @@ async function connect(sessionId, micStream, callbacks) {
  * and send them to the WebSocket.
  */
 async function setupAudioCapture(micStream) {
-    // Create AudioContext at 16kHz for Deepgram
+    // Create AudioContext at 16kHz for mic capture (Gemini Live input format)
     audioContext = new AudioContext({ sampleRate: 16000 });
 
     // Load the AudioWorklet processor

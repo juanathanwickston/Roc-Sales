@@ -16,7 +16,11 @@ let videoTrack = null;
 export async function init() {
     try {
         stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            },
             video: {
                 width: { ideal: 180 },
                 height: { ideal: 180 },
@@ -30,7 +34,13 @@ export async function init() {
         // Camera denied but mic might still work
         if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
                 audioTrack = stream.getAudioTracks()[0] || null;
                 videoTrack = null;
                 return { stream, hasVideo: false };

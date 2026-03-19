@@ -1,6 +1,6 @@
 /**
  * Audio Player
- * Queues and plays AI audio chunks (MP3) through the browser.
+ * Queues and plays AI audio chunks (PCM 24kHz 16-bit mono) through the browser.
  * Supports cancellation for barge-in.
  */
 
@@ -8,6 +8,9 @@ let audioContext = null;
 let queue = [];
 let isPlaying = false;
 let currentSource = null;
+
+// Gemini Live output: 16-bit PCM at 24kHz mono
+const GEMINI_SAMPLE_RATE = 24000;
 
 /**
  * Ensure AudioContext exists. Must be called after a user gesture
@@ -23,23 +26,34 @@ function ensureContext() {
 }
 
 /**
- * Add an audio chunk (ArrayBuffer of MP3 data) to the playback queue.
- * Starts playback if not already playing.
+ * Add an audio chunk (ArrayBuffer of raw PCM 16-bit data) to the playback queue.
+ * Converts raw PCM to an AudioBuffer for Web Audio API playback.
  *
- * @param {ArrayBuffer} audioData - MP3 audio data
+ * @param {ArrayBuffer} audioData - Raw PCM 16-bit 24kHz mono audio
  */
 async function enqueue(audioData) {
     ensureContext();
 
     try {
-        const audioBuffer = await audioContext.decodeAudioData(audioData.slice(0));
+        // Convert raw 16-bit PCM to Float32 AudioBuffer
+        const pcmData = new Int16Array(audioData);
+        const floatData = new Float32Array(pcmData.length);
+        for (let i = 0; i < pcmData.length; i++) {
+            floatData[i] = pcmData[i] / 32768;
+        }
+
+        const audioBuffer = audioContext.createBuffer(
+            1, floatData.length, GEMINI_SAMPLE_RATE
+        );
+        audioBuffer.getChannelData(0).set(floatData);
+
         queue.push(audioBuffer);
 
         if (!isPlaying) {
             playNext();
         }
     } catch (err) {
-        // Skip undecodable chunks
+        // Skip malformed chunks silently
     }
 }
 
