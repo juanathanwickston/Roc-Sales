@@ -1,17 +1,13 @@
 const config = require('../config');
+const crypto = require('crypto');
 
 const CARTESIA_ENDPOINT = 'https://api.cartesia.ai/tts/bytes';
 const CARTESIA_VERSION = '2026-03-01';
 
 /**
  * Maps emotion tags from Claude to Cartesia generation_config.emotion values.
- *
- * Evidence: Cartesia Sonic 3 docs confirm generation_config.emotion accepts
- * a SINGLE STRING, not an array. Format: "emotion_name:level" where level
- * is one of: lowest, low, high, highest. Multiple emotions can be combined
- * with spaces in a single string: "positivity:high curiosity:low".
- *
- * Source: Cartesia API reference, pipecat-ai integration docs (2026-03).
+ * Format: "emotion_name:level" combined with spaces in a single string.
+ * Source: Cartesia API docs, pipecat-ai integration (2026-03).
  */
 const EMOTION_MAP = {
     neutral: null,
@@ -24,25 +20,53 @@ const EMOTION_MAP = {
     friendly: 'positivity:high curiosity:low',
     impatient: 'anger:high',
     frustrated: 'anger:high sadness:low',
-    interested: 'curiosity:high positivity:low'
+    interested: 'curiosity:high positivity:low',
+    amused: 'positivity:high surprise:low'
 };
+
+/**
+ * Determines speech speed based on sentence characteristics.
+ * Short acknowledgments are faster. Longer explanations are slower.
+ * Range: 0.6 (slowest) to 1.5 (fastest), 1.0 = default.
+ * Source: Cartesia API docs confirm float multiplier for generation_config.speed.
+ */
+function getSpeedForText(text) {
+    const wordCount = text.split(/\s+/).length;
+
+    // Very short (1-3 words): fast, like "Yeah" or "Nah, not really"
+    if (wordCount <= 3) return 1.2;
+
+    // Short (4-8 words): slightly fast, natural conversational pace
+    if (wordCount <= 8) return 1.1;
+
+    // Medium (9-15 words): default pace
+    if (wordCount <= 15) return 1.0;
+
+    // Long (16+ words): slower for clarity
+    return 0.9;
+}
 
 /**
  * Converts text to speech using Cartesia Sonic 3.
  * Returns a Buffer of MP3 audio data.
  *
- * Emotion tags from Claude are mapped to Cartesia's generation_config.emotion
- * for expressive, non-robotic delivery.
- *
- * Supports AbortSignal for barge-in cancellation and retries once on failure.
+ * Uses context_id to maintain prosodic continuity across sentences
+ * within the same turn. This prevents each sentence from sounding
+ * like a fresh start.
  */
 async function synthesize(text, options = {}) {
     const startTime = Date.now();
     const signal = options.signal || null;
 
-    // Build emotion config from tag
+    // Emotion mapping
     const emotionTag = options.emotionTag || null;
     const emotionValue = emotionTag ? (EMOTION_MAP[emotionTag] || null) : null;
+
+    // Speed based on sentence length
+    const speed = getSpeedForText(text);
+
+    // Context ID for prosodic continuity within a turn
+    const contextId = options.contextId || null;
 
     const requestBody = {
         model_id: 'sonic-3',
@@ -59,12 +83,17 @@ async function synthesize(text, options = {}) {
         language: 'en'
     };
 
-    // Cartesia generation_config.emotion accepts a single string, not an array.
-    // Speed accepts a float [-1.0, 1.0] where 0 = default. Omit to use default.
-    if (emotionValue) {
-        requestBody.generation_config = {
-            emotion: emotionValue
-        };
+    // Context continuation: same context_id across sentences keeps prosody flowing
+    if (contextId) {
+        requestBody.context_id = contextId;
+    }
+
+    // Build generation_config with emotion and speed
+    const genConfig = {};
+    if (emotionValue) genConfig.emotion = emotionValue;
+    if (speed !== 1.0) genConfig.speed = speed;
+    if (Object.keys(genConfig).length > 0) {
+        requestBody.generation_config = genConfig;
     }
 
     const fetchOptions = {
@@ -78,12 +107,13 @@ async function synthesize(text, options = {}) {
         signal
     };
 
-    // Log the request for debugging emotion delivery
     console.info('[cartesia] TTS request', {
         textLen: text.length,
         textPreview: text.substring(0, 60),
         emotionTag,
-        emotionValue: emotionValue || 'none'
+        emotionValue: emotionValue || 'none',
+        speed,
+        contextId: contextId ? contextId.substring(0, 8) : 'none'
     });
 
     let response;
@@ -96,7 +126,6 @@ async function synthesize(text, options = {}) {
             throw err;
         }
 
-        // Retry once after 500ms
         console.warn('[cartesia] First attempt failed, retrying in 500ms', { error: err.message });
         await new Promise((r) => setTimeout(r, 500));
 
@@ -114,12 +143,12 @@ async function synthesize(text, options = {}) {
             status: response.status,
             body: errorBody.substring(0, 200),
             emotionTag,
-            emotionValue
+            emotionValue,
+            speed
         });
         throw new Error(`Cartesia TTS error: ${response.status}`);
     }
 
-    // Response is raw audio bytes
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = Buffer.from(arrayBuffer);
 
@@ -128,10 +157,20 @@ async function synthesize(text, options = {}) {
         textLen: text.length,
         audioBytes: audioBuffer.length,
         latencyMs,
-        emotionTag: emotionTag || 'none'
+        emotionTag: emotionTag || 'none',
+        speed
     });
 
     return audioBuffer;
 }
 
-module.exports = { synthesize };
+/**
+ * Generates a context ID for prosodic continuity within a turn.
+ * All sentences in the same turn share a context_id so Cartesia
+ * maintains consistent prosody across them.
+ */
+function createContextId() {
+    return crypto.randomUUID();
+}
+
+module.exports = { synthesize, createContextId };

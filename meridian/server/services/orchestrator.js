@@ -1,6 +1,6 @@
 const { createDeepgramStream } = require('./deepgram');
 const { createClaudeEngine } = require('./claude');
-const { synthesize } = require('./cartesia');
+const { synthesize, createContextId } = require('./cartesia');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
 
@@ -113,6 +113,9 @@ function createOrchestrator(sessionId, sendToClient) {
         const turnStart = Date.now();
         turnNumber += 1;
         const currentTurn = turnNumber;
+
+        // Generate context ID for prosodic continuity within this turn
+        const currentContextId = createContextId();
 
         // Save user transcript
         saveTranscript(sessionId, 'user', text, currentTurn).catch((err) => {
@@ -233,10 +236,11 @@ function createOrchestrator(sessionId, sendToClient) {
         try {
             sendToClient({ type: 'status', state: 'speaking' });
 
-            // Pass emotion tag to Cartesia for expressive delivery
+            // Pass emotion tag and context ID to Cartesia for expressive delivery
             const audioBuffer = await synthesize(text, {
                 signal: currentAbortController ? currentAbortController.signal : undefined,
-                emotionTag: emotionTag
+                emotionTag: emotionTag,
+                contextId: currentContextId
             });
 
             if (!isDestroyed && isProcessing) {
