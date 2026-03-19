@@ -242,7 +242,7 @@ function extractEmotionTag(text) {
         };
     }
 
-    return { text: text.trim(), emotionTag: null };
+    return { text: text.trim(), emotionTag: 'friendly' };
 }
 
 module.exports = { createClaudeEngine, extractSentences, extractEmotionTag };

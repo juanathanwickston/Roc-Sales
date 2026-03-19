@@ -9,10 +9,11 @@ const SILENCE_PROMPT_10S = "I had another call coming in, should I take that or.
 const SILENCE_PROMPT_15S = "Alright, I think we'll pick this up another time.";
 
 // Filler phrases for latency masking (randomized per use)
+// Must sound like natural human thinking, not robotic stalling
 const FILLER_PHRASES = [
-    'Well...',
-    'So...',
-    'I mean...'
+    'Hmm...',
+    'Uh...',
+    'Let me think...'
 ];
 
 /**
@@ -81,6 +82,9 @@ function createOrchestrator(sessionId, sendToClient) {
             });
         });
 
+        // AI greets first when the call connects, like a real person answering
+        sendToClient({ type: 'status', state: 'thinking' });
+        await handleUserUtterance('[The phone rings and you pick up. Greet the caller naturally.]');
         startSilenceTimer();
         sendToClient({ type: 'status', state: 'listening' });
     }
