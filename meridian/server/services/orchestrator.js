@@ -31,6 +31,15 @@ function createOrchestrator(sessionId, sendToClient) {
         await deepgram.open();
 
         deepgram.on('partial', (text) => {
+            // Barge-in: user is speaking while AI is responding
+            if (isProcessing && currentAbortController) {
+                console.info('[orchestrator] Barge-in detected', { sessionId });
+                currentAbortController.abort();
+                currentAbortController = null;
+                isProcessing = false;
+                sendToClient({ type: 'status', state: 'listening' });
+            }
+
             sendToClient({
                 type: 'transcript',
                 text,
@@ -40,6 +49,16 @@ function createOrchestrator(sessionId, sendToClient) {
 
         deepgram.on('final', async (text) => {
             if (!text.trim() || isDestroyed) return;
+
+            // Barge-in: final transcript arrived while AI is still responding
+            if (isProcessing && currentAbortController) {
+                console.info('[orchestrator] Barge-in detected (final)', { sessionId });
+                currentAbortController.abort();
+                currentAbortController = null;
+                isProcessing = false;
+                sendToClient({ type: 'status', state: 'listening' });
+            }
+
             resetSilenceTimer();
             await handleUserUtterance(text);
         });
@@ -61,21 +80,11 @@ function createOrchestrator(sessionId, sendToClient) {
 
     /**
      * Receive raw audio from the browser and forward to Deepgram.
-     * Also handles barge-in: if user speaks while AI is responding,
-     * cancel the in-flight TTS.
+     * Audio is always forwarded so Deepgram can detect speech.
+     * Barge-in is handled by transcript events, not raw audio.
      */
     function receiveAudio(audioBuffer) {
         if (isDestroyed) return;
-
-        // Barge-in: user speaking while AI is responding
-        if (isProcessing && currentAbortController) {
-            console.info('[orchestrator] Barge-in detected', { sessionId });
-            currentAbortController.abort();
-            currentAbortController = null;
-            isProcessing = false;
-            sendToClient({ type: 'status', state: 'listening' });
-        }
-
         resetSilenceTimer();
         deepgram.sendAudio(audioBuffer);
     }
