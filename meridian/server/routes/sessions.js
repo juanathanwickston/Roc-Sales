@@ -26,6 +26,16 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
+router.post('/:id/start', async (req, res, next) => {
+    try {
+        validateUuid(req.params.id, 'id');
+        const session = await sessionService.start(req.params.id);
+        res.json(session);
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.post('/:id/end', async (req, res, next) => {
     try {
         validateUuid(req.params.id, 'id');

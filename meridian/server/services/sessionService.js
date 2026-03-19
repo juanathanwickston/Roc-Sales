@@ -1,25 +1,16 @@
 const { pool } = require('../db/pool');
 const queries = require('../db/queries/sessions');
-const daily = require('./daily');
 const logger = require('../lib/logger');
 const { NotFoundError } = require('../lib/errors');
 
 async function create() {
-    const room = await daily.createRoom();
-    const token = await daily.generateToken(room.name);
-
-    const result = await pool.query(queries.create, [room.url, room.name]);
+    const result = await pool.query(queries.create);
     const session = result.rows[0];
 
-    logger.info('Session created', {
-        sessionId: session.id,
-        roomName: room.name
-    });
+    logger.info('Session created', { sessionId: session.id });
 
     return {
         id: session.id,
-        roomUrl: room.url,
-        token: token.token,
         status: session.status,
         createdAt: session.created_at
     };
@@ -30,6 +21,19 @@ async function getById(id) {
     if (result.rows.length === 0) {
         return null;
     }
+    return result.rows[0];
+}
+
+async function start(id) {
+    const session = await getById(id);
+    if (!session) {
+        throw new NotFoundError('Session not found');
+    }
+
+    const result = await pool.query(queries.start, [id]);
+
+    logger.info('Session started', { sessionId: id });
+
     return result.rows[0];
 }
 
@@ -54,4 +58,4 @@ async function end(id) {
     return result.rows[0];
 }
 
-module.exports = { create, getById, end };
+module.exports = { create, getById, start, end };

@@ -1,4 +1,4 @@
-const requiredNow = ['PORT', 'DATABASE_URL', 'DAILY_API_KEY'];
+const requiredNow = ['PORT', 'DATABASE_URL'];
 const requiredLater = ['CLAUDE_API_KEY', 'DEEPGRAM_API_KEY', 'INWORLD_API_KEY', 'REPLICATE_API_TOKEN'];
 
 const missing = requiredNow.filter(key => !process.env[key]);
@@ -18,9 +18,6 @@ module.exports = {
     logLevel: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
     db: {
         connectionString: process.env.DATABASE_URL
-    },
-    daily: {
-        apiKey: process.env.DAILY_API_KEY
     },
     claude: {
         apiKey: process.env.CLAUDE_API_KEY || null

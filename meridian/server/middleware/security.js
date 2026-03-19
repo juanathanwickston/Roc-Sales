@@ -11,8 +11,9 @@ function createSecurityMiddleware() {
                 scriptSrc: ["'self'"],
                 styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
                 fontSrc: ["'self'", 'fonts.gstatic.com'],
-                connectSrc: ["'self'", '*.daily.co', 'wss://*.daily.co'],
+                connectSrc: ["'self'", 'wss:'],
                 imgSrc: ["'self'", 'data:'],
+                mediaSrc: ["'self'", 'blob:'],
                 frameSrc: ["'none'"],
                 objectSrc: ["'none'"]
             }

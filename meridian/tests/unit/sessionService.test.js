@@ -1,9 +1,6 @@
 const sessionService = require('../../server/services/sessionService');
-const daily = require('../../server/services/daily');
 const { pool } = require('../../server/db/pool');
 
-// Mock dependencies
-jest.mock('../../server/services/daily');
 jest.mock('../../server/db/pool', () => ({
     pool: { query: jest.fn() }
 }));
@@ -14,29 +11,19 @@ describe('sessionService', () => {
     });
 
     describe('create', () => {
-        it('calls daily.createRoom and stores the session in the database', async () => {
-            const mockRoom = { name: 'test-room', url: 'https://test.daily.co/test-room' };
-            const mockToken = { token: 'test-token-123' };
+        it('creates a session in the database', async () => {
             const mockSession = {
                 id: '550e8400-e29b-41d4-a716-446655440000',
-                daily_room_url: mockRoom.url,
-                daily_room_name: mockRoom.name,
                 status: 'waiting',
                 created_at: '2026-03-18T00:00:00Z'
             };
 
-            daily.createRoom.mockResolvedValue(mockRoom);
-            daily.generateToken.mockResolvedValue(mockToken);
             pool.query.mockResolvedValue({ rows: [mockSession] });
 
             const result = await sessionService.create();
 
-            expect(daily.createRoom).toHaveBeenCalledTimes(1);
-            expect(daily.generateToken).toHaveBeenCalledWith(mockRoom.name);
             expect(pool.query).toHaveBeenCalledTimes(1);
             expect(result.id).toBe(mockSession.id);
-            expect(result.roomUrl).toBe(mockRoom.url);
-            expect(result.token).toBe(mockToken.token);
             expect(result.status).toBe('waiting');
         });
     });
@@ -63,9 +50,39 @@ describe('sessionService', () => {
         });
     });
 
+    describe('start', () => {
+        it('updates session status to active', async () => {
+            const mockSession = {
+                id: '550e8400-e29b-41d4-a716-446655440000',
+                status: 'waiting'
+            };
+            const mockStarted = {
+                ...mockSession,
+                status: 'active',
+                started_at: new Date().toISOString()
+            };
+
+            pool.query
+                .mockResolvedValueOnce({ rows: [mockSession] })
+                .mockResolvedValueOnce({ rows: [mockStarted] });
+
+            const result = await sessionService.start(mockSession.id);
+
+            expect(result.status).toBe('active');
+        });
+
+        it('throws NotFoundError when session does not exist', async () => {
+            pool.query.mockResolvedValue({ rows: [] });
+
+            await expect(
+                sessionService.start('550e8400-e29b-41d4-a716-446655440000')
+            ).rejects.toThrow('Session not found');
+        });
+    });
+
     describe('end', () => {
         it('calculates duration and updates session status', async () => {
-            const startedAt = new Date(Date.now() - 600000); // 10 minutes ago
+            const startedAt = new Date(Date.now() - 600000);
             const mockSession = {
                 id: '550e8400-e29b-41d4-a716-446655440000',
                 started_at: startedAt.toISOString(),
@@ -78,7 +95,6 @@ describe('sessionService', () => {
                 duration_seconds: 600
             };
 
-            // First call is getById, second is end query
             pool.query
                 .mockResolvedValueOnce({ rows: [mockSession] })
                 .mockResolvedValueOnce({ rows: [mockEnded] });
