@@ -21,7 +21,7 @@ module.exports = {
     },
     claude: {
         apiKey: process.env.CLAUDE_API_KEY,
-        model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6-20260301',
+        model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
         maxTokens: 300
     },
     deepgram: {

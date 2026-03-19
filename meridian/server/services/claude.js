@@ -45,31 +45,36 @@ function createClaudeEngine(promptFile = 'default_buyer_v1.md') {
         let sentenceBuffer = '';
 
         try {
-            const stream = client.messages.stream({
+            const stream = await client.messages.create({
                 model: config.claude.model,
                 max_tokens: config.claude.maxTokens,
                 system: systemPrompt,
-                messages: conversationHistory
+                messages: conversationHistory,
+                stream: true
             });
 
-            for await (const text of stream.textStream) {
-                if (!firstTokenTime) {
-                    firstTokenTime = Date.now();
-                    const ttft = firstTokenTime - startTime;
-                    console.info('[claude] First token', { ttftMs: ttft });
-                    emitter.emit('ttft', ttft);
-                }
+            for await (const event of stream) {
+                if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+                    const text = event.delta.text;
 
-                fullResponse += text;
-                sentenceBuffer += text;
-
-                // Extract complete sentences from buffer
-                const sentences = extractSentences(sentenceBuffer);
-                if (sentences.complete.length > 0) {
-                    for (const sentence of sentences.complete) {
-                        emitter.emit('sentence', sentence.text, sentence.emotionTag);
+                    if (!firstTokenTime) {
+                        firstTokenTime = Date.now();
+                        const ttft = firstTokenTime - startTime;
+                        console.info('[claude] First token', { ttftMs: ttft });
+                        emitter.emit('ttft', ttft);
                     }
-                    sentenceBuffer = sentences.remaining;
+
+                    fullResponse += text;
+                    sentenceBuffer += text;
+
+                    // Extract complete sentences from buffer
+                    const sentences = extractSentences(sentenceBuffer);
+                    if (sentences.complete.length > 0) {
+                        for (const sentence of sentences.complete) {
+                            emitter.emit('sentence', sentence.text, sentence.emotionTag);
+                        }
+                        sentenceBuffer = sentences.remaining;
+                    }
                 }
             }
 
@@ -98,26 +103,30 @@ function createClaudeEngine(promptFile = 'default_buyer_v1.md') {
             // Retry once
             try {
                 console.info('[claude] Retrying...');
-                const retryStream = client.messages.stream({
+                const retryStream = await client.messages.create({
                     model: config.claude.model,
                     max_tokens: config.claude.maxTokens,
                     system: systemPrompt,
-                    messages: conversationHistory
+                    messages: conversationHistory,
+                    stream: true
                 });
 
                 fullResponse = '';
                 sentenceBuffer = '';
 
-                for await (const text of retryStream.textStream) {
-                    fullResponse += text;
-                    sentenceBuffer += text;
+                for await (const event of retryStream) {
+                    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+                        const text = event.delta.text;
+                        fullResponse += text;
+                        sentenceBuffer += text;
 
-                    const sentences = extractSentences(sentenceBuffer);
-                    if (sentences.complete.length > 0) {
-                        for (const sentence of sentences.complete) {
-                            emitter.emit('sentence', sentence.text, sentence.emotionTag);
+                        const sentences = extractSentences(sentenceBuffer);
+                        if (sentences.complete.length > 0) {
+                            for (const sentence of sentences.complete) {
+                                emitter.emit('sentence', sentence.text, sentence.emotionTag);
+                            }
+                            sentenceBuffer = sentences.remaining;
                         }
-                        sentenceBuffer = sentences.remaining;
                     }
                 }
 
