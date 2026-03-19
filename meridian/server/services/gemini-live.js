@@ -7,7 +7,7 @@
  * Uses the @google/genai SDK callback-based Live API.
  * Audio format: 16kHz PCM 16-bit mono in, 24kHz PCM 16-bit mono out.
  */
-const { GoogleGenAI, Modality } = require('@google/genai');
+const { GoogleGenAI, Modality, StartSensitivity, EndSensitivity } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
 const config = require('../config');
@@ -85,7 +85,7 @@ function createGeminiLiveSession(sessionId, callbacks) {
         const liveConfig = {
             responseModalities: [Modality.AUDIO],
             systemInstruction: systemInstruction,
-            temperature: 1.0,
+            temperature: 0.9,
             speechConfig: {
                 voiceConfig: {
                     prebuiltVoiceConfig: {
@@ -95,7 +95,16 @@ function createGeminiLiveSession(sessionId, callbacks) {
             },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
-            enableAffectiveDialog: true
+            enableAffectiveDialog: true,
+            realtimeInputConfig: {
+                automaticActivityDetection: {
+                    disabled: false,
+                    startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_HIGH,
+                    endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_HIGH,
+                    prefixPaddingMs: 100,
+                    silenceDurationMs: 500
+                }
+            }
         };
 
         try {

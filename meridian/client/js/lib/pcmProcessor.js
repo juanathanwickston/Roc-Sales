@@ -7,7 +7,7 @@ class PcmCaptureProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
         this._buffer = [];
-        this._bufferSize = 4096; // ~256ms at 16kHz
+        this._bufferSize = 640; // ~40ms at 16kHz
     }
 
     process(inputs) {
