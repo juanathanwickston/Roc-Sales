@@ -1,15 +1,19 @@
 /**
  * Live Session Page Controller
- * Orchestrates media capture, timer, theme, mic toggle, and session lifecycle.
+ * Orchestrates media capture, real-time AI conversation pipeline,
+ * timer, theme, mic toggle, and session lifecycle.
  */
 import * as mediaCapture from '../lib/mediaCapture.js';
 import * as sessionTimer from '../lib/sessionTimer.js';
 import * as themeToggle from '../lib/themeToggle.js';
 import * as toast from '../lib/toast.js';
+import * as audioSocket from '../lib/audioSocket.js';
+import * as audioPlayer from '../lib/audioPlayer.js';
 
 // DOM references
 const elements = {};
 let sessionId = null;
+let micStream = null;
 
 /**
  * Initialize the page. Called on DOMContentLoaded.
@@ -50,6 +54,7 @@ async function init() {
     // Start media capture
     try {
         const { stream, hasVideo } = await mediaCapture.init();
+        micStream = stream;
 
         if (hasVideo) {
             elements.pipVideo.srcObject = stream;
@@ -71,6 +76,23 @@ async function init() {
         await fetch(`/api/sessions/${sessionId}/start`, { method: 'POST' });
     } catch (err) {
         // Non-blocking: session start is best-effort
+    }
+
+    // Connect to real-time AI pipeline via WebSocket
+    try {
+        await audioSocket.connect(sessionId, micStream, {
+            onTranscript: handleTranscript,
+            onAiText: handleAiText,
+            onAiAudio: handleAiAudio,
+            onStatus: handleStatus,
+            onError: handlePipelineError
+        });
+    } catch (err) {
+        showError(
+            'Connection failed',
+            'Unable to connect to the AI. Please refresh and try again.'
+        );
+        return;
     }
 
     // Start timer
@@ -98,6 +120,73 @@ function cacheElements() {
     elements.sessionError = document.getElementById('session-error');
     elements.errorTitle = document.getElementById('error-title');
     elements.errorMessage = document.getElementById('error-message');
+    elements.captionsText = document.getElementById('captions-text');
+    elements.personaStatus = document.getElementById('persona-status');
+}
+
+/**
+ * Handle user transcript from Deepgram.
+ */
+function handleTranscript(text, isFinal) {
+    if (!elements.captionsText) return;
+    if (isFinal) {
+        elements.captionsText.textContent = text;
+        elements.captionsText.className = 'captions__text captions__text--user';
+    } else {
+        elements.captionsText.textContent = text;
+        elements.captionsText.className = 'captions__text captions__text--user captions__text--partial';
+    }
+}
+
+/**
+ * Handle AI response text from Claude.
+ */
+function handleAiText(text, isFinal) {
+    if (!elements.captionsText) return;
+    if (isFinal) {
+        // Clear after a brief delay so user can read the last sentence
+        setTimeout(() => {
+            if (elements.captionsText.classList.contains('captions__text--ai')) {
+                elements.captionsText.textContent = '';
+            }
+        }, 2000);
+    } else if (text) {
+        elements.captionsText.textContent = text;
+        elements.captionsText.className = 'captions__text captions__text--ai';
+    }
+}
+
+/**
+ * Handle AI audio chunks from Inworld TTS.
+ */
+function handleAiAudio(audioData) {
+    audioPlayer.enqueue(audioData);
+}
+
+/**
+ * Handle pipeline status updates.
+ */
+function handleStatus(state) {
+    if (!elements.personaStatus) return;
+
+    switch (state) {
+        case 'listening':
+            elements.personaStatus.textContent = 'Listening...';
+            break;
+        case 'thinking':
+            elements.personaStatus.textContent = 'Thinking...';
+            break;
+        case 'speaking':
+            elements.personaStatus.textContent = 'Speaking...';
+            break;
+    }
+}
+
+/**
+ * Handle pipeline errors.
+ */
+function handlePipelineError(message) {
+    toast.show(elements.toastEl, message);
 }
 
 /**
@@ -110,6 +199,11 @@ function onMicToggle() {
     elements.micOnIcon.classList.toggle('hidden', isMuted);
     elements.micOffIcon.classList.toggle('hidden', !isMuted);
 
+    // Barge-in: if unmuting while AI is speaking, cancel playback
+    if (!isMuted && audioPlayer.getIsPlaying()) {
+        audioPlayer.cancel();
+    }
+
     if (isMuted) {
         toast.show(elements.toastEl, 'Microphone muted');
     } else {
@@ -119,13 +213,18 @@ function onMicToggle() {
 
 /**
  * End session sequence:
- * 1. Add exit class (triggers CSS transitions on controls, PIP, toggle)
- * 2. Stop timer, get duration
- * 3. After 400ms: show ended overlay
- * 4. Call API to end session
- * 5. Destroy media capture
+ * 1. Disconnect audio pipeline
+ * 2. Add exit class (triggers CSS transitions on controls, PIP, toggle)
+ * 3. Stop timer, get duration
+ * 4. After 400ms: show ended overlay
+ * 5. Call API to end session
+ * 6. Destroy media capture
  */
 function onEndSession() {
+    // Disconnect the AI pipeline first
+    audioSocket.disconnect();
+    audioPlayer.cancel();
+
     document.body.classList.add('session-exiting');
 
     const duration = sessionTimer.stop();
@@ -167,3 +266,4 @@ function showError(title, message) {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+

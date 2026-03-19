@@ -1,5 +1,5 @@
-const requiredNow = ['PORT', 'DATABASE_URL'];
-const requiredLater = ['CLAUDE_API_KEY', 'DEEPGRAM_API_KEY', 'INWORLD_API_KEY', 'REPLICATE_API_TOKEN'];
+const requiredNow = ['PORT', 'DATABASE_URL', 'CLAUDE_API_KEY', 'DEEPGRAM_API_KEY', 'INWORLD_API_KEY'];
+const requiredLater = ['REPLICATE_API_TOKEN'];
 
 const missing = requiredNow.filter(key => !process.env[key]);
 if (missing.length > 0) {
@@ -20,15 +20,22 @@ module.exports = {
         connectionString: process.env.DATABASE_URL
     },
     claude: {
-        apiKey: process.env.CLAUDE_API_KEY || null
+        apiKey: process.env.CLAUDE_API_KEY,
+        model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6-20260301',
+        maxTokens: 300
     },
     deepgram: {
-        apiKey: process.env.DEEPGRAM_API_KEY || null
+        apiKey: process.env.DEEPGRAM_API_KEY,
+        model: 'nova-3',
+        endpointing: 800
     },
     inworld: {
-        apiKey: process.env.INWORLD_API_KEY || null
+        apiKey: process.env.INWORLD_API_KEY,
+        voiceId: process.env.INWORLD_VOICE_ID || 'Clive',
+        modelId: 'inworld-tts-1.5-max'
     },
     replicate: {
         apiToken: process.env.REPLICATE_API_TOKEN || null
     }
 };
+

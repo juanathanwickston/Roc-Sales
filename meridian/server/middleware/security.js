@@ -14,6 +14,7 @@ function createSecurityMiddleware() {
                 connectSrc: ["'self'", 'wss:'],
                 imgSrc: ["'self'", 'data:'],
                 mediaSrc: ["'self'", 'blob:'],
+                workerSrc: ["'self'"],
                 frameSrc: ["'none'"],
                 objectSrc: ["'none'"]
             }

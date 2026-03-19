@@ -33,7 +33,7 @@
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </div>
-                    <span class="persona__label">Waiting for others to join...</span>
+                    <span id="persona-status" class="persona__label">Connecting...</span>
                 </div>
             </div>
         </div>
@@ -53,8 +53,10 @@
         </div>
     </main>
 
-    <!-- Captions (hidden, ready for Phase 3) -->
-    <div id="captions" class="captions" aria-live="polite"></div>
+    <!-- Live Captions -->
+    <div id="captions" class="captions" aria-live="polite">
+        <span id="captions-text" class="captions__text"></span>
+    </div>
 
     <!-- Control bar -->
     <div class="controls" id="controls">

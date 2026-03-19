@@ -34,8 +34,12 @@ app.use('/api/sessions', require('./routes/sessions'));
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Create HTTP server (WebSocket-ready for Phase 3)
+// Create HTTP server
 const server = http.createServer(app);
+
+// Attach WebSocket server for real-time audio pipeline
+const { setupWebSocket } = require('./ws/handler');
+setupWebSocket(server);
 
 async function start() {
     const dbConnected = await testConnection();
