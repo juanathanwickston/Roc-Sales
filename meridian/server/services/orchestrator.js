@@ -4,9 +4,9 @@ const { synthesize, createContextId } = require('./cartesia');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
 
-const SILENCE_PROMPT_5S = "You still there?";
-const SILENCE_PROMPT_10S = "I had another call coming in, should I take that or...";
-const SILENCE_PROMPT_15S = "Alright, I think we'll pick this up another time.";
+const SILENCE_PROMPT_8S = "You still there?";
+const SILENCE_PROMPT_15S = "I had another call coming in, should I take that or...";
+const SILENCE_PROMPT_20S = "Alright, I think we'll pick this up another time.";
 
 // Filler phrases for latency masking (randomized per use)
 // Must sound like natural human thinking, not robotic stalling
@@ -31,6 +31,7 @@ function createOrchestrator(sessionId, sendToClient) {
     let silenceTimer = null;
     let silenceStage = 0;
     let isDestroyed = false;
+    let lastSentenceText = '';
 
     /**
      * Initialize the orchestrator: open Deepgram connection,
@@ -134,11 +135,12 @@ function createOrchestrator(sessionId, sendToClient) {
         sendToClient({ type: 'status', state: 'thinking' });
 
         // Track TTFT for latency masking
+        // Skip fillers on the greeting turn (turn 1) since the AI should just greet
+        // Threshold at 1500ms to avoid overuse of pondering sounds
         let ttftHandled = false;
         claude.on('ttft', (ttftMs) => {
-            if (ttftMs > 800 && !ttftHandled) {
+            if (ttftMs > 1500 && !ttftHandled && turnNumber > 1) {
                 ttftHandled = true;
-                // Latency masking: synthesize a filler phrase while Claude thinks
                 const filler = FILLER_PHRASES[Math.floor(Math.random() * FILLER_PHRASES.length)];
                 synthesize(filler, { emotionTag: 'friendly', contextId: currentContextId }).then((audioBuffer) => {
                     if (!isDestroyed && isProcessing) {
@@ -159,6 +161,10 @@ function createOrchestrator(sessionId, sendToClient) {
 
             claude.on('sentence', (sentenceText, emotionTag) => {
                 if (isDestroyed || !isProcessing) return;
+
+                // Dedup: skip if identical to the last sentence (prevents looping)
+                if (sentenceText === lastSentenceText) return;
+                lastSentenceText = sentenceText;
 
                 fullAiResponse += (fullAiResponse ? ' ' : '') + sentenceText;
 
@@ -266,20 +272,20 @@ function createOrchestrator(sessionId, sendToClient) {
         silenceTimer = setTimeout(() => {
             if (isDestroyed || isProcessing) return;
             silenceStage = 1;
-            handleSilencePrompt(SILENCE_PROMPT_5S);
+            handleSilencePrompt(SILENCE_PROMPT_8S);
 
             silenceTimer = setTimeout(() => {
                 if (isDestroyed || isProcessing) return;
                 silenceStage = 2;
-                handleSilencePrompt(SILENCE_PROMPT_10S);
+                handleSilencePrompt(SILENCE_PROMPT_15S);
 
                 silenceTimer = setTimeout(() => {
                     if (isDestroyed || isProcessing) return;
                     silenceStage = 3;
-                    handleSilencePrompt(SILENCE_PROMPT_15S);
+                    handleSilencePrompt(SILENCE_PROMPT_20S);
                 }, 5000);
-            }, 5000);
-        }, 5000);
+            }, 7000);
+        }, 8000);
     }
 
     function resetSilenceTimer() {
