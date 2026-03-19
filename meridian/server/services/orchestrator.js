@@ -33,6 +33,10 @@ function createOrchestrator(sessionId, sendToClient) {
     let currentUserTranscript = '';
     let currentAiTranscript = '';
 
+    // Latency tracking: time from last user audio to first AI audio
+    let lastUserAudioTimestamp = null;
+    let awaitingFirstAiAudio = false;
+
     /**
      * Initialize the orchestrator: connect to Gemini Live,
      * wire up audio and transcript callbacks, send initial greeting.
@@ -41,6 +45,17 @@ function createOrchestrator(sessionId, sendToClient) {
         geminiSession = createGeminiLiveSession(sessionId, {
             onAudio: (audioBuffer) => {
                 if (isDestroyed) return;
+
+                // Measure response latency on first audio chunk
+                if (awaitingFirstAiAudio && lastUserAudioTimestamp) {
+                    const ttfa = Date.now() - lastUserAudioTimestamp;
+                    awaitingFirstAiAudio = false;
+                    console.info('[orchestrator] Response latency', {
+                        sessionId, ttfaMs: ttfa, turn: turnNumber + 1
+                    });
+                    sendToClient({ type: 'latency', ttfaMs: ttfa });
+                }
+
                 // Forward raw PCM audio to the browser
                 sendToClient({ type: 'ai_audio', data: audioBuffer });
             },
@@ -135,6 +150,8 @@ function createOrchestrator(sessionId, sendToClient) {
     function receiveAudio(audioBuffer) {
         if (isDestroyed || !geminiSession) return;
         resetSilenceTimer();
+        lastUserAudioTimestamp = Date.now();
+        awaitingFirstAiAudio = true;
         geminiSession.sendAudio(audioBuffer);
     }
 
