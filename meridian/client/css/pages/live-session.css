@@ -262,7 +262,7 @@
     transform: scale(1.08);
 }
 
-/* Live Captions */
+/* Live Captions (disabled per user preference) */
 .captions {
     position: fixed;
     bottom: 100px;
@@ -273,6 +273,7 @@
     text-align: center;
     z-index: 95;
     pointer-events: none;
+    display: none;
 }
 
 .captions__text {

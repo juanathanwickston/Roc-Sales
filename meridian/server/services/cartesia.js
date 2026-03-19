@@ -1,7 +1,7 @@
 const config = require('../config');
 
 const CARTESIA_ENDPOINT = 'https://api.cartesia.ai/tts/bytes';
-const CARTESIA_VERSION = '2025-04-16';
+const CARTESIA_VERSION = '2026-03-01';
 
 /**
  * Converts text to speech using Cartesia Sonic 3.
@@ -40,8 +40,8 @@ async function synthesize(text, options = {}) {
         },
         output_format: {
             container: 'mp3',
-            encoding: 'pcm_f32le',
-            sample_rate: 24000
+            bit_rate: 128000,
+            sample_rate: 44100
         },
         language: 'en',
         generation_config: {
