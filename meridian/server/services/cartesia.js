@@ -5,8 +5,13 @@ const CARTESIA_VERSION = '2026-03-01';
 
 /**
  * Maps emotion tags from Claude to Cartesia generation_config.emotion values.
- * Cartesia supports combined emotions (space-separated) for nuanced expression.
- * Voices tagged as "emotive" (e.g. Tessa, Maya) respond best to these.
+ *
+ * Evidence: Cartesia Sonic 3 docs confirm generation_config.emotion accepts
+ * a SINGLE STRING, not an array. Format: "emotion_name:level" where level
+ * is one of: lowest, low, high, highest. Multiple emotions can be combined
+ * with spaces in a single string: "positivity:high curiosity:low".
+ *
+ * Source: Cartesia API reference, pipecat-ai integration docs (2026-03).
  */
 const EMOTION_MAP = {
     neutral: null,
@@ -17,7 +22,7 @@ const EMOTION_MAP = {
     hesitant: 'sadness:low surprise:low',
     firm: 'anger:low positivity:low',
     friendly: 'positivity:high curiosity:low',
-    impatient: 'anger:medium',
+    impatient: 'anger:high',
     frustrated: 'anger:high sadness:low',
     interested: 'curiosity:high positivity:low'
 };
@@ -54,10 +59,16 @@ async function synthesize(text, options = {}) {
         language: 'en'
     };
 
-    // Only add emotion if we have a non-neutral tag
+    // Add generation_config with emotion (single string, NOT array)
+    // and speed for natural pacing
     if (emotionValue) {
         requestBody.generation_config = {
-            emotion: [emotionValue]
+            emotion: emotionValue,
+            speed: 'normal'
+        };
+    } else {
+        requestBody.generation_config = {
+            speed: 'normal'
         };
     }
 
@@ -71,6 +82,14 @@ async function synthesize(text, options = {}) {
         body: JSON.stringify(requestBody),
         signal
     };
+
+    // Log the request for debugging emotion delivery
+    console.info('[cartesia] TTS request', {
+        textLen: text.length,
+        textPreview: text.substring(0, 60),
+        emotionTag,
+        emotionValue: emotionValue || 'none'
+    });
 
     let response;
 
@@ -98,7 +117,9 @@ async function synthesize(text, options = {}) {
         const errorBody = await response.text().catch(() => 'unknown');
         console.error('[cartesia] API error', {
             status: response.status,
-            body: errorBody.substring(0, 200)
+            body: errorBody.substring(0, 200),
+            emotionTag,
+            emotionValue
         });
         throw new Error(`Cartesia TTS error: ${response.status}`);
     }
@@ -111,7 +132,8 @@ async function synthesize(text, options = {}) {
     console.info('[cartesia] TTS complete', {
         textLen: text.length,
         audioBytes: audioBuffer.length,
-        latencyMs
+        latencyMs,
+        emotionTag: emotionTag || 'none'
     });
 
     return audioBuffer;
