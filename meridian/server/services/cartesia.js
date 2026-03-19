@@ -26,17 +26,25 @@ const EMOTION_MAP = {
 
 /**
  * Determines speech speed based on sentence characteristics.
- * Short acknowledgments are faster. Longer explanations are slower.
- * Range: 0.6 (slowest) to 1.5 (fastest), 1.0 = default.
- * Source: Cartesia API docs confirm float multiplier for generation_config.speed.
+ * Based on measured data from real sales call recordings:
+ * - Short acks fast (1.2x)
+ * - Deliberation/hedging sentences slower (0.8x): questions, sentences starting with Uh/Well/Oh
+ * - Listing/rushing sentences faster (1.1x)
+ * - Everything else normal (1.0x)
  */
 function getSpeedForText(text) {
     const wordCount = text.split(/\s+/).length;
+    const trimmed = text.trim();
 
-    // Very short (1-3 words): fast, like "Yeah" or "Nah, not really"
+    // Very short (1-3 words): fast, like "Yeah" or "Okay" or "Right, right"
     if (wordCount <= 3) return 1.2;
 
-    // Short (4-8 words): slightly fast, natural conversational pace
+    // Deliberation: sentences starting with Uh/Well/Oh or containing a question
+    const startsWithHedge = /^(uh|um|well|oh|hmm)\b/i.test(trimmed);
+    const isQuestion = trimmed.endsWith('?');
+    if (startsWithHedge || isQuestion) return 0.85;
+
+    // Short sentences (4-8 words): slightly faster conversational pace
     if (wordCount <= 8) return 1.1;
 
     // Medium (9-15 words): default pace
