@@ -1,12 +1,14 @@
 /**
  * Session Orchestrator
- * Routes audio between the browser and Gemini Live, saves transcripts,
- * and manages silence prompts. Replaces the previous multi-vendor
- * pipeline (Deepgram + Claude + Cartesia) with a single Gemini Live session.
+ * Routes audio between the browser and the conversation engine
+ * (Gemini Live or OpenAI Realtime), saves transcripts,
+ * and manages silence prompts.
  */
 const { createGeminiLiveSession } = require('./gemini-live');
+const { createOpenAIRealtimeSession } = require('./openai-realtime');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
+const config = require('../config');
 
 // Silence prompts: buyer reactions when the rep goes quiet
 const SILENCE_THRESHOLDS = [
@@ -23,8 +25,9 @@ const SILENCE_THRESHOLDS = [
  * @param {function} sendToClient - Sends messages/audio to the browser via WebSocket
  */
 function createOrchestrator(sessionId, sendToClient) {
-    let geminiSession = null;
+    let liveSession = null;
     let isDestroyed = false;
+    const engine = config.conversationEngine;
     let silenceTimer = null;
     let silenceStage = 0;
     let turnNumber = 0;
@@ -41,11 +44,17 @@ function createOrchestrator(sessionId, sendToClient) {
     let awaitingFirstAiAudio = false;
 
     /**
-     * Initialize the orchestrator: connect to Gemini Live,
+     * Initialize the orchestrator: connect to the conversation engine,
      * wire up audio and transcript callbacks, send initial greeting.
      */
     async function init() {
-        geminiSession = createGeminiLiveSession(sessionId, {
+        const createSession = engine === 'openai'
+            ? createOpenAIRealtimeSession
+            : createGeminiLiveSession;
+
+        console.info('[orchestrator] Using engine', { engine, sessionId });
+
+        liveSession = createSession(sessionId, {
             onAudio: (audioBuffer) => {
                 if (isDestroyed) return;
 
@@ -155,11 +164,11 @@ function createOrchestrator(sessionId, sendToClient) {
             }
         });
 
-        await geminiSession.init();
+        await liveSession.init();
 
         // Buyer answers the phone first, like a real inbound call
         sendToClient({ type: 'status', state: 'speaking' });
-        geminiSession.sendText('Someone is calling you. Pick up and say hello.');
+        liveSession.sendText('Someone is calling you. Pick up and say hello.');
 
         startSilenceTimer();
     }
@@ -171,10 +180,10 @@ function createOrchestrator(sessionId, sendToClient) {
      * @param {Buffer} audioBuffer - Raw 16-bit PCM at 16kHz
      */
     function receiveAudio(audioBuffer) {
-        if (isDestroyed || !geminiSession) return;
+        if (isDestroyed || !liveSession) return;
         resetSilenceTimer();
         lastUserAudioTimestamp = Date.now();
-        geminiSession.sendAudio(audioBuffer);
+        liveSession.sendAudio(audioBuffer);
     }
 
     /**
@@ -220,16 +229,15 @@ function createOrchestrator(sessionId, sendToClient) {
      * so the buyer persona reacts naturally.
      */
     function handleSilencePrompt(promptText) {
-        if (isDestroyed || !geminiSession) return;
+        if (isDestroyed || !liveSession) return;
 
         console.info('[orchestrator] Silence prompt', {
             sessionId, stage: silenceStage, prompt: promptText
         });
 
-        // Use sendClientContent to inject a text prompt
-        // Gemini will respond as the buyer persona
+        // Inject a text prompt so the buyer persona reacts
         try {
-            geminiSession.sendText(promptText);
+            liveSession.sendText(promptText);
         } catch (err) {
             console.error('[orchestrator] Failed to send silence prompt', {
                 sessionId, error: err.message
@@ -258,12 +266,12 @@ function createOrchestrator(sessionId, sendToClient) {
         isDestroyed = true;
         clearSilenceTimer();
 
-        if (geminiSession) {
-            geminiSession.destroy();
-            geminiSession = null;
+        if (liveSession) {
+            liveSession.destroy();
+            liveSession = null;
         }
 
-        console.info('[orchestrator] Session destroyed', { sessionId });
+        console.info('[orchestrator] Session destroyed', { sessionId, engine });
     }
 
     return {
