@@ -33,8 +33,11 @@ function createOrchestrator(sessionId, sendToClient) {
     let currentUserTranscript = '';
     let currentAiTranscript = '';
 
-    // Latency tracking: time from last user audio to first AI audio
+    // Latency tracking: two-part measurement per turn
+    //   Part 1 (VAD delay): last user audio chunk -> onInputTranscript
+    //   Part 2 (generation delay): onInputTranscript -> first AI audio
     let lastUserAudioTimestamp = null;
+    let userSpeechEndTimestamp = null;
     let awaitingFirstAiAudio = false;
 
     /**
@@ -46,14 +49,29 @@ function createOrchestrator(sessionId, sendToClient) {
             onAudio: (audioBuffer) => {
                 if (isDestroyed) return;
 
-                // Measure response latency on first audio chunk
-                if (awaitingFirstAiAudio && lastUserAudioTimestamp) {
-                    const ttfa = Date.now() - lastUserAudioTimestamp;
+                // Measure generation delay: onInputTranscript -> first AI audio
+                if (awaitingFirstAiAudio && userSpeechEndTimestamp) {
+                    const now = Date.now();
+                    const generationMs = now - userSpeechEndTimestamp;
+                    const vadMs = lastUserAudioTimestamp
+                        ? userSpeechEndTimestamp - lastUserAudioTimestamp
+                        : null;
+                    const totalMs = vadMs !== null ? vadMs + generationMs : generationMs;
+
                     awaitingFirstAiAudio = false;
                     console.info('[orchestrator] Response latency', {
-                        sessionId, ttfaMs: ttfa, turn: turnNumber + 1
+                        sessionId,
+                        turn: turnNumber + 1,
+                        vadDelayMs: vadMs,
+                        generationMs: generationMs,
+                        totalTtfaMs: totalMs
                     });
-                    sendToClient({ type: 'latency', ttfaMs: ttfa });
+                    sendToClient({
+                        type: 'latency',
+                        vadDelayMs: vadMs,
+                        generationMs: generationMs,
+                        totalTtfaMs: totalMs
+                    });
                 }
 
                 // Forward raw PCM audio to the browser
@@ -63,6 +81,11 @@ function createOrchestrator(sessionId, sendToClient) {
             onInputTranscript: (text) => {
                 if (isDestroyed) return;
                 currentUserTranscript += text;
+
+                // Mark user speech end for latency measurement
+                userSpeechEndTimestamp = Date.now();
+                awaitingFirstAiAudio = true;
+
                 sendToClient({
                     type: 'transcript',
                     text: text,
@@ -151,7 +174,6 @@ function createOrchestrator(sessionId, sendToClient) {
         if (isDestroyed || !geminiSession) return;
         resetSilenceTimer();
         lastUserAudioTimestamp = Date.now();
-        awaitingFirstAiAudio = true;
         geminiSession.sendAudio(audioBuffer);
     }
 
