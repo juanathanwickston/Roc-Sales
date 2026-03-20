@@ -25,7 +25,7 @@ module.exports = {
     },
     geminiLive: {
         apiKey: process.env.GEMINI_API_KEY,
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        model: 'gemini-live-2.5-flash-native-audio',
         voiceName: 'Erinome'
     },
     replicate: {
