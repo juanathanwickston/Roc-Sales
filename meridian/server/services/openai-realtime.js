@@ -136,9 +136,11 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
                         },
                         turn_detection: {
                             type: 'server_vad',
-                            threshold: 0.5,
-                            prefix_padding_ms: 100,
-                            silence_duration_ms: 500
+                            threshold: 0.8,
+                            prefix_padding_ms: 200,
+                            silence_duration_ms: 700,
+                            create_response: true,
+                            eagerly_interrupts: false
                         },
                         temperature: 0.9
                     }
@@ -232,6 +234,9 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
             case 'input_audio_buffer.speech_started':
                 if (isAiSpeaking && callbacks.onInterrupted) {
                     isAiSpeaking = false;
+                    // Clear the input buffer to prevent residual audio
+                    // from causing continued false VAD triggers
+                    sendEvent('input_audio_buffer.clear', {});
                     callbacks.onInterrupted();
                 }
                 break;

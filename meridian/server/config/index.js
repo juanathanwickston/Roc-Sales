@@ -36,7 +36,7 @@ module.exports = {
     },
     openaiRealtime: {
         apiKey: process.env.OPENAI_API_KEY,
-        model: 'gpt-4o-realtime-preview',
+        model: 'gpt-realtime',
         voice: 'cedar'
     },
     replicate: {
