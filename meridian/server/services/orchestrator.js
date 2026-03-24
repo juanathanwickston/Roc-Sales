@@ -1,14 +1,12 @@
 /**
  * Session Orchestrator
- * Routes audio between the browser and the conversation engine
- * (Gemini Live or OpenAI Realtime), saves transcripts,
+ * Routes audio between the browser and the OpenAI Realtime
+ * conversation engine, saves transcripts,
  * and manages silence prompts.
  */
-const { createGeminiLiveSession } = require('./gemini-live');
 const { createOpenAIRealtimeSession } = require('./openai-realtime');
 const { pool } = require('../db/pool');
 const transcriptQueries = require('../db/queries/transcripts');
-const config = require('../config');
 
 // Silence prompts: buyer reactions when the rep goes quiet
 const SILENCE_THRESHOLDS = [
@@ -18,7 +16,7 @@ const SILENCE_THRESHOLDS = [
 ];
 
 /**
- * Creates a per-session orchestrator that manages the Gemini Live connection,
+ * Creates a per-session orchestrator that manages the OpenAI Realtime connection,
  * forwards audio, and handles silence detection.
  *
  * @param {string} sessionId - Session UUID
@@ -28,7 +26,6 @@ function createOrchestrator(sessionId, initialSendToClient) {
     let sendToClient = initialSendToClient;
     let liveSession = null;
     let isDestroyed = false;
-    const engine = config.conversationEngine;
     let silenceTimer = null;
     let silenceStage = 0;
     let turnNumber = 0;
@@ -49,11 +46,9 @@ function createOrchestrator(sessionId, initialSendToClient) {
      * wire up audio and transcript callbacks, send initial greeting.
      */
     async function init() {
-        const createSession = engine === 'openai'
-            ? createOpenAIRealtimeSession
-            : createGeminiLiveSession;
+        const createSession = createOpenAIRealtimeSession;
 
-        console.info('[orchestrator] Using engine', { engine, sessionId });
+        console.info('[orchestrator] Initializing session', { sessionId });
 
         liveSession = createSession(sessionId, {
             onAudio: (audioBuffer) => {
@@ -155,7 +150,7 @@ function createOrchestrator(sessionId, initialSendToClient) {
 
             onError: (errorMessage) => {
                 if (isDestroyed) return;
-                console.error('[orchestrator] Gemini Live error', {
+                console.error('[orchestrator] Conversation engine error', {
                     sessionId, error: errorMessage
                 });
                 sendToClient({
@@ -175,8 +170,8 @@ function createOrchestrator(sessionId, initialSendToClient) {
     }
 
     /**
-     * Receive raw PCM audio from the browser and forward to Gemini Live.
-     * Gemini handles VAD, STT, LLM, and TTS internally.
+     * Receive raw PCM audio from the browser and forward to the AI.
+     * The engine handles VAD, STT, LLM, and TTS internally.
      *
      * @param {Buffer} audioBuffer - Raw 16-bit PCM at 16kHz
      */
@@ -189,7 +184,7 @@ function createOrchestrator(sessionId, initialSendToClient) {
 
     /**
      * Silence timer: prompts the buyer to speak if the user is quiet.
-     * Gemini Live does not handle silence prompts, so we keep this logic.
+     * The conversation engine does not handle silence prompts, so we keep this logic.
      */
     function startSilenceTimer() {
         clearSilenceTimer();
@@ -205,7 +200,7 @@ function createOrchestrator(sessionId, initialSendToClient) {
             if (isDestroyed) return;
             silenceStage = stageIndex + 1;
 
-            // Send silence prompt as text input to Gemini
+            // Send silence prompt as text input to the engine
             // so it responds in-character as the buyer
             handleSilencePrompt(threshold.text);
 
@@ -226,7 +221,7 @@ function createOrchestrator(sessionId, initialSendToClient) {
     }
 
     /**
-     * When silence is detected, send a text prompt to Gemini Live
+     * When silence is detected, send a text prompt to the conversation engine
      * so the buyer persona reacts naturally.
      */
     function handleSilencePrompt(promptText) {
@@ -272,7 +267,7 @@ function createOrchestrator(sessionId, initialSendToClient) {
             liveSession = null;
         }
 
-        console.info('[orchestrator] Session destroyed', { sessionId, engine });
+        console.info('[orchestrator] Session destroyed', { sessionId });
     }
 
     /**

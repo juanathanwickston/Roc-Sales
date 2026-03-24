@@ -125,7 +125,7 @@ function cacheElements() {
 }
 
 /**
- * Handle user transcript from Gemini Live.
+ * Handle user transcript from the AI pipeline.
  */
 function handleTranscript(text, isFinal) {
     if (!elements.captionsText) return;
@@ -139,7 +139,7 @@ function handleTranscript(text, isFinal) {
 }
 
 /**
- * Handle AI response text from Gemini Live.
+ * Handle AI response text from the pipeline.
  */
 function handleAiText(text, isFinal) {
     if (!elements.captionsText) return;
@@ -157,7 +157,7 @@ function handleAiText(text, isFinal) {
 }
 
 /**
- * Handle AI audio chunks from Gemini Live.
+ * Handle AI audio chunks from the pipeline.
  */
 function handleAiAudio(audioData) {
     audioPlayer.enqueue(audioData);

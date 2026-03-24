@@ -91,7 +91,7 @@ async function connect(sessionId, micStream, callbacks) {
  * and send them to the WebSocket.
  */
 async function setupAudioCapture(micStream) {
-    // Create AudioContext at 16kHz for mic capture (Gemini Live input format)
+    // Create AudioContext at 16kHz for mic capture (server input format)
     audioContext = new AudioContext({ sampleRate: 16000 });
 
     // Load the AudioWorklet processor

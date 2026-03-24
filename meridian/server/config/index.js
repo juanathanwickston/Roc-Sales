@@ -1,17 +1,4 @@
-// Which conversation engine to use: 'gemini' or 'openai'
-const conversationEngine = process.env.CONVERSATION_ENGINE || 'gemini';
-
-const requiredNow = ['PORT', 'DATABASE_URL'];
-
-// Require the right API key based on engine selection
-if (conversationEngine === 'gemini' && !process.env.GEMINI_API_KEY) {
-    console.error('Missing required env var: GEMINI_API_KEY (engine=gemini)');
-    process.exit(1);
-}
-if (conversationEngine === 'openai' && !process.env.OPENAI_API_KEY) {
-    console.error('Missing required env var: OPENAI_API_KEY (engine=openai)');
-    process.exit(1);
-}
+const requiredNow = ['PORT', 'DATABASE_URL', 'OPENAI_API_KEY'];
 
 for (const key of requiredNow) {
     if (!process.env[key]) {
@@ -25,14 +12,8 @@ module.exports = {
     nodeEnv: process.env.NODE_ENV || 'development',
     corsOrigin: process.env.CORS_ORIGIN || '*',
     logLevel: process.env.LOG_LEVEL || 'info',
-    conversationEngine: conversationEngine,
     db: {
         connectionString: process.env.DATABASE_URL
-    },
-    geminiLive: {
-        apiKey: process.env.GEMINI_API_KEY,
-        model: 'gemini-live-2.5-flash-native-audio',
-        voiceName: 'Erinome'
     },
     openaiRealtime: {
         apiKey: process.env.OPENAI_API_KEY,

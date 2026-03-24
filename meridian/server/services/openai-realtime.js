@@ -1,7 +1,7 @@
 /**
  * OpenAI Realtime Service
  * Manages a WebSocket session with OpenAI Realtime API for
- * native audio-in/audio-out conversation. Mirrors the gemini-live.js
+ * native audio-in/audio-out conversation. Uses the OpenAI Realtime API
  * interface so the orchestrator can swap engines via config.
  *
  * Audio format: 24kHz PCM 16-bit mono in/out.
@@ -47,7 +47,7 @@ function resample16to24(input) {
 
 /**
  * Create an OpenAI Realtime session for a single conversation.
- * Interface mirrors createGeminiLiveSession exactly.
+ * Creates an OpenAI Realtime session for a single conversation.
  *
  * @param {string} sessionId - Session UUID for logging
  * @param {object} callbacks - Event callbacks from orchestrator
@@ -65,7 +65,7 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
     let isAiSpeaking = false;
     let audioChunkCount = 0;
 
-    // Load system instruction from prompt files (same as gemini-live.js)
+    // Load system instruction from prompt files
     function loadSystemInstruction() {
         const promptsDir = path.join(__dirname, '..', '..', 'prompts');
         let voiceBase = '';
