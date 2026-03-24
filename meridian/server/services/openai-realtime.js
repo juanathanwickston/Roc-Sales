@@ -84,7 +84,7 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
 
         try {
             persona = fs.readFileSync(
-                path.join(promptsDir, 'celine_marciano_v1.md'), 'utf-8'
+                path.join(promptsDir, 'stefan_marciano_v1.md'), 'utf-8'
             );
         } catch (err) {
             console.error('[openai-realtime] Failed to load persona prompt', {
