@@ -139,9 +139,7 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
                             type: 'server_vad',
                             threshold: 0.8,
                             prefix_padding_ms: 200,
-                            silence_duration_ms: 700,
-                            create_response: true,
-                            eagerly_interrupts: false
+                            silence_duration_ms: 700
                         },
                         temperature: 0.9
                     }
