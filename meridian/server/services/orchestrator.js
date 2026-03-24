@@ -115,7 +115,7 @@ function createOrchestrator(sessionId, sendToClient) {
             onInterrupted: () => {
                 if (isDestroyed) return;
                 console.info('[orchestrator] Barge-in detected', { sessionId });
-                sendToClient({ type: 'status', state: 'listening' });
+                sendToClient({ type: 'status', state: 'interrupted' });
 
                 // Save partial AI transcript if present
                 if (currentAiTranscript.trim()) {
