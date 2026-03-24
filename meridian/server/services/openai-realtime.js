@@ -63,6 +63,7 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
     let ws = null;
     let isDestroyed = false;
     let isAiSpeaking = false;
+    let audioChunkCount = 0;
 
     // Load system instruction from prompt files (same as gemini-live.js)
     function loadSystemInstruction() {
@@ -191,6 +192,7 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
 
     /**
      * Handle incoming events from OpenAI Realtime.
+     * Includes diagnostic logging on every event for debugging.
      */
     function handleEvent(event) {
         switch (event.type) {
@@ -205,15 +207,27 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
             // AI audio chunk
             case 'response.audio.delta':
                 if (event.delta && callbacks.onAudio) {
+                    if (!isAiSpeaking) {
+                        console.info('[openai-realtime] AI started speaking', {
+                            sessionId, responseId: event.response_id
+                        });
+                    }
                     isAiSpeaking = true;
+                    audioChunkCount += 1;
                     const audioBuffer = Buffer.from(event.delta, 'base64');
                     callbacks.onAudio(audioBuffer);
                 }
                 break;
 
-            // AI audio finished
+            // AI audio finished for this response part
             case 'response.audio.done':
+                console.info('[openai-realtime] AI audio done', {
+                    sessionId,
+                    chunksDelivered: audioChunkCount,
+                    responseId: event.response_id
+                });
                 isAiSpeaking = false;
+                audioChunkCount = 0;
                 break;
 
             // AI transcript chunk
@@ -223,17 +237,39 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
                 }
                 break;
 
+            // AI transcript for this part is complete
+            case 'response.audio_transcript.done':
+                console.info('[openai-realtime] AI transcript done', {
+                    sessionId,
+                    transcript: event.transcript
+                        ? event.transcript.substring(0, 120)
+                        : '(empty)'
+                });
+                break;
+
             // User input transcript completed
             case 'conversation.item.input_audio_transcription.completed':
+                console.info('[openai-realtime] User said', {
+                    sessionId,
+                    transcript: event.transcript
+                        ? event.transcript.substring(0, 120)
+                        : '(empty)'
+                });
                 if (event.transcript && callbacks.onInputTranscript) {
                     callbacks.onInputTranscript(event.transcript);
                 }
                 break;
 
-            // User started speaking while AI was talking (barge-in)
+            // VAD detected speech start (always log, even if AI not speaking)
             case 'input_audio_buffer.speech_started':
+                console.info('[openai-realtime] VAD speech_started', {
+                    sessionId,
+                    isAiSpeaking: isAiSpeaking,
+                    willInterrupt: isAiSpeaking
+                });
                 if (isAiSpeaking && callbacks.onInterrupted) {
                     isAiSpeaking = false;
+                    audioChunkCount = 0;
                     // Clear the input buffer to prevent residual audio
                     // from causing continued false VAD triggers
                     sendEvent('input_audio_buffer.clear', {});
@@ -241,12 +277,71 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
                 }
                 break;
 
+            // VAD detected speech stop
+            case 'input_audio_buffer.speech_stopped':
+                console.info('[openai-realtime] VAD speech_stopped', { sessionId });
+                break;
+
+            // Input audio buffer committed (VAD auto-commits)
+            case 'input_audio_buffer.committed':
+                console.info('[openai-realtime] Audio buffer committed', {
+                    sessionId, itemId: event.item_id
+                });
+                break;
+
+            // Response started
+            case 'response.created':
+                console.info('[openai-realtime] Response created', {
+                    sessionId, responseId: event.response && event.response.id
+                });
+                break;
+
+            // A new output item was added to the conversation
+            case 'response.output_item.added':
+                console.info('[openai-realtime] Output item added', {
+                    sessionId,
+                    itemId: event.item && event.item.id,
+                    type: event.item && event.item.type
+                });
+                break;
+
+            // Content part added
+            case 'response.content_part.added':
+                break;
+
+            // Content part done
+            case 'response.content_part.done':
+                break;
+
+            // Output item done
+            case 'response.output_item.done':
+                break;
+
             // Response completed (turn complete)
             case 'response.done':
+                console.info('[openai-realtime] Response done', {
+                    sessionId,
+                    status: event.response && event.response.status,
+                    usage: event.response && event.response.usage
+                });
                 isAiSpeaking = false;
+                audioChunkCount = 0;
                 if (callbacks.onTurnComplete) {
                     callbacks.onTurnComplete();
                 }
+                break;
+
+            // Rate limits
+            case 'rate_limits.updated':
+                break;
+
+            // Conversation item created
+            case 'conversation.item.created':
+                console.info('[openai-realtime] Conversation item created', {
+                    sessionId,
+                    role: event.item && event.item.role,
+                    type: event.item && event.item.type
+                });
                 break;
 
             // Errors
@@ -261,6 +356,13 @@ function createOpenAIRealtimeSession(sessionId, callbacks) {
                         (event.error && event.error.message) || 'OpenAI error'
                     );
                 }
+                break;
+
+            // Catch any event we are not handling
+            default:
+                console.info('[openai-realtime] Unhandled event', {
+                    sessionId, type: event.type
+                });
                 break;
         }
     }
