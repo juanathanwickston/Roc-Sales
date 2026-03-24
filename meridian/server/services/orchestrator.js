@@ -24,7 +24,8 @@ const SILENCE_THRESHOLDS = [
  * @param {string} sessionId - Session UUID
  * @param {function} sendToClient - Sends messages/audio to the browser via WebSocket
  */
-function createOrchestrator(sessionId, sendToClient) {
+function createOrchestrator(sessionId, initialSendToClient) {
+    let sendToClient = initialSendToClient;
     let liveSession = null;
     let isDestroyed = false;
     const engine = config.conversationEngine;
@@ -274,9 +275,19 @@ function createOrchestrator(sessionId, sendToClient) {
         console.info('[orchestrator] Session destroyed', { sessionId, engine });
     }
 
+    /**
+     * Swap the sendToClient function when the browser WebSocket reconnects.
+     * This lets the orchestrator keep the same AI session while sending
+     * audio/messages to a new browser socket.
+     */
+    function updateSendToClient(newSendToClient) {
+        sendToClient = newSendToClient;
+    }
+
     return {
         init,
         receiveAudio,
+        updateSendToClient,
         destroy
     };
 }

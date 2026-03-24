@@ -4,12 +4,36 @@ const { pool } = require('../db/pool');
 const sessionQueries = require('../db/queries/sessions');
 const { createOrchestrator } = require('../services/orchestrator');
 
+// Active orchestrators keyed by sessionId.
+// Prevents creating a new AI session when the browser WebSocket reconnects.
+const activeOrchestrators = new Map();
+
+// Ping interval: 25 seconds keeps Railway (and most proxies) from
+// treating the connection as idle and closing it.
+const PING_INTERVAL_MS = 25000;
+
 /**
  * Attach a WebSocket server to an existing HTTP server.
  * Handles upgrade requests at /ws?session=UUID.
  */
 function setupWebSocket(server) {
     const wss = new WebSocketServer({ noServer: true });
+
+    // Server-level keepalive: ping every client on a fixed interval.
+    // If a pong is not received before the next ping, the connection
+    // is considered dead and is terminated.
+    const pingInterval = setInterval(() => {
+        wss.clients.forEach((client) => {
+            if (client.isAlive === false) {
+                client.terminate();
+                return;
+            }
+            client.isAlive = false;
+            client.ping();
+        });
+    }, PING_INTERVAL_MS);
+
+    wss.on('close', () => clearInterval(pingInterval));
 
     server.on('upgrade', async (request, socket, head) => {
         try {
@@ -53,6 +77,10 @@ function setupWebSocket(server) {
     });
 
     wss.on('connection', async (ws, request, sessionId) => {
+        // Mark this socket as alive for ping/pong keepalive
+        ws.isAlive = true;
+        ws.on('pong', () => { ws.isAlive = true; });
+
         console.info('[ws] Client connected', { sessionId });
 
         // Mark session as active
@@ -80,8 +108,45 @@ function setupWebSocket(server) {
             }
         }
 
-        // Create the per-session orchestrator
+        // Check if an orchestrator already exists for this session.
+        // If the browser reconnected (e.g. after a transient network drop),
+        // reuse the existing orchestrator so the AI conversation continues
+        // without restarting.
+        const existing = activeOrchestrators.get(sessionId);
+        if (existing) {
+            console.info('[ws] Reconnect: reusing existing orchestrator', { sessionId });
+            existing.updateSendToClient(sendToClient);
+
+            // Wire up message and close handlers to the existing orchestrator
+            ws.on('message', (data, isBinary) => {
+                if (isBinary) {
+                    existing.receiveAudio(data);
+                }
+            });
+
+            ws.on('close', (code, reason) => {
+                console.info('[ws] Client disconnected', {
+                    sessionId,
+                    code,
+                    reason: reason.toString()
+                });
+                // Do NOT destroy the orchestrator on disconnect.
+                // The client may reconnect. The orchestrator is cleaned up
+                // only when the session is explicitly ended or times out.
+            });
+
+            ws.on('error', (err) => {
+                console.error('[ws] Connection error', {
+                    sessionId,
+                    error: err.message
+                });
+            });
+            return;
+        }
+
+        // First connection: create a new orchestrator
         const orchestrator = createOrchestrator(sessionId, sendToClient);
+        activeOrchestrators.set(sessionId, orchestrator);
 
         try {
             await orchestrator.init();
@@ -90,6 +155,7 @@ function setupWebSocket(server) {
                 sessionId,
                 error: err.message
             });
+            activeOrchestrators.delete(sessionId);
             sendToClient({
                 type: 'error',
                 message: 'Failed to initialize session. Please refresh and try again.'
@@ -113,7 +179,8 @@ function setupWebSocket(server) {
                 code,
                 reason: reason.toString()
             });
-            orchestrator.destroy();
+            // Do NOT destroy the orchestrator on disconnect.
+            // The client may reconnect.
         });
 
         ws.on('error', (err) => {
@@ -121,11 +188,10 @@ function setupWebSocket(server) {
                 sessionId,
                 error: err.message
             });
-            orchestrator.destroy();
         });
     });
 
     console.info('[ws] WebSocket server attached');
 }
 
-module.exports = { setupWebSocket };
+module.exports = { setupWebSocket, activeOrchestrators };

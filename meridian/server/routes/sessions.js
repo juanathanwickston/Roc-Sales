@@ -40,6 +40,15 @@ router.post('/:id/end', async (req, res, next) => {
     try {
         validateUuid(req.params.id, 'id');
         const session = await sessionService.end(req.params.id);
+
+        // Clean up the active orchestrator for this session
+        const { activeOrchestrators } = require('../ws/handler');
+        const orchestrator = activeOrchestrators.get(req.params.id);
+        if (orchestrator) {
+            orchestrator.destroy();
+            activeOrchestrators.delete(req.params.id);
+        }
+
         res.json(session);
     } catch (err) {
         next(err);
