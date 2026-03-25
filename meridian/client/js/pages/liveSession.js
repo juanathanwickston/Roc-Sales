@@ -9,13 +9,13 @@ import * as themeToggle from '../lib/themeToggle.js';
 import * as toast from '../lib/toast.js';
 import * as audioSocket from '../lib/audioSocket.js';
 import * as audioPlayer from '../lib/audioPlayer.js';
-import * as avatarController from '../lib/avatarController.js';
 
 // DOM references
 const elements = {};
 let sessionId = null;
 let micStream = null;
 let avatarActive = false;
+let avatarController = null;
 
 /**
  * Initialize the page. Called on DOMContentLoaded.
@@ -80,17 +80,27 @@ async function init() {
         // Non-blocking: session start is best-effort
     }
 
-    // Initialize 3D avatar
+    // Initialize 3D avatar (dynamic import so CDN failure doesn't kill the page)
     try {
-        const surface = document.querySelector('.session__surface');
         const container = document.getElementById('avatar-container');
         if (container) {
+            const module = await import('../lib/avatarController.js');
+            avatarController = module;
             await avatarController.init(container);
             avatarActive = true;
+            // Hide the status label once avatar is loaded
+            if (elements.personaStatus) {
+                elements.personaStatus.style.display = 'none';
+            }
         }
     } catch (err) {
         console.warn('Avatar failed to load, using fallback:', err.message);
         avatarActive = false;
+        avatarController = null;
+        // Show fallback status
+        if (elements.personaStatus) {
+            elements.personaStatus.textContent = 'AI Coach';
+        }
     }
 
     // Connect to real-time AI pipeline via WebSocket
