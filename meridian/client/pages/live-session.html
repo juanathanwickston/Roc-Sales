@@ -7,15 +7,6 @@
     <meta name="description" content="Meridian live practice session">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="/js/lib/themeInit.js"></script>
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
-            "talkinghead": "https://cdn.jsdelivr.net/npm/@met4citizen/talkinghead@1.7/modules/talkinghead.mjs"
-        }
-    }
-    </script>
     <link rel="stylesheet" href="/css/tokens.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/pages/live-session.css">
@@ -35,8 +26,15 @@
         <!-- AI Video Area -->
         <div class="session__frame">
             <div class="session__surface">
-                <div id="avatar-container" class="avatar-container"></div>
-                <span id="persona-status" class="persona__label">Loading avatar...</span>
+                <div class="persona">
+                    <div class="persona__avatar">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <span id="persona-status" class="persona__label">Connecting...</span>
+                </div>
             </div>
         </div>
 
