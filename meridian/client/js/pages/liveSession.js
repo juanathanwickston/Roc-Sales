@@ -9,11 +9,13 @@ import * as themeToggle from '../lib/themeToggle.js';
 import * as toast from '../lib/toast.js';
 import * as audioSocket from '../lib/audioSocket.js';
 import * as audioPlayer from '../lib/audioPlayer.js';
+import * as avatarController from '../lib/avatarController.js';
 
 // DOM references
 const elements = {};
 let sessionId = null;
 let micStream = null;
+let avatarActive = false;
 
 /**
  * Initialize the page. Called on DOMContentLoaded.
@@ -76,6 +78,19 @@ async function init() {
         await fetch(`/api/sessions/${sessionId}/start`, { method: 'POST' });
     } catch (err) {
         // Non-blocking: session start is best-effort
+    }
+
+    // Initialize 3D avatar
+    try {
+        const surface = document.querySelector('.session__surface');
+        const container = document.getElementById('avatar-container');
+        if (container) {
+            await avatarController.init(container);
+            avatarActive = true;
+        }
+    } catch (err) {
+        console.warn('Avatar failed to load, using fallback:', err.message);
+        avatarActive = false;
     }
 
     // Connect to real-time AI pipeline via WebSocket
@@ -160,7 +175,11 @@ function handleAiText(text, isFinal) {
  * Handle AI audio chunks from the pipeline.
  */
 function handleAiAudio(audioData) {
-    audioPlayer.enqueue(audioData);
+    if (avatarActive) {
+        avatarController.feedAudio(audioData);
+    } else {
+        audioPlayer.enqueue(audioData);
+    }
 }
 
 /**
@@ -175,7 +194,11 @@ function handleStatus(state) {
             break;
         case 'interrupted':
             elements.personaStatus.textContent = 'Listening...';
-            audioPlayer.cancel();
+            if (avatarActive) {
+                avatarController.interrupt();
+            } else {
+                audioPlayer.cancel();
+            }
             break;
         case 'thinking':
             elements.personaStatus.textContent = 'Thinking...';
@@ -204,8 +227,12 @@ function onMicToggle() {
     elements.micOffIcon.classList.toggle('hidden', !isMuted);
 
     // Barge-in: if unmuting while AI is speaking, cancel playback
-    if (!isMuted && audioPlayer.getIsPlaying()) {
-        audioPlayer.cancel();
+    if (!isMuted) {
+        if (avatarActive) {
+            avatarController.interrupt();
+        } else if (audioPlayer.getIsPlaying()) {
+            audioPlayer.cancel();
+        }
     }
 
     if (isMuted) {
@@ -227,7 +254,12 @@ function onMicToggle() {
 function onEndSession() {
     // Disconnect the AI pipeline first
     audioSocket.disconnect();
-    audioPlayer.cancel();
+    if (avatarActive) {
+        avatarController.destroy();
+        avatarActive = false;
+    } else {
+        audioPlayer.cancel();
+    }
 
     document.body.classList.add('session-exiting');
 
