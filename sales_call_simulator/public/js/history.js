@@ -84,57 +84,105 @@ async function loadHistory(page) {
 }
 
 /**
- * Calculate and display summary stats from session data.
- * Uses 80% threshold for pass rate calculation.
+ * Render compact summary strip from session data.
+ * Replaces the old 4-card stat grid with a single inline row.
  */
 function renderHistoryStats(sessions) {
-  const scored = sessions.filter(function(s) {
+  var summaryEl = document.getElementById('history-summary');
+  var scored = sessions.filter(function(s) {
     return s.overall_score !== null && s.overall_score !== undefined;
   });
 
-  document.getElementById('stat-total').textContent = historyTotalSessions;
-
   if (scored.length === 0) {
-    document.getElementById('stat-best').textContent = '-';
-    document.getElementById('stat-average').textContent = '-';
-    document.getElementById('stat-pass-rate').textContent = '-';
+    summaryEl.innerHTML =
+      '<span class="history-summary-value">' + historyTotalSessions + '</span> sessions' +
+      '<span class="history-summary-sep">&middot;</span>' +
+      'No scores yet';
     return;
   }
 
-  const scores = scored.map(function(s) { return s.overall_score; });
-  const best = Math.max.apply(null, scores);
-  const average = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length);
-  const passes = scored.filter(function(s) { return s.overall_verdict === 'pass'; }).length;
-  const passRate = Math.round((passes / scored.length) * 100);
+  var scores = scored.map(function(s) { return s.overall_score; });
+  var best = Math.max.apply(null, scores);
+  var average = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length);
+  var passes = scored.filter(function(s) { return s.overall_verdict === 'pass'; }).length;
+  var passRate = Math.round((passes / scored.length) * 100);
 
-  document.getElementById('stat-best').textContent = best + '/100';
-  document.getElementById('stat-average').textContent = average + '/100';
-  document.getElementById('stat-pass-rate').textContent = passRate + '%';
+  summaryEl.innerHTML =
+    '<span class="history-summary-value">' + historyTotalSessions + '</span> sessions' +
+    '<span class="history-summary-sep">&middot;</span>' +
+    'Best: <span class="history-summary-value">' + best + '</span>' +
+    '<span class="history-summary-sep">&middot;</span>' +
+    'Avg: <span class="history-summary-value">' + average + '</span>' +
+    '<span class="history-summary-sep">&middot;</span>' +
+    '<span class="history-summary-value">' + passRate + '%</span> pass rate';
+}
+
+/**
+ * Map overall_verdict to a three-tier verdict class and label.
+ */
+function getVerdictInfo(verdict) {
+  if (verdict === 'pass') return { cls: 'pass', text: 'Pass' };
+  if (verdict === 'needs_work') return { cls: 'needs-work', text: 'Needs Work' };
+  return { cls: 'fail', text: 'Fail' };
+}
+
+/**
+ * Build an SVG mini score ring matching the Dashboard's ring style.
+ * radius=20, circumference=125.66
+ */
+function buildScoreRing(score, verdictCls) {
+  var r = 20;
+  var circ = 2 * Math.PI * r; // ~125.66
+  var pct = Math.min(Math.max(score, 0), 100) / 100;
+  var offset = circ * (1 - pct);
+
+  return '<div class="history-ring-wrap">' +
+    '<svg viewBox="0 0 52 52">' +
+      '<circle class="history-ring-bg" cx="26" cy="26" r="' + r + '"/>' +
+      '<circle class="history-ring-fill ' + verdictCls + '" cx="26" cy="26" r="' + r + '"' +
+        ' stroke-dasharray="' + circ.toFixed(2) + '"' +
+        ' stroke-dashoffset="' + offset.toFixed(2) + '"/>' +
+    '</svg>' +
+    '<span class="history-ring-text ' + verdictCls + '">' + score + '</span>' +
+  '</div>';
 }
 
 /**
  * Render session cards into the history list.
- * Each card shows scenario name, date, score ring, and pass/fail badge.
- * Only scored sessions are passed to this function.
+ * Each card shows an SVG score ring, module name, date, duration,
+ * score delta from previous session, and a three-tier verdict badge.
+ * Sessions are ordered newest-first; delta compares to the next item in the array (chronologically prior).
  */
 function renderSessionList(sessions) {
-  const listEl = document.getElementById('history-list');
+  var listEl = document.getElementById('history-list');
   listEl.innerHTML = '';
 
   for (var i = 0; i < sessions.length; i++) {
     var session = sessions[i];
+    var score = session.overall_score;
+    var verdict = getVerdictInfo(session.overall_verdict);
+
+    // Score delta: compare to the chronologically previous session (next index, since newest-first)
+    var deltaHtml = '';
+    if (i < sessions.length - 1 && sessions[i + 1].overall_score !== null) {
+      var prevScore = sessions[i + 1].overall_score;
+      var diff = score - prevScore;
+      if (diff > 0) {
+        deltaHtml = '<span class="history-delta delta-up">+' + diff + '</span>';
+      } else if (diff < 0) {
+        deltaHtml = '<span class="history-delta delta-down">' + diff + '</span>';
+      } else {
+        deltaHtml = '<span class="history-delta delta-same">&mdash;</span>';
+      }
+    }
+
     var card = document.createElement('button');
     card.className = 'history-card';
     card.setAttribute('role', 'listitem');
     card.setAttribute('aria-label', 'View session from ' + formatHistoryDate(session.created_at));
 
-    var score = session.overall_score;
-    var passed = session.overall_verdict === 'pass';
-    var verdictClass = passed ? 'pass' : 'fail';
-    var verdictText = passed ? 'Pass' : 'Fail';
-
     card.innerHTML =
-      '<div class="history-score-mini ' + verdictClass + '">' + esc(String(score)) + '</div>' +
+      buildScoreRing(score, verdict.cls) +
       '<div class="history-card-info">' +
         '<div class="history-card-title">' + esc(formatScenarioName(session.scenario_id)) + '</div>' +
         '<div class="history-card-meta">' +
@@ -142,7 +190,10 @@ function renderSessionList(sessions) {
           (session.duration_seconds ? '<span>' + formatHistoryDuration(session.duration_seconds) + '</span>' : '') +
         '</div>' +
       '</div>' +
-      '<span class="verdict-badge verdict-' + verdictClass + '">' + esc(verdictText) + '</span>';
+      '<div class="history-card-right">' +
+        '<span class="verdict-badge verdict-' + verdict.cls + '">' + esc(verdict.text) + '</span>' +
+        deltaHtml +
+      '</div>';
 
     card.addEventListener('click', (function(id) {
       return function() { viewSessionScore(id); };

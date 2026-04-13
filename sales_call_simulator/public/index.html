@@ -1063,103 +1063,109 @@
     }
 
     /* ─── History Screen ─── */
-    .history-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .history-main { flex: 1; padding: 28px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 
-    .history-stats {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
+    .history-section-title {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      color: var(--text-muted); margin-bottom: 14px;
+      text-transform: uppercase; letter-spacing: 0.8px;
     }
-    .stat-card {
-      flex: 1;
-      min-width: 120px;
-      background: var(--n3);
-      border: 1px solid var(--gb);
-      border-radius: var(--r);
-      padding: 16px;
-      text-align: center;
+
+    /* Summary strip — compact inline stats */
+    .history-summary {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      background: #F7F8FA; border-radius: var(--rs);
+      padding: 10px 16px; margin-bottom: 20px;
+      font-size: var(--fs-sm); color: var(--text-body);
     }
-    .stat-value { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 4px; }
-    .stat-label { font-size: var(--fs-xs); color: var(--gray); }
+    .history-summary-value { font-weight: var(--fw-semibold); color: var(--text-primary); }
+    .history-summary-sep { color: var(--border-light); margin: 0 4px; user-select: none; }
 
-    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
 
+    /* Session cards — aligned with Dashboard stage-card design */
     .history-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: #FFFFFF;
+      border: 1px solid transparent;
       border-radius: var(--r);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      color: var(--white);
-      text-align: left;
-      gap: 16px;
+      padding: 16px 20px;
+      display: flex; align-items: center;
+      color: var(--text-primary);
+      text-align: left; gap: 16px;
       cursor: pointer;
-      transition: border-color .2s;
+      font-family: inherit;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all .25s ease;
     }
     .history-card:hover, .history-card:focus-visible {
-      border-color: rgba(59,130,246,.4);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
       outline: none;
     }
 
-    .history-score-mini {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--fs-md);
-      font-weight: var(--fw-bold);
-      flex-shrink: 0;
-      border: 3px solid;
+    /* SVG score ring — mini version of Dashboard ring */
+    .history-ring-wrap {
+      flex-shrink: 0; position: relative;
+      width: 52px; height: 52px;
     }
-    .history-score-mini.pass { border-color: var(--green); color: var(--green); }
-    .history-score-mini.needs-work { border-color: var(--orange); color: var(--orange); }
-    .history-score-mini.fail { border-color: var(--red); color: var(--red); }
-    .history-score-mini.pending { border-color: var(--gray); color: var(--gray); }
+    .history-ring-wrap svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+    .history-ring-bg { fill: none; stroke: #EBEDF0; stroke-width: 4; }
+    .history-ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+    .history-ring-fill.pass { stroke: var(--color-pass); }
+    .history-ring-fill.needs-work { stroke: var(--color-warning); }
+    .history-ring-fill.fail { stroke: var(--color-fail); }
+    .history-ring-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1;
+    }
+    .history-ring-text.pass { color: var(--color-pass); }
+    .history-ring-text.needs-work { color: var(--color-warning); }
+    .history-ring-text.fail { color: var(--color-fail); }
 
     .history-card-info { flex: 1; min-width: 0; }
     .history-card-title {
-      font-size: var(--fs-sm);
-      font-weight: var(--fw-semibold);
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 15px; font-weight: var(--fw-semibold);
+      margin-bottom: 4px; letter-spacing: -0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text-primary);
     }
     .history-card-meta {
-      font-size: var(--fs-xs);
-      color: var(--gray);
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      font-size: var(--fs-xs); color: var(--text-muted);
+      display: flex; gap: 12px; flex-wrap: wrap;
     }
+
+    /* Score delta — the key improvement indicator */
+    .history-card-right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;
+    }
+    .history-delta {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+    }
+    .history-delta.delta-up { color: var(--color-pass); }
+    .history-delta.delta-down { color: var(--color-fail); }
+    .history-delta.delta-same { color: var(--text-muted); }
 
     .verdict-badge {
-      padding: 4px 8px;
-      border-radius: var(--r-sm);
-      font-size: var(--fs-2xs);
-      font-weight: var(--fw-semibold);
-      text-transform: uppercase;
-      letter-spacing: .3px;
+      padding: 3px 10px; border-radius: 50px;
+      font-size: 10px; font-weight: var(--fw-semibold);
+      text-transform: uppercase; letter-spacing: .5px;
       flex-shrink: 0;
     }
-    .verdict-pass { background: rgba(0,224,184,.12); color: var(--green); }
-    .verdict-needs-work { background: rgba(255,184,0,.12); color: var(--orange); }
-    .verdict-fail { background: rgba(255,68,102,.12); color: var(--red); }
-    .verdict-pending { background: rgba(123,139,168,.12); color: var(--gray); }
+    .verdict-pass { background: rgba(0,224,184,.1); color: var(--color-pass); }
+    .verdict-needs-work { background: rgba(245,158,11,.1); color: var(--color-warning); }
+    .verdict-fail { background: rgba(239,68,68,.1); color: var(--color-fail); }
+    .verdict-pending { background: rgba(123,139,168,.1); color: var(--text-muted); }
 
     .history-loading { text-align: center; padding: 48px 0; }
-    .history-loading p { color: var(--gray); font-size: var(--fs-sm); margin-top: 16px; }
+    .history-loading p { color: var(--text-muted); font-size: var(--fs-sm); margin-top: 16px; }
 
     @media (max-width: 767px) {
       .history-main { padding: 16px; }
-      .history-stats { gap: 8px; }
-      .stat-card { padding: 12px; min-width: 80px; }
-      .stat-value { font-size: var(--fs-lg); }
       .history-card { padding: 12px 16px; gap: 12px; }
+      .history-ring-wrap { width: 44px; height: 44px; }
+      .history-ring-wrap svg { width: 44px; height: 44px; }
+      .history-ring-text { font-size: var(--fs-xs); }
     }
 
     /* ─── Progress Dashboard ─── */
@@ -1748,13 +1754,12 @@
   <div id="screen-history" class="screen">
     <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
-        <div class="brand-icon" aria-hidden="true"></div>
-        <div>
-          <h1>Session History</h1>
-          <span class="header-subtitle">Your past simulation attempts</span>
+        <div class="header-brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
+        <h1>Sales Call Simulator</h1>
       </div>
-      <button id="btn-history-back" class="btn btn-ghost" aria-label="Back to scenarios">Back</button>
+      <button id="btn-history-back" class="btn btn-ghost" aria-label="Back to dashboard">Back</button>
     </header>
 
     <main class="history-main" aria-label="Session history">
@@ -1766,24 +1771,10 @@
 
       <!-- Content (hidden until loaded) -->
       <div id="history-content" style="display:none;">
-        <!-- Stats summary -->
-        <div class="history-stats">
-          <div class="stat-card">
-            <div id="stat-total" class="stat-value">0</div>
-            <div class="stat-label">Total Attempts</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-best" class="stat-value">-</div>
-            <div class="stat-label">Best Score</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-average" class="stat-value">-</div>
-            <div class="stat-label">Average Score</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-pass-rate" class="stat-value">-</div>
-            <div class="stat-label">Pass Rate</div>
-          </div>
+        <!-- Compact summary strip -->
+        <h2 class="history-section-title">Your Sessions</h2>
+        <div id="history-summary" class="history-summary" aria-label="Performance summary">
+          <!-- Populated by history.js -->
         </div>
 
         <!-- Session list -->
