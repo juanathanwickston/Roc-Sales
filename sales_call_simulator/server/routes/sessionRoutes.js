@@ -14,7 +14,12 @@ const router = express.Router();
 
 // Fetch retry constants shared with postCallProcessor.js
 // Both files have independent transcript fetch paths that need these values.
-const { TRANSCRIPT_RETRY_DELAY_MS, MAX_TRANSCRIPT_ATTEMPTS } = require('../services/tavusNormalizer');
+const { TRANSCRIPT_RETRY_DELAY_MS } = require('../services/tavusNormalizer');
+
+// MAX_TRANSCRIPT_ATTEMPTS is defined locally because the main pipeline
+// (postCallProcessor) uses a time-based ceiling instead of fixed attempts.
+// This endpoint uses a simpler fixed-attempt approach for direct fetches.
+const MAX_TRANSCRIPT_ATTEMPTS = 10;
 
 // Valid session statuses and their allowed transitions
 const STATUS_TRANSITIONS = {
@@ -137,6 +142,161 @@ router.post('/', async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Create error:', err.message);
     res.status(500).json({ error: 'Unable to create session. Please try again.' });
+  }
+});
+
+/**
+ * GET /api/sessions/progress - Aggregate progress data for the current user.
+ * Computes score trends, category progression, streaks, and per-scenario stats.
+ * Returns sensible defaults when no sessions exist.
+ * Must be defined before /:id to prevent 'progress' matching as a session ID.
+ */
+router.get('/progress', async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    // Fetch all completed, scored sessions ordered by date (oldest first for trend)
+    const userId = req.query.userId || (req.user && req.user.userId) || null;
+    const conditions = ["s.status = 'completed'"];
+    const params = [];
+    let paramIndex = 1;
+
+    if (userId) {
+      conditions.push(`s.external_user_id = $${paramIndex}`);
+      params.push(userId);
+      paramIndex++;
+    }
+
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+
+    const result = await db.query(
+      `SELECT s.id, s.scenario_id, s.duration_seconds, s.created_at,
+              sc.overall_score, sc.overall_verdict, sc.categories
+       FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       ${whereClause}
+       ORDER BY s.created_at ASC`,
+      params
+    );
+
+    const sessions = result.rows;
+
+    // Empty state
+    if (sessions.length === 0) {
+      return res.json({
+        overall: {
+          totalAttempts: 0, scoredAttempts: 0, bestScore: 0, averageScore: 0,
+          latestScore: 0, previousScore: 0, passRate: 0, currentStage: 1,
+          trend: [],
+        },
+        categories: {},
+        streaks: { currentStreak: 0, bestStreak: 0, consecutivePasses: 0, lastImproved: false },
+        perScenario: {},
+      });
+    }
+
+    // Overall stats
+    const scores = sessions.map(s => s.overall_score);
+    const latestScore = scores[scores.length - 1];
+    const previousScore = scores.length >= 2 ? scores[scores.length - 2] : 0;
+    const bestScore = Math.max(...scores);
+    const averageScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    const passes = sessions.filter(s => s.overall_score >= 80);
+    const passRate = Math.round((passes.length / sessions.length) * 100);
+
+    // Trend (chronological)
+    const trend = sessions.map(s => ({
+      date: s.created_at,
+      score: s.overall_score,
+      sessionId: s.id,
+    }));
+
+    // Category aggregation
+    const categories = {};
+    for (const session of sessions) {
+      const cats = session.categories || {};
+      for (const [catName, catData] of Object.entries(cats)) {
+        if (!categories[catName]) {
+          categories[catName] = { scores: [], latest: 0, best: 0, average: 0 };
+        }
+        const catScore = catData.score || 0;
+        categories[catName].scores.push(catScore);
+      }
+    }
+    for (const [catName, catAgg] of Object.entries(categories)) {
+      catAgg.latest = catAgg.scores[catAgg.scores.length - 1] || 0;
+      catAgg.best = Math.max(...catAgg.scores);
+      catAgg.average = Math.round(catAgg.scores.reduce((a, b) => a + b, 0) / catAgg.scores.length);
+      catAgg.trend = catAgg.scores;
+    }
+
+    // Streaks
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let tempStreak = 0;
+    let consecutivePasses = 0;
+    let tempPasses = 0;
+
+    for (let i = 0; i < sessions.length; i++) {
+      // Session streak (consecutive sessions)
+      tempStreak++;
+      if (tempStreak > bestStreak) bestStreak = tempStreak;
+
+      // Pass streak
+      if (sessions[i].overall_score >= 80) {
+        tempPasses++;
+        if (tempPasses > consecutivePasses) consecutivePasses = tempPasses;
+      } else {
+        tempPasses = 0;
+      }
+    }
+    currentStreak = tempStreak;
+
+    const lastImproved = scores.length >= 2 && scores[scores.length - 1] > scores[scores.length - 2];
+
+    // Per-scenario stats
+    const perScenario = {};
+    for (const session of sessions) {
+      const sid = session.scenario_id;
+      if (!perScenario[sid]) {
+        perScenario[sid] = { attempts: 0, bestScore: 0, latestScore: 0 };
+      }
+      perScenario[sid].attempts++;
+      perScenario[sid].latestScore = session.overall_score;
+      if (session.overall_score > perScenario[sid].bestScore) {
+        perScenario[sid].bestScore = session.overall_score;
+      }
+    }
+
+    // Determine current stage (highest stage with a scored scenario)
+    const currentStage = 1; // Only Stage 1 has scenarios today
+
+    res.json({
+      overall: {
+        totalAttempts: sessions.length,
+        scoredAttempts: sessions.length,
+        bestScore,
+        averageScore,
+        latestScore,
+        previousScore,
+        passRate,
+        currentStage,
+        trend,
+      },
+      categories,
+      streaks: {
+        currentStreak,
+        bestStreak,
+        consecutivePasses,
+        lastImproved,
+      },
+      perScenario,
+    });
+  } catch (err) {
+    console.error('[Sessions] Progress error:', err.message);
+    res.status(500).json({ error: 'Unable to compute progress.' });
   }
 });
 

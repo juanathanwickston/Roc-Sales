@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ─── ROC Academy Design System Tokens ─── */
+    /* ─── Payroc Brand Design System Tokens ─── */
     :root {
       /* Typography */
       --font: 'Geist', sans-serif;
@@ -18,19 +18,49 @@
       --fw-normal: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
       --lh-tight: 1.3; --lh-normal: 1.55; --lh-relaxed: 1.7;
 
-      /* Colors */
-      --navy: #0A1628;
-      --n2: #0F1B32;
-      --n3: #152240;
-      --n4: #1C2D4E;
-      --blue: #3B82F6;
+      /* Payroc Brand Colors */
+      --payroc-navy: #001D4E;
+      --payroc-blue: #0051C2;
+      --payroc-teal: #00E0B8;
+
+      /* Surfaces (Light Mode) */
+      --bg-page: #F8F9FA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0F4FF;
+      --bg-section: #FFFFFF;
+      --bg-input: #FFFFFF;
+
+      /* Text */
+      --text-primary: #001D4E;
+      --text-body: #424242;
+      --text-muted: #6B7280;
+      --text-on-blue: #FFFFFF;
+
+      /* Borders & Shadows */
+      --border-light: #E5E7EB;
+      --border-blue: rgba(0,81,194,0.12);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08);
+
+      /* Status Colors */
+      --color-pass: #00E0B8;
+      --color-fail: #EF4444;
+      --color-warning: #F59E0B;
+      --color-locked: #D1D5DB;
+
+      /* Legacy aliases (backward compat for call screen, scoring.js, history.js) */
+      --navy: #001D4E;
+      --n2: #F3F4F6;
+      --n3: #FFFFFF;
+      --n4: #F0F4FF;
+      --blue: #0051C2;
       --green: #00E0B8;
-      --red: #FF4466;
-      --orange: #FFB800;
-      --purple: #A78BFA;
-      --white: #EDF2FF;
-      --gray: #7B8BA8;
-      --gb: rgba(59,130,246,.12);
+      --red: #EF4444;
+      --orange: #F59E0B;
+      --purple: #8B5CF6;
+      --white: #001D4E;
+      --gray: #6B7280;
+      --gb: rgba(0,0,0,0.08);
 
       /* Spacing: 4, 8, 16, 24, 32, 48 only */
       /* Border Radius */
@@ -44,8 +74,8 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font);
-      background: var(--navy);
-      color: var(--white);
+      background: var(--bg-page);
+      color: var(--text-body);
       font-size: var(--fs-base);
       line-height: var(--lh-normal);
       min-height: 100vh;
@@ -58,37 +88,39 @@
     /* ─── Header ─── */
     .app-header {
       padding: 16px 24px;
-      border-bottom: 1px solid var(--gb);
-      background: var(--n2);
+      border-bottom: 1px solid var(--border-light);
+      background: var(--bg-card);
     }
     .header-brand { display: flex; align-items: center; gap: 16px; }
     .brand-icon { font-size: var(--fs-xl); }
-    .header-brand h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin: 0; }
-    .header-subtitle { color: var(--gray); font-size: var(--fs-xs); }
+    .header-brand h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin: 0; color: var(--text-primary); }
+    .header-subtitle { color: var(--text-muted); font-size: var(--fs-xs); }
 
     /* ─── Scenario Selection ─── */
     .scenarios-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     .scenarios-hero { text-align: center; margin-bottom: 32px; }
-    .scenarios-hero h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 8px; }
-    .scenarios-hero p { color: var(--gray); font-size: var(--fs-sm); max-width: 500px; margin: 0 auto; }
+    .scenarios-hero h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 8px; color: var(--text-primary); }
+    .scenarios-hero p { color: var(--text-muted); font-size: var(--fs-sm); max-width: 500px; margin: 0 auto; }
 
     .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     @media (min-width: 768px) { .scenario-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
 
     .scenario-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
       border-radius: var(--r);
       padding: 24px;
       cursor: pointer;
-      transition: border-color .2s;
+      transition: border-color .2s, box-shadow .2s;
       text-align: left;
       font-family: inherit;
       color: inherit;
       width: 100%;
+      box-shadow: var(--shadow-card);
     }
     .scenario-card:hover, .scenario-card:focus-visible {
-      border-color: rgba(59,130,246,.4);
+      border-color: var(--payroc-blue);
+      box-shadow: var(--shadow-card-hover);
       outline: none;
     }
     .scenario-card-title {
@@ -99,8 +131,8 @@
       align-items: center;
       gap: 8px;
     }
-    .scenario-card-desc { color: var(--gray); font-size: var(--fs-sm); line-height: var(--lh-normal); margin-bottom: 16px; }
-    .scenario-card-meta { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--gray); }
+    .scenario-card-desc { color: var(--text-muted); font-size: var(--fs-sm); line-height: var(--lh-normal); margin-bottom: 16px; }
+    .scenario-card-meta { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); }
 
     .difficulty-badge {
       padding: 4px 8px;
@@ -118,17 +150,17 @@
     .scenario-loading, .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: var(--gray);
+      color: var(--text-muted);
       grid-column: 1 / -1;
     }
     .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-state .empty-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--white); margin-bottom: 8px; }
+    .empty-state .empty-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 8px; }
     .empty-state .empty-desc { font-size: var(--fs-sm); margin-bottom: 24px; }
 
     .spinner {
       width: 24px; height: 24px;
-      border: 3px solid var(--gb);
-      border-top-color: var(--blue);
+      border: 3px solid var(--border-light);
+      border-top-color: var(--payroc-blue);
       border-radius: 50%;
       animation: spin .8s linear infinite;
       margin: 0 auto 8px;
@@ -145,35 +177,36 @@
       padding: 24px;
     }
     .lobby-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
       border-radius: var(--r);
       padding: 32px;
       max-width: 480px;
       width: 100%;
       text-align: center;
+      box-shadow: var(--shadow-card);
     }
     .lobby-icon { font-size: 48px; margin-bottom: 16px; }
-    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; }
-    .lobby-status { color: var(--gray); font-size: var(--fs-sm); margin-bottom: 24px; }
+    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--text-primary); }
+    .lobby-status { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 24px; }
     .lobby-spinner { margin-bottom: 24px; }
     .lobby-tips {
       text-align: left;
-      background: var(--n4);
+      background: var(--bg-page);
       border-radius: var(--rs);
       padding: 16px;
       margin-bottom: 24px;
     }
-    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--blue); }
+    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--payroc-blue); }
     .lobby-tips ul { list-style: none; }
     .lobby-tips li {
       padding: 4px 0;
       font-size: var(--fs-sm);
-      color: var(--gray);
+      color: var(--text-muted);
       position: relative;
       padding-left: 16px;
     }
-    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--green); }
+    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--payroc-teal); }
 
     /* ─── Call Screen — Teams-Style Layout ─── */
     .call-layout {
@@ -950,20 +983,20 @@
       transition: all .2s;
       min-height: 44px;
     }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-primary:hover { background: #2563EB; }
+    .btn-primary { background: var(--payroc-blue); color: var(--text-on-blue); }
+    .btn-primary:hover { background: #003D99; }
     .btn-secondary {
-      background: var(--n3);
-      border: 1px solid var(--gb);
-      color: var(--white);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
     }
-    .btn-secondary:hover { border-color: rgba(59,130,246,.4); }
+    .btn-secondary:hover { border-color: var(--payroc-blue); }
     .btn-ghost {
       background: transparent;
-      border: 1px solid var(--gb);
-      color: var(--gray);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
     }
-    .btn-ghost:hover { color: var(--white); border-color: rgba(59,130,246,.4); }
+    .btn-ghost:hover { color: var(--text-primary); border-color: var(--payroc-blue); }
 
     /* ─── Toast ─── */
     #toastContainer {
@@ -1118,38 +1151,182 @@
       .stat-value { font-size: var(--fs-lg); }
       .history-card { padding: 12px 16px; gap: 12px; }
     }
+
+    /* ─── Progress Dashboard ─── */
+
+    /* Pipeline bar */
+    .pipeline-section { padding: 24px 24px 0; background: var(--bg-card); border-bottom: 1px solid var(--border-light); }
+    .pipeline-track { display: flex; align-items: center; justify-content: center; gap: 0; max-width: 800px; margin: 0 auto; padding-bottom: 20px; }
+    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 60px; }
+    .pipeline-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-xs); font-weight: var(--fw-bold);
+      transition: all .3s;
+    }
+    .pipeline-number { line-height: 1; }
+    .pipeline-active .pipeline-dot { background: var(--payroc-blue); color: var(--text-on-blue); box-shadow: 0 0 0 4px rgba(0,81,194,0.15); }
+    .pipeline-done .pipeline-dot { background: var(--payroc-teal); color: #fff; }
+    .pipeline-locked .pipeline-dot { background: var(--border-light); color: var(--text-muted); }
+    .pipeline-label { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: var(--fw-medium); text-align: center; white-space: nowrap; }
+    .pipeline-active .pipeline-label { color: var(--payroc-blue); font-weight: var(--fw-semibold); }
+    .pipeline-connector { flex: 1; height: 2px; background: var(--border-light); min-width: 20px; max-width: 60px; margin-top: -20px; }
+    .pipeline-connector-filled { background: var(--payroc-teal); }
+
+    /* Home two-column layout */
+    .home-content { display: flex; gap: 32px; padding: 32px 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .home-journey { flex: 1; min-width: 0; }
+    .home-performance { width: 340px; flex-shrink: 0; }
+    .home-section-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 16px; }
+    .home-stage-indicator { font-size: var(--fs-sm); color: var(--text-muted); font-weight: var(--fw-medium); }
+
+    /* Stage cards */
+    .stage-cards { display: flex; flex-direction: column; gap: 12px; }
+    .stage-card {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--bg-card); border: 1px solid var(--border-light);
+      border-radius: var(--r); padding: 20px 24px;
+      box-shadow: var(--shadow-card); transition: border-color .2s, box-shadow .2s;
+    }
+    .stage-card-active { border-left: 4px solid var(--payroc-blue); }
+    .stage-card-active:hover { box-shadow: var(--shadow-card-hover); }
+    .stage-card-locked { opacity: 0.7; }
+    .stage-card-number {
+      font-size: var(--fs-2xl); font-weight: var(--fw-bold);
+      color: var(--payroc-blue); line-height: 1; min-width: 40px;
+    }
+    .stage-number-locked { color: var(--color-locked); }
+    .stage-card-body { flex: 1; min-width: 0; }
+    .stage-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+    .stage-card-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; }
+    .stage-status-badge {
+      padding: 3px 10px; border-radius: var(--r-sm);
+      font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
+      text-transform: uppercase; letter-spacing: .3px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .stage-status-active { background: rgba(0,81,194,0.08); color: var(--payroc-blue); }
+    .stage-status-locked { background: rgba(0,0,0,0.04); color: var(--text-muted); }
+    .stage-card-scenario { font-size: var(--fs-sm); color: var(--payroc-blue); font-weight: var(--fw-medium); margin-bottom: 4px; }
+    .stage-card-desc { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-normal); margin-bottom: 12px; }
+    .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 16px; flex-wrap: wrap; }
+    .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+    .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
+    .stage-card-cta { margin-top: 4px; }
+
+    /* Performance sidebar */
+    .perf-sidebar-card {
+      background: var(--bg-card); border: 1px solid var(--border-light);
+      border-radius: var(--r); padding: 24px;
+      box-shadow: var(--shadow-card); position: sticky; top: 24px;
+    }
+    .perf-score-ring { display: flex; justify-content: center; position: relative; margin-bottom: 8px; }
+    .perf-score-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .perf-score-number { font-size: var(--fs-2xl); font-weight: var(--fw-bold); color: var(--text-primary); line-height: 1; }
+    .perf-score-label { font-size: var(--fs-xs); color: var(--text-muted); }
+    .perf-delta { text-align: center; font-size: var(--fs-xs); font-weight: var(--fw-semibold); margin-bottom: 16px; }
+    .delta-up { color: var(--color-pass); }
+    .delta-down { color: var(--color-fail); }
+    .delta-same { color: var(--text-muted); }
+
+    .perf-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .perf-stat {
+      background: var(--bg-page); border-radius: var(--rs);
+      padding: 12px; text-align: center;
+    }
+    .perf-stat-value { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-primary); }
+    .perf-stat-label { font-size: var(--fs-2xs); color: var(--text-muted); margin-top: 2px; }
+
+    .perf-chart-card { margin-bottom: 20px; }
+    .perf-chart-title { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .perf-chart-container { width: 100%; overflow: hidden; border-radius: var(--rs); background: var(--bg-page); padding: 8px 0; }
+
+    .perf-skills-card { }
+    .perf-skills-title { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+    .perf-skill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .perf-skill-row:last-child { margin-bottom: 0; }
+    .perf-skill-name { width: 100px; min-width: 100px; font-size: var(--fs-xs); color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .perf-skill-bar-wrap { flex: 1; height: 8px; background: var(--bg-page); border-radius: 4px; overflow: hidden; }
+    .perf-skill-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .perf-skill-score { width: 56px; text-align: right; font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-primary); display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+    .skill-trend { font-size: 10px; }
+    .skill-trend-up { color: var(--color-pass); }
+    .skill-trend-down { color: var(--color-fail); }
+    .skill-trend-same { color: var(--text-muted); }
+
+    .perf-empty { text-align: center; padding: 32px 16px; }
+    .perf-empty-icon { margin-bottom: 12px; }
+    .perf-empty-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 4px; }
+    .perf-empty-desc { font-size: var(--fs-xs); color: var(--text-muted); line-height: var(--lh-normal); }
+
+    /* Responsive: stack on mobile */
+    @media (max-width: 767px) {
+      .home-content { flex-direction: column; gap: 24px; padding: 16px; }
+      .home-performance { width: 100%; }
+      .perf-sidebar-card { position: static; }
+      .pipeline-step { min-width: 40px; }
+      .pipeline-label { font-size: 9px; }
+      .pipeline-connector { min-width: 10px; }
+      .stage-card { padding: 16px; }
+      .stage-card-number { font-size: var(--fs-xl); min-width: 32px; }
+    }
+
   </style>
 </head>
 <body>
   <!-- Toast container for all notifications -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- ═══════════════ SCREEN 1: SCENARIO SELECTION ═══════════════ -->
+  <!-- ═══════════════ SCREEN 1: HOME (STAGE-BASED) ═══════════════ -->
   <div id="screen-scenarios" class="screen active">
     <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
         <div class="brand-icon" aria-hidden="true">🎙️</div>
         <div>
           <h1>Sales Call Simulator</h1>
-          <span class="header-subtitle">ROC Academy – Practice Mode</span>
+          <span class="header-subtitle">ROC Academy</span>
         </div>
       </div>
-      <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span id="stage-indicator" class="home-stage-indicator"></span>
+        <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
+      </div>
     </header>
 
-    <main class="scenarios-main" aria-label="Scenario selection">
-      <div class="scenarios-hero">
-        <h2>Choose Your Scenario</h2>
-        <p>Select a training scenario to practice with a realistic AI buyer. Each scenario tests specific skills from your sales curriculum.</p>
+    <!-- Pipeline progress bar -->
+    <div class="pipeline-section">
+      <div id="pipeline-bar" aria-label="Sales stage progress">
+        <!-- Populated by progress.js -->
       </div>
-      <div id="scenario-list" class="scenario-grid" role="list" aria-busy="true">
-        <!-- Populated by app.js -->
-        <div class="scenario-loading">
-          <div class="spinner" role="status" aria-label="Loading scenarios"></div>
-          <span>Loading scenarios...</span>
+    </div>
+
+    <!-- Two-column layout: Journey + Performance -->
+    <div class="home-content">
+      <div class="home-journey">
+        <h2 class="home-section-title">Your Journey</h2>
+        <div id="stage-cards" class="stage-cards" aria-label="Sales training stages">
+          <!-- Populated by progress.js -->
+          <div class="scenario-loading">
+            <div class="spinner" role="status" aria-label="Loading stages"></div>
+            <span>Loading your training stages...</span>
+          </div>
         </div>
       </div>
-    </main>
+      <aside class="home-performance">
+        <h2 class="home-section-title">Performance</h2>
+        <div id="performance-sidebar" class="perf-sidebar-card" aria-label="Performance overview">
+          <!-- Populated by progress.js -->
+          <div class="perf-empty">
+            <div class="perf-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+            <p class="perf-empty-title">No progress yet</p>
+            <p class="perf-empty-desc">Complete your first practice call to start tracking your performance.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
   <!-- ═══════════════ SCREEN 2: PRE-CALL LOBBY ═══════════════ -->
@@ -1597,6 +1774,7 @@
   <script src="js/app.js"></script>
   <script src="js/call.js"></script>
   <script src="js/scoring.js"></script>
+  <script src="js/progress.js"></script>
   <script src="js/history.js"></script>
 </body>
 </html>

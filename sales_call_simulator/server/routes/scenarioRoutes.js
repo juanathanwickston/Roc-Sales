@@ -7,6 +7,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
+const { SALES_STAGES } = require('../stages');
+
 const router = express.Router();
 
 const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
@@ -34,6 +36,37 @@ function loadScenarios() {
 }
 
 cachedScenarios = loadScenarios();
+
+/**
+ * GET /api/scenarios/stages - Return all 6 Payroc sales stages with scenario availability.
+ * Must be defined before /:id to prevent 'stages' matching as a scenario ID.
+ */
+router.get('/stages', (req, res) => {
+  const stages = SALES_STAGES.map(stage => {
+    const scenario = stage.scenarioId
+      ? cachedScenarios.find(s => s.id === stage.scenarioId)
+      : null;
+
+    return {
+      id: stage.id,
+      key: stage.key,
+      name: stage.name,
+      shortName: stage.shortName,
+      description: stage.description,
+      available: scenario !== null && scenario !== undefined,
+      scenarioId: stage.scenarioId,
+      scenario: scenario ? {
+        id: scenario.id,
+        name: scenario.name,
+        difficulty: scenario.difficulty,
+        module: scenario.module,
+        durationMinutes: scenario.duration_minutes,
+      } : null,
+    };
+  });
+
+  res.json({ stages });
+});
 
 /**
  * GET /api/scenarios - List all available scenarios (summary view)

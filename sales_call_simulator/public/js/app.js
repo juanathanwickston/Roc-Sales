@@ -33,7 +33,7 @@ const toast = function(msg, type, duration) {
   const colors = { success: 'var(--green,#00E0B8)', error: 'var(--red,#FF4466)', info: 'var(--blue,#3B82F6)' };
   const icons = { success: '\u2713', error: '!', info: 'i' };
   const el = document.createElement('div');
-  el.style.cssText = 'pointer-events:auto;padding:8px 16px;border-radius:var(--rs,8px);background:var(--n2,#0F1B32);border:1px solid ' + (colors[type] || colors.success) + ';color:var(--white,#EDF2FF);font-size:var(--fs-sm,13px);font-family:var(--font,Geist,sans-serif);backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;';
+  el.style.cssText = 'pointer-events:auto;padding:8px 16px;border-radius:var(--rs,8px);background:var(--bg-card,#fff);border:1px solid ' + (colors[type] || colors.success) + ';color:var(--text-primary,#001D4E);font-size:var(--fs-sm,13px);font-family:var(--font,Geist,sans-serif);box-shadow:var(--shadow-card-hover);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;';
   el.innerHTML = '<span style="margin-right:8px">' + (icons[type] || icons.success) + '</span>' + esc(msg);
   container.appendChild(el);
   requestAnimationFrame(function() { el.style.transform = 'translateX(0)'; });
@@ -52,11 +52,16 @@ const app = {
   scenarios: [],
 
   /**
-   * Initialize - load scenarios, bind events, check for launch context.
+   * Initialize - load scenarios, bind events, load progress, check for launch context.
    */
   async init() {
     await this.loadScenarios();
     this.bindEvents();
+
+    // Load progress dashboard (non-blocking)
+    if (typeof loadProgress === 'function') {
+      loadProgress().catch(function(err) { console.warn('[App] Progress load failed:', err); });
+    }
 
     // Check for launch context from ROC Academy (set by GET /launch redirect)
     const params = new URLSearchParams(window.location.search);
@@ -109,6 +114,17 @@ const app = {
         const card = e.target.closest('[data-scenario-id]');
         if (card) {
           app.selectScenario(card.dataset.scenarioId);
+        }
+      });
+    }
+
+    // Stage card CTA clicks - event delegation on the stage cards container
+    const stageCards = document.getElementById('stage-cards');
+    if (stageCards) {
+      stageCards.addEventListener('click', function(e) {
+        const cta = e.target.closest('[data-scenario-id]');
+        if (cta) {
+          app.selectScenario(cta.dataset.scenarioId);
         }
       });
     }

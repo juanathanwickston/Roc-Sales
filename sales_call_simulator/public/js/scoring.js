@@ -136,7 +136,7 @@ const scoring = {
 
         return `
           <div class="category-row">
-            <div class="category-header"${hasBehaviors ? ' onclick="this.parentElement.classList.toggle(\'expanded\')"' : ''}>
+            <div class="category-header"${hasBehaviors ? ' data-expandable="true"' : ''}>
               ${hasBehaviors ? chevronSvg : '<span style="width:16px"></span>'}
               <span class="category-name">${esc(displayName)}</span>
               <div class="category-bar-wrap">
@@ -155,6 +155,14 @@ const scoring = {
         bar.style.width = bar.dataset.target;
       });
     }, 200);
+
+    // Event delegation for expandable category rows
+    container.addEventListener('click', function(e) {
+      var header = e.target.closest('[data-expandable]');
+      if (header) {
+        header.parentElement.classList.toggle('expanded');
+      }
+    });
   },
 
   /**
