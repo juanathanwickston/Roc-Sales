@@ -78,20 +78,36 @@ router.get('/', async (req, res) => {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Count total matching sessions
+    // Count only scored sessions (prevents ghost pages from unscored/abandoned calls)
     const countResult = await db.query(
-      `SELECT COUNT(*) AS total FROM simulation_sessions s ${whereClause}`,
+      `SELECT COUNT(*) AS total FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       ${whereClause}`,
       params
     );
     const total = parseInt(countResult.rows[0].total, 10);
 
-    // Fetch sessions with joined scores
+    // Global aggregate stats across ALL scored sessions (not per-page)
+    const statsResult = await db.query(
+      `SELECT
+         MAX(sc.overall_score) AS best_score,
+         ROUND(AVG(sc.overall_score)) AS avg_score,
+         COUNT(*) FILTER (WHERE sc.overall_verdict = 'pass') AS pass_count,
+         COUNT(*) AS scored_total
+       FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       ${whereClause}`,
+      params
+    );
+    const stats = statsResult.rows[0] || {};
+
+    // Fetch paginated sessions (only scored)
     const result = await db.query(
       `SELECT s.id, s.scenario_id, s.status, s.duration_seconds,
               s.created_at, s.updated_at,
               sc.overall_score, sc.overall_verdict
        FROM simulation_sessions s
-       LEFT JOIN session_scores sc ON sc.session_id = s.id
+       INNER JOIN session_scores sc ON sc.session_id = s.id
        ${whereClause}
        ORDER BY s.created_at DESC
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
@@ -103,6 +119,12 @@ router.get('/', async (req, res) => {
       total,
       limit,
       offset,
+      stats: {
+        best_score: parseInt(stats.best_score, 10) || 0,
+        avg_score: parseInt(stats.avg_score, 10) || 0,
+        pass_count: parseInt(stats.pass_count, 10) || 0,
+        scored_total: parseInt(stats.scored_total, 10) || 0,
+      },
     });
   } catch (err) {
     console.error('[Sessions] List error:', err.message);

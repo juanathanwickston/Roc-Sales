@@ -51,13 +51,8 @@ async function loadHistory(page) {
     if (!res.ok) throw new Error('Failed to load sessions');
 
     const data = await res.json();
-    const allSessions = data.sessions || [];
+    const sessions = data.sessions || [];
     historyTotalSessions = data.total || 0;
-
-    // Filter to only scored sessions
-    const sessions = allSessions.filter(function(s) {
-      return s.overall_score !== null && s.overall_score !== undefined;
-    });
 
     loadingEl.style.display = 'none';
 
@@ -66,8 +61,8 @@ async function loadHistory(page) {
       return;
     }
 
-    // Render stats
-    renderHistoryStats(sessions);
+    // Render global stats from backend aggregates (not per-page)
+    renderHistoryStats(data.stats || {});
 
     // Render session cards
     renderSessionList(sessions);
@@ -84,35 +79,31 @@ async function loadHistory(page) {
 }
 
 /**
- * Render compact summary strip from session data.
- * Replaces the old 4-card stat grid with a single inline row.
+ * Render compact summary strip from backend-provided global stats.
+ * Stats come from the API response, computed across ALL scored sessions.
  */
-function renderHistoryStats(sessions) {
+function renderHistoryStats(stats) {
   var summaryEl = document.getElementById('history-summary');
-  var scored = sessions.filter(function(s) {
-    return s.overall_score !== null && s.overall_score !== undefined;
-  });
+  var total = historyTotalSessions;
+  var best = stats.best_score || 0;
+  var avg = stats.avg_score || 0;
+  var scoredTotal = stats.scored_total || 0;
+  var passRate = scoredTotal > 0 ? Math.round((stats.pass_count / scoredTotal) * 100) : 0;
 
-  if (scored.length === 0) {
+  if (scoredTotal === 0) {
     summaryEl.innerHTML =
-      '<span class="history-summary-value">' + historyTotalSessions + '</span> sessions' +
+      '<span class="history-summary-value">' + total + '</span> sessions' +
       '<span class="history-summary-sep">&middot;</span>' +
       'No scores yet';
     return;
   }
 
-  var scores = scored.map(function(s) { return s.overall_score; });
-  var best = Math.max.apply(null, scores);
-  var average = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length);
-  var passes = scored.filter(function(s) { return s.overall_verdict === 'pass'; }).length;
-  var passRate = Math.round((passes / scored.length) * 100);
-
   summaryEl.innerHTML =
-    '<span class="history-summary-value">' + historyTotalSessions + '</span> sessions' +
+    '<span class="history-summary-value">' + total + '</span> sessions' +
     '<span class="history-summary-sep">&middot;</span>' +
     'Best: <span class="history-summary-value">' + best + '</span>' +
     '<span class="history-summary-sep">&middot;</span>' +
-    'Avg: <span class="history-summary-value">' + average + '</span>' +
+    'Avg: <span class="history-summary-value">' + avg + '</span>' +
     '<span class="history-summary-sep">&middot;</span>' +
     '<span class="history-summary-value">' + passRate + '%</span> pass rate';
 }
@@ -603,12 +594,24 @@ function formatHistoryDuration(seconds) {
 }
 
 /**
+ * Scenario display name lookup.
+ * Maps scenario_id to the human-readable name from the scenario JSON.
+ * Avoids the raw "Module1 Identifying Customer" formatting.
+ */
+var SCENARIO_NAMES = {
+  'module1_identifying_customer': 'Identify the Customer — Discovery Call',
+};
+
+/**
  * Convert scenario_id to a readable name.
- * Replaces underscores with spaces and capitalizes words.
+ * Uses the lookup table first, falls back to cleaned formatting.
  */
 function formatScenarioName(scenarioId) {
   if (!scenarioId) return 'Unknown Scenario';
+  if (SCENARIO_NAMES[scenarioId]) return SCENARIO_NAMES[scenarioId];
+  // Fallback: strip module prefix, replace underscores, title-case
   return scenarioId
+    .replace(/^module\d+_/, '')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, function(c) { return c.toUpperCase(); });
 }
