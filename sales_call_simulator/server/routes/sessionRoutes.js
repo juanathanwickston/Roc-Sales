@@ -60,6 +60,8 @@ router.get('/', async (req, res) => {
       conditions.push(`s.external_user_id = $${paramIndex}`);
       params.push(userId);
       paramIndex++;
+    } else {
+      conditions.push(`s.external_user_id IS NULL`);
     }
 
     if (req.query.scenarioId) {
@@ -167,6 +169,8 @@ router.get('/progress', async (req, res) => {
       conditions.push(`s.external_user_id = $${paramIndex}`);
       params.push(userId);
       paramIndex++;
+    } else {
+      conditions.push(`s.external_user_id IS NULL`);
     }
 
     const whereClause = `WHERE ${conditions.join(' AND ')}`;

@@ -8,7 +8,6 @@
 
 // Pagination constants
 const HISTORY_PAGE_SIZE = 20;
-const PASS_THRESHOLD = 80;
 
 // State
 let historyCurrentPage = 0;
@@ -16,6 +15,18 @@ let historyTotalSessions = 0;
 let currentDetailSessionId = null;
 let cachedTranscript = null;
 let cachedCoaching = null;
+
+/**
+ * Helper to inject the roc_token into API requests
+ */
+function fetchWithAuth(url, options = {}) {
+  const token = localStorage.getItem('roc_token');
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(url, { ...options, headers });
+}
 
 /**
  * Load session history from the API and render the history screen.
@@ -36,7 +47,7 @@ async function loadHistory(page) {
 
   try {
     const offset = page * HISTORY_PAGE_SIZE;
-    const res = await fetch(`/api/sessions?limit=${HISTORY_PAGE_SIZE}&offset=${offset}`);
+    const res = await fetchWithAuth(`/api/sessions?limit=${HISTORY_PAGE_SIZE}&offset=${offset}`);
     if (!res.ok) throw new Error('Failed to load sessions');
 
     const data = await res.json();
@@ -93,7 +104,7 @@ function renderHistoryStats(sessions) {
   const scores = scored.map(function(s) { return s.overall_score; });
   const best = Math.max.apply(null, scores);
   const average = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length);
-  const passes = scored.filter(function(s) { return s.overall_score >= PASS_THRESHOLD; }).length;
+  const passes = scored.filter(function(s) { return s.overall_verdict === 'pass'; }).length;
   const passRate = Math.round((passes / scored.length) * 100);
 
   document.getElementById('stat-best').textContent = best + '/100';
@@ -118,7 +129,7 @@ function renderSessionList(sessions) {
     card.setAttribute('aria-label', 'View session from ' + formatHistoryDate(session.created_at));
 
     var score = session.overall_score;
-    var passed = score >= PASS_THRESHOLD;
+    var passed = session.overall_verdict === 'pass';
     var verdictClass = passed ? 'pass' : 'fail';
     var verdictText = passed ? 'Pass' : 'Fail';
 
@@ -198,8 +209,8 @@ async function viewSessionScore(sessionId) {
 
   try {
     // Fetch score and scenarios in parallel
-    var scoreRes = fetch('/api/sessions/' + sessionId + '/score');
-    var scenariosRes = fetch('/api/scenarios');
+    var scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
+    var scenariosRes = fetch('/api/scenarios'); // Public endpoint
     var results = await Promise.all([scoreRes, scenariosRes]);
 
     if (!results[0].ok) throw new Error('Score not found');
@@ -290,8 +301,8 @@ async function loadCoaching(sessionId) {
 
   try {
     // Fetch coaching and score data in parallel
-    var coachRes = fetch('/api/sessions/' + sessionId + '/coaching');
-    var scoreRes = fetch('/api/sessions/' + sessionId + '/score');
+    var coachRes = fetchWithAuth('/api/sessions/' + sessionId + '/coaching');
+    var scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
     var results = await Promise.all([coachRes, scoreRes]);
 
     if (!results[0].ok) throw new Error('Coaching not found');
@@ -402,7 +413,7 @@ async function loadTranscript(sessionId) {
   bodyEl.innerHTML = '<div class="transcript-empty"><div class="spinner"></div><p>Loading transcript...</p></div>';
 
   try {
-    var res = await fetch('/api/sessions/' + sessionId + '/transcript');
+    var res = await fetchWithAuth('/api/sessions/' + sessionId + '/transcript');
     if (!res.ok) throw new Error('Transcript not found');
 
     var data = await res.json();
