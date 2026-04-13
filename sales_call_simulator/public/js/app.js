@@ -246,43 +246,18 @@ const app = {
   },
 
   /**
-   * Load and render available scenarios.
+   * Load and cache available scenarios.
+   * The home screen is now stage-based (rendered by progress.js).
+   * This method just fetches and caches data needed for selectScenario().
    */
   async loadScenarios() {
-    const container = document.getElementById('scenario-list');
     try {
       const res = await fetch('/api/scenarios');
       const data = await res.json();
       this.scenarios = data.scenarios || [];
-
-      if (this.scenarios.length === 0) {
-        container.setAttribute('aria-busy', 'false');
-        container.innerHTML =
-          '<div class="empty-state" role="listitem">' +
-            '<div class="empty-icon">🎭</div>' +
-            '<div class="empty-title">No scenarios available</div>' +
-            '<div class="empty-desc">Training scenarios haven\'t been configured yet. Contact your administrator.</div>' +
-          '</div>';
-        return;
-      }
-
-      container.setAttribute('aria-busy', 'false');
-      container.innerHTML = this.scenarios
-        .map(function(s) { return app.renderScenarioCard(s); })
-        .join('');
+      console.log('[App] Loaded ' + this.scenarios.length + ' scenario(s)');
     } catch (err) {
       console.error('[App] Failed to load scenarios:', err);
-      container.setAttribute('aria-busy', 'false');
-      container.innerHTML =
-        '<div class="empty-state" role="listitem">' +
-          '<div class="empty-icon">⚠️</div>' +
-          '<div class="empty-title">Unable to load scenarios</div>' +
-          '<div class="empty-desc">Please check your connection and try again.</div>' +
-          '<button id="btn-retry-load" class="btn btn-primary">Retry</button>' +
-        '</div>';
-      // Bind retry button
-      const retryBtn = document.getElementById('btn-retry-load');
-      if (retryBtn) retryBtn.addEventListener('click', function() { app.loadScenarios(); });
     }
   },
 
