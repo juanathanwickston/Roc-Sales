@@ -357,6 +357,15 @@ const app = {
         const scorecard = await this.fetchScorecard(callData.sessionId);
         if (scorecard) {
           scoring.renderScorecard(scorecard, this.currentScenario);
+
+          // Wire up context for Transcript/Coaching tabs
+          if (typeof currentDetailSessionId !== 'undefined') {
+            currentDetailSessionId = callData.sessionId;
+            cachedTranscript = null;
+            cachedCoaching = null;
+            if (typeof switchDebriefTab === 'function') switchDebriefTab('scorecard');
+          }
+
           toast('Performance evaluation complete', 'success');
         } else {
           scoring.renderManualDebrief(callData, this.currentScenario);

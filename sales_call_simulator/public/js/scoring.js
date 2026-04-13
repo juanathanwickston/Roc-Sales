@@ -53,9 +53,12 @@ const scoring = {
     // Coaching notes from scenario
     this.renderCoachingNotes(scenario);
 
-    // Show content
+    // Show content and ensure tabs are visible
     loadingEl.style.display = 'none';
     contentEl.style.display = 'block';
+    
+    const tabsEl = document.getElementById('debrief-tabs');
+    if (tabsEl) tabsEl.style.display = 'flex';
   },
 
   /**
