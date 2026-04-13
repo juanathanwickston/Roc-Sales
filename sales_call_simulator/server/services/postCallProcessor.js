@@ -60,7 +60,13 @@ async function processSession(sessionId) {
       return { status: 'completed', scored: false };
     }
 
-    // 5. Persist scoring results
+    // 5. Generate Coaching Analysis based on Scorecard
+    const coachingAnalysis = await generateCoachingAnalysis({ transcript, scenarioId, scorecard });
+    if (coachingAnalysis) {
+      scorecard.coaching_analysis = coachingAnalysis;
+    }
+
+    // 6. Persist scoring results
     await persistScore(sessionId, scorecard);
 
     // 6. Notify ROC Academy (fire-and-forget, does not block completion)
@@ -406,15 +412,16 @@ async function persistScore(sessionId, scorecard) {
   const categories = JSON.stringify(scorecard.categories || {});
   const topStrengths = JSON.stringify(scorecard.top_strengths || []);
   const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
+  const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
 
   await db.query(
     `INSERT INTO session_scores
-       (session_id, raw_response, overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       (session_id, raw_response, overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip, coaching_analysis)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (session_id)
      DO UPDATE SET
        raw_response = $2, overall_score = $3, overall_verdict = $4,
-       categories = $5, top_strengths = $6, critical_improvements = $7, coaching_tip = $8`,
+       categories = $5, top_strengths = $6, critical_improvements = $7, coaching_tip = $8, coaching_analysis = $9`,
     [
       sessionId,
       rawResponse,
@@ -424,6 +431,7 @@ async function persistScore(sessionId, scorecard) {
       topStrengths,
       criticalImprovements,
       scorecard.coaching_tip || '',
+      coachingAnalysis
     ]
   );
 
