@@ -202,7 +202,7 @@ function renderPerformanceSidebar(stages, progress) {
       '<div class="perf-skills-title">Global Mastery</div>';
 
     // Inline render helper
-    function renderSkillRow(entry, prefixLabel, isFocusArea) {
+    function renderSkillRow(entry, prefixLabel) {
       var catName = entry[0];
       var catData = entry[1];
       var displayName = catName.replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
@@ -210,8 +210,7 @@ function renderPerformanceSidebar(stages, progress) {
       
       if (prefixLabel) safeName = '<span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-right:6px;">' + prefixLabel + '</span> ' + safeName;
 
-      var barColor = isFocusArea ? 'var(--color-fail)' : 'var(--color-pass)';
-      if (!isFocusArea && !prefixLabel && catData.latest < 70) barColor = 'var(--color-warning)'; // Fallback
+      var barColor = catData.latest >= 80 ? 'var(--color-pass)' : (catData.latest >= 60 ? 'var(--color-warning)' : 'var(--color-fail)');
 
       var trendArrow = '';
       if (catData.trend && catData.trend.length >= 2) {
@@ -231,25 +230,14 @@ function renderPerformanceSidebar(stages, progress) {
       '</div>';
     }
 
-    // Top Strength (Rank 1)
-    var topSkill = sortedSkills[0];
-    if (topSkill) {
-      html += renderSkillRow(topSkill, 'Top Strength', false);
-    }
-
-    // Focus Areas (Bottom 1 or 2)
-    var focusSkills = [];
-    if (sortedSkills.length > 1) {
-      focusSkills.push(sortedSkills[sortedSkills.length - 1]); // The absolute lowest
-    }
-    if (sortedSkills.length > 2) {
-      focusSkills.unshift(sortedSkills[sortedSkills.length - 2]); // The second lowest
-    }
+    // Focus Areas (Bottom 3 Skills)
+    var focusSkills = sortedSkills.slice(-3).reverse();
 
     if (focusSkills.length > 0) {
-      html += '<div class="perf-skills-subtitle" style="margin-top: 14px; margin-bottom: 8px; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 4px;">Focus Areas</div>';
+      html += '<div class="perf-skills-subtitle" style="margin-bottom: 12px; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 6px;">Focus Areas</div>';
       for (var f = 0; f < focusSkills.length; f++) {
-        html += renderSkillRow(focusSkills[f], null, true);
+        var prefix = (f === 0) ? 'Priority' : null;
+        html += renderSkillRow(focusSkills[f], prefix);
       }
     }
 
