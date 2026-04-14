@@ -247,7 +247,14 @@ router.get('/progress', async (req, res) => {
         if (!categories[catName]) {
           categories[catName] = { scores: [], latest: 0, best: 0, average: 0 };
         }
-        const catScore = catData.score || 0;
+        
+        let catScore = 0;
+        if (typeof catData === 'object' && catData !== null) {
+          catScore = catData.score || 0;
+        } else {
+          catScore = Number(catData) || 0;
+        }
+        
         categories[catName].scores.push(catScore);
       }
     }

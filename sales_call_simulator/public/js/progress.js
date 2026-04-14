@@ -235,8 +235,7 @@ function renderPerformanceSidebar(stages, progress) {
 
     if (focusSkills.length > 0) {
       for (var f = 0; f < focusSkills.length; f++) {
-        var prefix = (f === 0) ? 'Priority' : null;
-        html += renderSkillRow(focusSkills[f], prefix);
+        html += renderSkillRow(focusSkills[f]);
       }
     }
 
