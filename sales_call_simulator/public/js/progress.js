@@ -191,20 +191,25 @@ function renderPerformanceSidebar(stages, progress) {
   '</div>';
 
   // Skill bars - The "Focus 3" Logic
+  html += '<div class="perf-skills-card">' +
+    '<div class="perf-skills-title" style="text-transform: uppercase;">Focus Areas</div>';
+
   var rawEntries = Object.entries(categories);
   // Filter out any 0 scores as they represent abandoned/unattempted calls
   var catEntries = rawEntries.filter(function(entry) {
     return entry[1].latest > 0;
   });
 
-  if (catEntries.length > 0) {
+  if (catEntries.length === 0) {
+    // Empty state when no real data exists to prevent vanishing layout
+    html += '<div class="perf-empty" style="margin-top: 10px; padding: 16px; background: #F7F8FA; border-radius: var(--rs); text-align: center; border: 1px dashed rgba(0,0,0,0.08);">' +
+      '<p style="font-size: 11px; color: var(--text-muted); margin: 0;">Complete a practice call to reveal focus areas.</p>' +
+    '</div>';
+  } else {
     // Sort descending by latest score to map global extremes
     var sortedSkills = catEntries.sort(function(a, b) {
       return b[1].latest - a[1].latest;
     });
-
-    html += '<div class="perf-skills-card">' +
-      '<div class="perf-skills-title" style="text-transform: uppercase;">Focus Areas</div>';
 
     // Inline render helper
     function renderSkillRow(entry, prefixLabel) {
@@ -243,9 +248,9 @@ function renderPerformanceSidebar(stages, progress) {
         html += renderSkillRow(focusSkills[f]);
       }
     }
-
-    html += '</div>';
   }
+
+  html += '</div>';
 
   sidebar.innerHTML = html;
 
