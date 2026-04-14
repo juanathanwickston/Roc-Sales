@@ -191,7 +191,12 @@ function renderPerformanceSidebar(stages, progress) {
   '</div>';
 
   // Skill bars - The "Focus 3" Logic
-  var catEntries = Object.entries(categories);
+  var rawEntries = Object.entries(categories);
+  // Filter out any 0 scores as they represent abandoned/unattempted calls
+  var catEntries = rawEntries.filter(function(entry) {
+    return entry[1].latest > 0;
+  });
+
   if (catEntries.length > 0) {
     // Sort descending by latest score to map global extremes
     var sortedSkills = catEntries.sort(function(a, b) {
