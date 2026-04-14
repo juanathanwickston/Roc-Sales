@@ -78,23 +78,23 @@ function renderStageCards(stages, progress) {
     var scenarioStats = stage.scenarioId ? (perScenario[stage.scenarioId] || null) : null;
 
     if (stage.available) {
-      // Active stage card
+      // Active stage card (2x2 grid)
       html += '<div class="stage-card stage-card-active" data-stage-id="' + stage.id + '">' +
         '<div class="stage-card-number">' + String(stage.id).padStart(2, '0') + '</div>' +
         '<div class="stage-card-body stage-card-body-flex">' +
-          '<div class="stage-content-left">' +
+          '<div class="stage-active-row-top">' +
             '<div class="stage-card-header">' +
               '<h3 class="stage-card-title">' + esc(stage.name) + '</h3>' +
               '<span class="stage-status-badge stage-status-active">Active</span>' +
             '</div>' +
-            '<p class="stage-card-desc">' + esc(stage.description) + '</p>' +
-          '</div>' +
-          '<div class="stage-actions-right">' +
             '<div class="stage-card-footer">' +
               (stage.scenario && stage.scenario.durationMinutes ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> ' + stage.scenario.durationMinutes + ' min</span>' : '') +
               (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Best: ' + scenarioStats.bestScore + '/100</span>' : '') +
               (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14"/></svg> ' + scenarioStats.attempts + ' attempt' + (scenarioStats.attempts !== 1 ? 's' : '') + '</span>' : '') +
             '</div>' +
+          '</div>' +
+          '<div class="stage-active-row-bottom">' +
+            '<p class="stage-card-desc stage-card-desc-truncate">' + esc(stage.description) + '</p>' +
             '<button class="btn btn-primary stage-card-cta" data-scenario-id="' + esc(stage.scenarioId) + '" type="button">Practice Now</button>' +
           '</div>' +
         '</div>' +
@@ -154,8 +154,8 @@ function renderPerformanceSidebar(stages, progress) {
 
   html += '<div class="perf-score-ring">' +
     '<svg viewBox="0 0 120 120" width="80" height="80">' +
-      '<circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-light)" stroke-width="8"/>' +
-      '<circle cx="60" cy="60" r="54" fill="none" stroke="' + ringColor + '" stroke-width="8" ' +
+      '<circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-light)" stroke-width="5"/>' +
+      '<circle cx="60" cy="60" r="54" fill="none" stroke="' + ringColor + '" stroke-width="5" ' +
         'stroke-linecap="round" stroke-dasharray="' + circumference.toFixed(2) + '" ' +
         'stroke-dashoffset="' + offset.toFixed(2) + '" ' +
         'style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.5s ease"/>' +
