@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ─── ROC Academy Design System Tokens ─── */
+    /* ─── Payroc Brand Design System Tokens ─── */
     :root {
       /* Typography */
       --font: 'Geist', sans-serif;
@@ -18,23 +18,53 @@
       --fw-normal: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
       --lh-tight: 1.3; --lh-normal: 1.55; --lh-relaxed: 1.7;
 
-      /* Colors */
-      --navy: #0A1628;
-      --n2: #0F1B32;
-      --n3: #152240;
-      --n4: #1C2D4E;
-      --blue: #3B82F6;
+      /* Payroc Brand Colors */
+      --payroc-navy: #001D4E;
+      --payroc-blue: #0051C2;
+      --payroc-teal: #00E0B8;
+
+      /* Surfaces (Light Mode) */
+      --bg-page: #F8F9FA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0F4FF;
+      --bg-section: #FFFFFF;
+      --bg-input: #FFFFFF;
+
+      /* Text */
+      --text-primary: #001D4E;
+      --text-body: #424242;
+      --text-muted: #6B7280;
+      --text-on-blue: #FFFFFF;
+
+      /* Borders & Shadows */
+      --border-light: #E5E7EB;
+      --border-blue: rgba(0,81,194,0.12);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08);
+
+      /* Status Colors */
+      --color-pass: #00E0B8;
+      --color-fail: #EF4444;
+      --color-warning: #F59E0B;
+      --color-locked: #D1D5DB;
+
+      /* Legacy aliases (backward compat for call screen, scoring.js, history.js) */
+      --navy: #001D4E;
+      --n2: #F3F4F6;
+      --n3: #FFFFFF;
+      --n4: #F0F4FF;
+      --blue: #0051C2;
       --green: #00E0B8;
-      --red: #FF4466;
-      --orange: #FFB800;
-      --purple: #A78BFA;
-      --white: #EDF2FF;
-      --gray: #7B8BA8;
-      --gb: rgba(59,130,246,.12);
+      --red: #EF4444;
+      --orange: #F59E0B;
+      --purple: #8B5CF6;
+      --white: #001D4E;
+      --gray: #6B7280;
+      --gb: rgba(0,0,0,0.08);
 
       /* Spacing: 4, 8, 16, 24, 32, 48 only */
       /* Border Radius */
-      --r-xs: 3px; --r-sm: 5px; --rs: 8px; --r: 12px;
+      --r-xs: 4px; --r-sm: 6px; --rs: 10px; --r: 14px; --r-lg: 20px;
 
       /* Z-Index */
       --z-base: 1; --z-sticky: 10; --z-popup: 150; --z-modal: 999; --z-toast: 9999;
@@ -44,11 +74,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font);
-      background: var(--navy);
-      color: var(--white);
+      background: #F5F6F8;
+      color: var(--text-body);
       font-size: var(--fs-base);
       line-height: var(--lh-normal);
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* ─── Screen Management ─── */
@@ -57,38 +89,48 @@
 
     /* ─── Header ─── */
     .app-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--gb);
-      background: var(--n2);
+      padding: 14px 24px;
+      background: #FFFFFF;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+      position: relative;
+      z-index: var(--z-sticky);
     }
-    .header-brand { display: flex; align-items: center; gap: 16px; }
-    .brand-icon { font-size: var(--fs-xl); }
-    .header-brand h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin: 0; }
-    .header-subtitle { color: var(--gray); font-size: var(--fs-xs); }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--payroc-blue), #003D99);
+      border-radius: var(--rs);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; flex-shrink: 0;
+    }
+    .header-brand h1 { font-size: var(--fs-md); font-weight: var(--fw-semibold); margin: 0; color: var(--text-primary); letter-spacing: -0.3px; }
+    .header-subtitle { color: var(--text-muted); font-size: var(--fs-xs); }
 
     /* ─── Scenario Selection ─── */
     .scenarios-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     .scenarios-hero { text-align: center; margin-bottom: 32px; }
-    .scenarios-hero h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 8px; }
-    .scenarios-hero p { color: var(--gray); font-size: var(--fs-sm); max-width: 500px; margin: 0 auto; }
+    .scenarios-hero h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 8px; color: var(--text-primary); }
+    .scenarios-hero p { color: var(--text-muted); font-size: var(--fs-sm); max-width: 500px; margin: 0 auto; }
 
     .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     @media (min-width: 768px) { .scenario-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
 
     .scenario-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
       border-radius: var(--r);
       padding: 24px;
       cursor: pointer;
-      transition: border-color .2s;
+      transition: border-color .2s, box-shadow .2s;
       text-align: left;
       font-family: inherit;
       color: inherit;
       width: 100%;
+      box-shadow: var(--shadow-card);
     }
     .scenario-card:hover, .scenario-card:focus-visible {
-      border-color: rgba(59,130,246,.4);
+      border-color: var(--payroc-blue);
+      box-shadow: var(--shadow-card-hover);
       outline: none;
     }
     .scenario-card-title {
@@ -99,8 +141,8 @@
       align-items: center;
       gap: 8px;
     }
-    .scenario-card-desc { color: var(--gray); font-size: var(--fs-sm); line-height: var(--lh-normal); margin-bottom: 16px; }
-    .scenario-card-meta { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--gray); }
+    .scenario-card-desc { color: var(--text-muted); font-size: var(--fs-sm); line-height: var(--lh-normal); margin-bottom: 16px; }
+    .scenario-card-meta { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); }
 
     .difficulty-badge {
       padding: 4px 8px;
@@ -118,17 +160,17 @@
     .scenario-loading, .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: var(--gray);
+      color: var(--text-muted);
       grid-column: 1 / -1;
     }
     .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-state .empty-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--white); margin-bottom: 8px; }
+    .empty-state .empty-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 8px; }
     .empty-state .empty-desc { font-size: var(--fs-sm); margin-bottom: 24px; }
 
     .spinner {
       width: 24px; height: 24px;
-      border: 3px solid var(--gb);
-      border-top-color: var(--blue);
+      border: 3px solid var(--border-light);
+      border-top-color: var(--payroc-blue);
       border-radius: 50%;
       animation: spin .8s linear infinite;
       margin: 0 auto 8px;
@@ -145,35 +187,36 @@
       padding: 24px;
     }
     .lobby-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
       border-radius: var(--r);
       padding: 32px;
       max-width: 480px;
       width: 100%;
       text-align: center;
+      box-shadow: var(--shadow-card);
     }
     .lobby-icon { font-size: 48px; margin-bottom: 16px; }
-    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; }
-    .lobby-status { color: var(--gray); font-size: var(--fs-sm); margin-bottom: 24px; }
+    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--text-primary); }
+    .lobby-status { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 24px; }
     .lobby-spinner { margin-bottom: 24px; }
     .lobby-tips {
       text-align: left;
-      background: var(--n4);
+      background: var(--bg-page);
       border-radius: var(--rs);
       padding: 16px;
       margin-bottom: 24px;
     }
-    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--blue); }
+    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--payroc-blue); }
     .lobby-tips ul { list-style: none; }
     .lobby-tips li {
       padding: 4px 0;
       font-size: var(--fs-sm);
-      color: var(--gray);
+      color: var(--text-muted);
       position: relative;
       padding-left: 16px;
     }
-    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--green); }
+    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--payroc-teal); }
 
     /* ─── Call Screen — Teams-Style Layout ─── */
     .call-layout {
@@ -950,20 +993,20 @@
       transition: all .2s;
       min-height: 44px;
     }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-primary:hover { background: #2563EB; }
+    .btn-primary { background: var(--payroc-blue); color: var(--text-on-blue); }
+    .btn-primary:hover { background: #003D99; }
     .btn-secondary {
-      background: var(--n3);
-      border: 1px solid var(--gb);
-      color: var(--white);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
     }
-    .btn-secondary:hover { border-color: rgba(59,130,246,.4); }
+    .btn-secondary:hover { border-color: var(--payroc-blue); }
     .btn-ghost {
       background: transparent;
-      border: 1px solid var(--gb);
-      color: var(--gray);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
     }
-    .btn-ghost:hover { color: var(--white); border-color: rgba(59,130,246,.4); }
+    .btn-ghost:hover { color: var(--text-primary); border-color: var(--payroc-blue); }
 
     /* ─── Toast ─── */
     #toastContainer {
@@ -1020,136 +1063,316 @@
     }
 
     /* ─── History Screen ─── */
-    .history-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .history-main { flex: 1; padding: 28px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 
-    .history-stats {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
+    .history-section-title {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      color: var(--text-muted); margin-bottom: 14px;
+      text-transform: uppercase; letter-spacing: 0.8px;
     }
-    .stat-card {
-      flex: 1;
-      min-width: 120px;
-      background: var(--n3);
-      border: 1px solid var(--gb);
-      border-radius: var(--r);
-      padding: 16px;
-      text-align: center;
+
+    /* Summary strip — compact inline stats */
+    .history-summary {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      background: #F7F8FA; border-radius: var(--rs);
+      padding: 10px 16px; margin-bottom: 20px;
+      font-size: var(--fs-sm); color: var(--text-body);
     }
-    .stat-value { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: 4px; }
-    .stat-label { font-size: var(--fs-xs); color: var(--gray); }
+    .history-summary-value { font-weight: var(--fw-semibold); color: var(--text-primary); }
+    .history-summary-sep { color: var(--border-light); margin: 0 4px; user-select: none; }
 
-    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
 
+    /* Session cards — aligned with Dashboard stage-card design */
     .history-card {
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      background: #FFFFFF;
+      border: 1px solid transparent;
       border-radius: var(--r);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      color: var(--white);
-      text-align: left;
-      gap: 16px;
+      padding: 16px 20px;
+      display: flex; align-items: center;
+      color: var(--text-primary);
+      text-align: left; gap: 16px;
       cursor: pointer;
-      transition: border-color .2s;
+      font-family: inherit;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all .25s ease;
     }
     .history-card:hover, .history-card:focus-visible {
-      border-color: rgba(59,130,246,.4);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
       outline: none;
     }
 
-    .history-score-mini {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--fs-md);
-      font-weight: var(--fw-bold);
-      flex-shrink: 0;
-      border: 3px solid;
+    /* SVG score ring — mini version of Dashboard ring */
+    .history-ring-wrap {
+      flex-shrink: 0; position: relative;
+      width: 52px; height: 52px;
     }
-    .history-score-mini.pass { border-color: var(--green); color: var(--green); }
-    .history-score-mini.needs-work { border-color: var(--orange); color: var(--orange); }
-    .history-score-mini.fail { border-color: var(--red); color: var(--red); }
-    .history-score-mini.pending { border-color: var(--gray); color: var(--gray); }
+    .history-ring-wrap svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+    .history-ring-bg { fill: none; stroke: #EBEDF0; stroke-width: 4; }
+    .history-ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+    .history-ring-fill.pass { stroke: var(--color-pass); }
+    .history-ring-fill.needs-work { stroke: var(--color-warning); }
+    .history-ring-fill.fail { stroke: var(--color-fail); }
+    .history-ring-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1;
+    }
+    .history-ring-text.pass { color: var(--color-pass); }
+    .history-ring-text.needs-work { color: var(--color-warning); }
+    .history-ring-text.fail { color: var(--color-fail); }
 
     .history-card-info { flex: 1; min-width: 0; }
     .history-card-title {
-      font-size: var(--fs-sm);
-      font-weight: var(--fw-semibold);
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 15px; font-weight: var(--fw-semibold);
+      margin-bottom: 4px; letter-spacing: -0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text-primary);
     }
     .history-card-meta {
-      font-size: var(--fs-xs);
-      color: var(--gray);
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      font-size: var(--fs-xs); color: var(--text-muted);
+      display: flex; gap: 12px; flex-wrap: wrap;
     }
+
+    /* Score delta — the key improvement indicator */
+    .history-card-right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;
+    }
+    .history-delta {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+    }
+    .history-delta.delta-up { color: var(--color-pass); }
+    .history-delta.delta-down { color: var(--color-fail); }
+    .history-delta.delta-same { color: var(--text-muted); }
 
     .verdict-badge {
-      padding: 4px 8px;
-      border-radius: var(--r-sm);
-      font-size: var(--fs-2xs);
-      font-weight: var(--fw-semibold);
-      text-transform: uppercase;
-      letter-spacing: .3px;
+      padding: 3px 10px; border-radius: 50px;
+      font-size: 10px; font-weight: var(--fw-semibold);
+      text-transform: uppercase; letter-spacing: .5px;
       flex-shrink: 0;
     }
-    .verdict-pass { background: rgba(0,224,184,.12); color: var(--green); }
-    .verdict-needs-work { background: rgba(255,184,0,.12); color: var(--orange); }
-    .verdict-fail { background: rgba(255,68,102,.12); color: var(--red); }
-    .verdict-pending { background: rgba(123,139,168,.12); color: var(--gray); }
+    .verdict-pass { background: rgba(0,224,184,.1); color: var(--color-pass); }
+    .verdict-needs-work { background: rgba(245,158,11,.1); color: var(--color-warning); }
+    .verdict-fail { background: rgba(239,68,68,.1); color: var(--color-fail); }
+    .verdict-pending { background: rgba(123,139,168,.1); color: var(--text-muted); }
 
     .history-loading { text-align: center; padding: 48px 0; }
-    .history-loading p { color: var(--gray); font-size: var(--fs-sm); margin-top: 16px; }
+    .history-loading p { color: var(--text-muted); font-size: var(--fs-sm); margin-top: 16px; }
 
     @media (max-width: 767px) {
       .history-main { padding: 16px; }
-      .history-stats { gap: 8px; }
-      .stat-card { padding: 12px; min-width: 80px; }
-      .stat-value { font-size: var(--fs-lg); }
       .history-card { padding: 12px 16px; gap: 12px; }
+      .history-ring-wrap { width: 44px; height: 44px; }
+      .history-ring-wrap svg { width: 44px; height: 44px; }
+      .history-ring-text { font-size: var(--fs-xs); }
     }
+
+    /* ─── Progress Dashboard ─── */
+
+    /* Pipeline bar */
+    .pipeline-section {
+      padding: 20px 24px 0;
+      background: #FFFFFF;
+    }
+    .pipeline-track { display: flex; align-items: center; justify-content: center; gap: 0; max-width: 720px; margin: 0 auto; padding-bottom: 20px; }
+    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 72px; position: relative; }
+    .pipeline-dot {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-sm); font-weight: var(--fw-bold);
+      transition: all .4s ease;
+      position: relative;
+    }
+    .pipeline-number { line-height: 1; }
+    .pipeline-active .pipeline-dot {
+      background: linear-gradient(135deg, var(--payroc-blue), #003D99);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,81,194,0.3), 0 0 0 4px rgba(0,81,194,0.1);
+    }
+    .pipeline-done .pipeline-dot { background: var(--payroc-teal); color: #fff; box-shadow: 0 2px 6px rgba(0,224,184,0.25); }
+    .pipeline-locked .pipeline-dot { background: #EBEDF0; color: #B0B8C4; }
+    .pipeline-label { font-size: var(--fs-2xs); font-weight: var(--fw-medium); text-align: center; white-space: nowrap; }
+    .pipeline-active .pipeline-label { color: var(--payroc-blue); font-weight: var(--fw-semibold); }
+    .pipeline-locked .pipeline-label { color: #B0B8C4; }
+    .pipeline-done .pipeline-label { color: var(--payroc-teal); }
+    .pipeline-connector { flex: 1; height: 2px; background: #EBEDF0; min-width: 16px; max-width: 56px; margin-top: -24px; }
+    .pipeline-connector-filled { background: linear-gradient(90deg, var(--payroc-teal), var(--payroc-blue)); }
+
+    /* Home two-column layout */
+    .home-content { display: flex; gap: 28px; padding: 28px 24px; max-width: 1160px; margin: 0 auto; width: 100%; }
+    .home-journey { flex: 1; min-width: 0; }
+    .home-performance { width: 340px; flex-shrink: 0; }
+    .home-section-title {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      color: var(--text-muted); margin-bottom: 14px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .home-stage-indicator { font-size: var(--fs-sm); color: var(--text-muted); font-weight: var(--fw-medium); }
+
+    /* Stage cards */
+    .stage-cards { display: flex; flex-direction: column; gap: 10px; }
+    .stage-card {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: #FFFFFF;
+      border: 1px solid transparent;
+      border-radius: var(--r); padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all .25s ease;
+    }
+    .stage-card-active {
+      border-color: transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), inset 4px 0 0 var(--payroc-blue);
+    }
+    .stage-card-active:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08), inset 4px 0 0 var(--payroc-blue);
+      transform: translateY(-1px);
+    }
+    .stage-card-locked {
+      background: #FBFBFC;
+    }
+    .stage-card-number {
+      font-size: 26px; font-weight: var(--fw-bold);
+      color: var(--payroc-blue); line-height: 1; min-width: 36px;
+      padding-top: 2px;
+    }
+    .stage-number-locked { color: #D1D5DB; }
+    .stage-card-body { flex: 1; min-width: 0; }
+    .stage-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+    .stage-card-title { font-size: 15px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; letter-spacing: -0.2px; }
+    .stage-status-badge {
+      padding: 3px 10px; border-radius: 50px;
+      font-size: 10px; font-weight: var(--fw-semibold);
+      text-transform: uppercase; letter-spacing: .5px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .stage-status-active { background: rgba(0,81,194,0.06); color: var(--payroc-blue); }
+    .stage-status-locked { background: transparent; color: #B0B8C4; }
+    .stage-card-scenario { font-size: var(--fs-sm); color: var(--payroc-blue); font-weight: var(--fw-medium); margin-bottom: 4px; }
+    .stage-card-desc { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-relaxed); margin-bottom: 12px; }
+    .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 12px; flex-wrap: wrap; }
+    .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+    .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
+    .stage-card-cta {
+      padding: 8px 20px; border-radius: var(--rs);
+      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+    }
+
+    /* Performance sidebar */
+    .perf-sidebar-card {
+      background: #FFFFFF;
+      border-radius: var(--r); padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      position: sticky; top: 24px;
+    }
+    .perf-score-ring { display: flex; justify-content: center; position: relative; margin-bottom: 8px; }
+    .perf-score-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .perf-score-number { font-size: 32px; font-weight: var(--fw-bold); color: var(--text-primary); line-height: 1; letter-spacing: -1px; }
+    .perf-score-label { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; }
+    .perf-delta { text-align: center; font-size: var(--fs-xs); font-weight: var(--fw-semibold); margin-bottom: 20px; }
+    .delta-up { color: var(--color-pass); }
+    .delta-down { color: var(--color-fail); }
+    .delta-same { color: var(--text-muted); }
+
+    .perf-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+    .perf-stat {
+      background: #F7F8FA; border-radius: var(--rs);
+      padding: 14px 12px; text-align: center;
+    }
+    .perf-stat-value { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-primary); letter-spacing: -0.5px; }
+    .perf-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    .perf-chart-card { margin-bottom: 24px; }
+    .perf-chart-title, .perf-skills-title {
+      font-size: 10px; font-weight: var(--fw-semibold);
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 12px;
+    }
+    .perf-chart-container { width: 100%; overflow: hidden; border-radius: var(--rs); background: #F7F8FA; padding: 8px 0; }
+
+    .perf-skill-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .perf-skill-row:last-child { margin-bottom: 0; }
+    .perf-skill-name { width: 90px; min-width: 90px; font-size: var(--fs-xs); color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .perf-skill-bar-wrap { flex: 1; height: 6px; background: #EBEDF0; border-radius: 3px; overflow: hidden; }
+    .perf-skill-bar { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .perf-skill-score { width: 52px; text-align: right; font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-primary); display: flex; align-items: center; gap: 3px; justify-content: flex-end; }
+    .skill-trend { font-size: 9px; }
+    .skill-trend-up { color: var(--color-pass); }
+    .skill-trend-down { color: var(--color-fail); }
+    .skill-trend-same { color: var(--text-muted); }
+
+    .perf-empty { text-align: center; padding: 40px 16px; }
+    .perf-empty-icon { margin-bottom: 16px; opacity: 0.4; }
+    .perf-empty-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 6px; }
+    .perf-empty-desc { font-size: var(--fs-xs); color: var(--text-muted); line-height: var(--lh-relaxed); }
+
+    /* Responsive: stack on mobile */
+    @media (max-width: 767px) {
+      .home-content { flex-direction: column; gap: 20px; padding: 16px; }
+      .home-performance { width: 100%; }
+      .perf-sidebar-card { position: static; }
+      .pipeline-step { min-width: 44px; }
+      .pipeline-label { font-size: 9px; }
+      .pipeline-connector { min-width: 8px; }
+      .stage-card { padding: 16px; }
+      .stage-card-number { font-size: var(--fs-xl); min-width: 28px; }
+    }
+
   </style>
 </head>
 <body>
   <!-- Toast container for all notifications -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- ═══════════════ SCREEN 1: SCENARIO SELECTION ═══════════════ -->
+  <!-- ═══════════════ SCREEN 1: HOME (STAGE-BASED) ═══════════════ -->
   <div id="screen-scenarios" class="screen active">
     <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
-        <div class="brand-icon" aria-hidden="true">🎙️</div>
-        <div>
-          <h1>Sales Call Simulator</h1>
-          <span class="header-subtitle">ROC Academy – Practice Mode</span>
+        <div class="header-brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
+        <h1>Sales Call Simulator</h1>
       </div>
-      <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="stage-indicator" class="home-stage-indicator"></span>
+        <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
+      </div>
     </header>
 
-    <main class="scenarios-main" aria-label="Scenario selection">
-      <div class="scenarios-hero">
-        <h2>Choose Your Scenario</h2>
-        <p>Select a training scenario to practice with a realistic AI buyer. Each scenario tests specific skills from your sales curriculum.</p>
+    <!-- Pipeline progress bar -->
+    <div class="pipeline-section">
+      <div id="pipeline-bar" aria-label="Sales stage progress">
+        <!-- Populated by progress.js -->
       </div>
-      <div id="scenario-list" class="scenario-grid" role="list" aria-busy="true">
-        <!-- Populated by app.js -->
-        <div class="scenario-loading">
-          <div class="spinner" role="status" aria-label="Loading scenarios"></div>
-          <span>Loading scenarios...</span>
+    </div>
+
+    <!-- Two-column layout: Journey + Performance -->
+    <div class="home-content">
+      <div class="home-journey">
+        <h2 class="home-section-title">Your Journey</h2>
+        <div id="stage-cards" class="stage-cards" aria-label="Sales training stages">
+          <!-- Populated by progress.js -->
+          <div class="scenario-loading">
+            <div class="spinner" role="status" aria-label="Loading stages"></div>
+            <span>Loading your training stages...</span>
+          </div>
         </div>
       </div>
-    </main>
+      <aside class="home-performance">
+        <h2 class="home-section-title">Performance</h2>
+        <div id="performance-sidebar" class="perf-sidebar-card" aria-label="Performance overview">
+          <!-- Populated by progress.js -->
+          <div class="perf-empty">
+            <div class="perf-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+            <p class="perf-empty-title">No progress yet</p>
+            <p class="perf-empty-desc">Complete your first practice call to start tracking your performance.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
   <!-- ═══════════════ SCREEN 2: PRE-CALL LOBBY ═══════════════ -->
@@ -1531,13 +1754,12 @@
   <div id="screen-history" class="screen">
     <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
-        <div class="brand-icon" aria-hidden="true"></div>
-        <div>
-          <h1>Session History</h1>
-          <span class="header-subtitle">Your past simulation attempts</span>
+        <div class="header-brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
+        <h1>Sales Call Simulator</h1>
       </div>
-      <button id="btn-history-back" class="btn btn-ghost" aria-label="Back to scenarios">Back</button>
+      <button id="btn-history-back" class="btn btn-ghost" aria-label="Back to dashboard">Back</button>
     </header>
 
     <main class="history-main" aria-label="Session history">
@@ -1549,24 +1771,10 @@
 
       <!-- Content (hidden until loaded) -->
       <div id="history-content" style="display:none;">
-        <!-- Stats summary -->
-        <div class="history-stats">
-          <div class="stat-card">
-            <div id="stat-total" class="stat-value">0</div>
-            <div class="stat-label">Total Attempts</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-best" class="stat-value">-</div>
-            <div class="stat-label">Best Score</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-average" class="stat-value">-</div>
-            <div class="stat-label">Average Score</div>
-          </div>
-          <div class="stat-card">
-            <div id="stat-pass-rate" class="stat-value">-</div>
-            <div class="stat-label">Pass Rate</div>
-          </div>
+        <!-- Compact summary strip -->
+        <h2 class="history-section-title">Your Sessions</h2>
+        <div id="history-summary" class="history-summary" aria-label="Performance summary">
+          <!-- Populated by history.js -->
         </div>
 
         <!-- Session list -->
@@ -1597,6 +1805,7 @@
   <script src="js/app.js"></script>
   <script src="js/call.js"></script>
   <script src="js/scoring.js"></script>
+  <script src="js/progress.js"></script>
   <script src="js/history.js"></script>
 </body>
 </html>
