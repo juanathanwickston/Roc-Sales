@@ -362,7 +362,12 @@ const app = {
           btn.style.textAlign = 'left';
           btn.style.background = '#fff';
           btn.style.color = '#333';
-          btn.style.border = '1px solid #ccc';
+          btn.style.border = '1px solid #E5E7EB';
+          btn.style.padding = '16px 20px';
+          btn.style.fontSize = '15px';
+          btn.style.fontWeight = '500';
+          btn.style.borderRadius = '8px';
+          btn.style.transition = 'all 0.2s';
           btn.textContent = opt.text;
           
           btn.onclick = () => {
@@ -402,10 +407,12 @@ const app = {
       document.getElementById('interruption-feedback').style.display = 'none';
       document.getElementById('btn-resume-audio').style.display = 'none';
       document.getElementById('audio-interruption-modal').style.display = 'flex';
+      document.getElementById('audio-lock-shield').style.display = 'block';
       
       // Bind resume button
       document.getElementById('btn-resume-audio').onclick = () => {
           document.getElementById('audio-interruption-modal').style.display = 'none';
+          document.getElementById('audio-lock-shield').style.display = 'none';
           document.getElementById('course-audio-player').play();
       };
   },
