@@ -1237,7 +1237,7 @@
       flex: 1; min-height: 0;
       background: #FFFFFF;
       border: 1px solid transparent;
-      border-radius: var(--r); padding: 16px 20px;
+      border-radius: var(--r); padding: 12px 16px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: all .25s ease;
     }
@@ -1260,8 +1260,8 @@
     }
     .stage-number-locked { color: #D1D5DB; font-size: 18px; padding-top: 0; min-width: 28px; }
     
-    .stage-card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
-    .stage-card-content-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .stage-card-left { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
+    .stage-card-content-left { display: flex; flex-direction: column; justify-content: flex-start; min-width: 0; }
     .stage-card-right { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex-shrink: 0; }
     
     .stage-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
@@ -1279,10 +1279,13 @@
     .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); flex-wrap: wrap; }
     .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
     .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
-    .stage-card-cta {
-      padding: 8px 20px; border-radius: var(--rs);
-      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+    .stage-card-cta-link {
+      background: transparent; border: none; padding: 0; margin: 0;
+      color: #000000; font-size: 13px; font-weight: var(--fw-bold);
+      text-decoration: underline; text-underline-offset: 3px;
+      cursor: pointer; transition: color 0.15s ease;
     }
+    .stage-card-cta-link:hover { color: var(--payroc-blue); }
 
     /* Performance sidebar */
     .perf-sidebar-card {
