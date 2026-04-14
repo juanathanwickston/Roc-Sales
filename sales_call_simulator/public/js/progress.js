@@ -42,17 +42,16 @@ function renderPipeline(stages, progress) {
   for (var i = 0; i < stages.length; i++) {
     var stage = stages[i];
     var stateClass = 'pipeline-locked';
-    if (stage.available && stage.id <= currentStage) {
-      stateClass = 'pipeline-active';
-    } else if (stage.id < currentStage) {
+    if (stage.id < currentStage) {
       stateClass = 'pipeline-done';
+    } else if (stage.id === currentStage) {
+      stateClass = 'pipeline-active';
     }
 
     html += '<div class="pipeline-step ' + stateClass + '">' +
       '<div class="pipeline-dot">' +
         '<span class="pipeline-number">' + String(stage.id).padStart(2, '0') + '</span>' +
       '</div>' +
-      '<span class="pipeline-label">' + esc(stage.shortName) + '</span>' +
     '</div>';
 
     if (i < stages.length - 1) {
