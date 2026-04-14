@@ -267,66 +267,169 @@ const app = {
    * This method just fetches and caches data needed for selectScenario().
    */
   async startCoursePilot() {
-      // Hardcoded Pilot payload for Module 1
       document.getElementById('course-title').textContent = "Identify the Customer";
       document.getElementById('course-stage-name').textContent = "Module 1 – Discovery Framework";
-      document.getElementById('course-description').textContent = "Learn to qualify suspects through discovery calls before ever launching into your product pitch.";
+      document.getElementById('course-description').textContent = "Press play to listen to a recorded mock discovery call. The audio will automatically pause to test your situational judgment.";
 
-      const quizHTML = `
-        <div class="quiz-question" style="margin-bottom:20px;">
-          <p style="margin-bottom:8px;font-weight:600;">1. What is the primary goal of the initial discovery call?</p>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="wrong"> To pitch the Payroc product catalog immediately</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="correct"> To qualify the prospect and uncover their pain points</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="wrong"> To close the sale on the first interaction</label>
-        </div>
-        <div class="quiz-question" style="margin-bottom:20px;">
-          <p style="margin-bottom:8px;font-weight:600;">2. In the BANT qualification framework, what does 'A' stand for?</p>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="wrong"> Assets</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="correct"> Authority</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="wrong"> Awareness</label>
-        </div>
-        <div class="quiz-question" style="margin-bottom:20px;">
-          <p style="margin-bottom:8px;font-weight:600;">3. Which is the best closing sequence for a module 1 interaction?</p>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="wrong"> "Can I get your credit card to process the setup fee today?"</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="wrong"> "How does our tier-pricing look compared to Square?"</label>
-          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="correct"> "Would it make sense to set up a follow-up call with the rest of your decision-makers?"</label>
-        </div>
-      `;
-      document.getElementById('course-quiz-form').innerHTML = quizHTML;
+      // 1. The Configuration Array
+      this.courseConfig = {
+          audioSrc: '', // Placeholder until user drops exactly named .mp3 into folder
+          questions: [
+              {
+                  id: 'q1', time: 26, answered: false,
+                  text: 'What critical discovery misstep did Alex just make?',
+                  options: [
+                      { text: "He didn't ask what brand of terminals Sarah is currently using.", correct: false },
+                      { text: "He engaged in 'feature dumping' instead of exploring the business impact.", correct: true },
+                      { text: "He didn't immediately offer her a discount on new hardware.", correct: false }
+                  ],
+                  explanation: "<b>The 'N' in BANT:</b> Alex missed a massive opportunity to uncover the Need. When a prospect hands you a pain point, you must quantify the bleeding before applying the bandage. By instantly pitching hardware specs, Alex failed to ask high-leverage questions."
+              },
+              {
+                  id: 'q2', time: 42, answered: false,
+                  text: 'How should Alex have responded to Sarah\'s statement about her partner, Dave?',
+                  options: [
+                      { text: "Ask Sarah to put Dave on the phone right now.", correct: false },
+                      { text: "Continue pitching Sarah so she can convince Dave later.", correct: false },
+                      { text: "Pivot to ask how Dave evaluates new vendors and request a joint intro.", correct: true }
+                  ],
+                  explanation: "<b>The 'A' in BANT:</b> Alex completely ignored the Authority signal. Pitching the dashboard to someone who doesn't use it or buy it is a waste of breath. Alex should have mapped the buying committee immediately."
+              },
+              {
+                  id: 'q3', time: 75, answered: false,
+                  text: 'Sarah dropped a massive buying signal. How did Alex fail to capitalize on it to close?',
+                  options: [
+                      { text: "He failed to establish a concrete Timeline for when they want to replace their vendor and did not secure a firm next step.", correct: true },
+                      { text: "He didn't explain the exact difference between pricing structures.", correct: false },
+                      { text: "He didn't ask her what her monthly processing volume (Budget) was.", correct: false }
+                  ],
+                  explanation: "<b>The 'T' in BANT:</b> Sarah handed Alex a gift: 'We're definitely fed up.' Instead of locking down the Timeline, Alex retreated to the safety of 'sending an email.' Hope is not a sales strategy."
+              }
+          ]
+      };
+
+      this.courseScore = 0;
+      this.activeQuestion = null;
+
+      // Reset DOM state
+      const audioEl = document.getElementById('course-audio-player');
+      audioEl.src = this.courseConfig.audioSrc;
+      document.getElementById('audio-interruption-modal').style.display = 'none';
+      document.getElementById('course-completion-container').style.display = 'none';
+      document.getElementById('course-audio-container').style.display = 'flex';
+      
+      // Clear old listeners by cloning
+      const newAudioEl = audioEl.cloneNode(true);
+      audioEl.parentNode.replaceChild(newAudioEl, audioEl);
+
+      // 2. The Interruption Engine (timeupdate hook)
+      newAudioEl.addEventListener('timeupdate', () => {
+          const currentTime = newAudioEl.currentTime;
+          
+          for (let i = 0; i < this.courseConfig.questions.length; i++) {
+              const q = this.courseConfig.questions[i];
+              if (!q.answered && currentTime >= q.time) {
+                  newAudioEl.pause();
+                  this.triggerInterruption(q);
+                  break; 
+              }
+          }
+      });
+
+      // 3. Audio End State
+      newAudioEl.addEventListener('ended', () => {
+          document.getElementById('course-audio-container').style.display = 'none';
+          document.getElementById('course-completion-container').style.display = 'block';
+          this.submitCoursePilot(); // Automatically submit grades
+      });
+
       this.showScreen('course-player');
   },
 
-  async submitCoursePilot() {
-      const form = document.getElementById('course-quiz-form');
-      const formData = new FormData(form);
+  triggerInterruption(questionData) {
+      this.activeQuestion = questionData;
       
-      let score = 0;
-      if (formData.get('q1') === 'correct') score += 33.3;
-      if (formData.get('q2') === 'correct') score += 33.3;
-      if (formData.get('q3') === 'correct') score += 33.4;
+      document.getElementById('interruption-question').textContent = questionData.text;
+      const optsContainer = document.getElementById('interruption-options');
+      optsContainer.innerHTML = '';
+      
+      questionData.options.forEach((opt, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-secondary';
+          btn.style.textAlign = 'left';
+          btn.style.background = '#fff';
+          btn.style.color = '#333';
+          btn.style.border = '1px solid #ccc';
+          btn.textContent = opt.text;
+          
+          btn.onclick = () => {
+              // Lock options out
+              Array.from(optsContainer.children).forEach(b => b.disabled = true);
+              
+              if (opt.correct) {
+                  btn.style.background = 'rgba(16, 185, 129, 0.1)';
+                  btn.style.borderColor = 'var(--color-pass)';
+                  this.courseScore += 33.3; // Give points
+              } else {
+                  btn.style.background = 'rgba(239, 68, 68, 0.1)';
+                  btn.style.borderColor = 'var(--color-fail)';
+                  
+                  // Highlight the correct one
+                  Array.from(optsContainer.children).forEach((b, i) => {
+                     if (questionData.options[i].correct) {
+                         b.style.background = 'rgba(16, 185, 129, 0.1)';
+                         b.style.borderColor = 'var(--color-pass)';
+                     }
+                  });
+              }
 
-      score = Math.round(score);
+              // Show explanation & resume button
+              const feedback = document.getElementById('interruption-feedback');
+              feedback.innerHTML = questionData.explanation;
+              feedback.style.display = 'block';
+              feedback.style.background = opt.correct ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+              
+              document.getElementById('btn-resume-audio').style.display = 'block';
+              questionData.answered = true;
+          };
+          optsContainer.appendChild(btn);
+      });
 
-      // JSON mapping masking as AI evaluation hook
+      // Show the Modal
+      document.getElementById('interruption-feedback').style.display = 'none';
+      document.getElementById('btn-resume-audio').style.display = 'none';
+      document.getElementById('audio-interruption-modal').style.display = 'flex';
+      
+      // Bind resume button
+      document.getElementById('btn-resume-audio').onclick = () => {
+          document.getElementById('audio-interruption-modal').style.display = 'none';
+          document.getElementById('course-audio-player').play();
+      };
+  },
+
+  async submitCoursePilot() {
+      let finalScore = Math.round(this.courseScore);
+      if (finalScore >= 99) finalScore = 100; // floating point fix
+
       const payload = {
         session_id: 'lms_' + Date.now(),
-        scenario_id: 'module1_identifying_customer', // Bind identically to AI stage payload map
-        overall_score: score,
-        duration_seconds: 300,
+        scenario_id: 'module1_identifying_customer', 
+        overall_score: finalScore,
+        duration_seconds: 120, // tracked time
         categories: {
             "Discovery Questions": {
-                score: score > 33 ? 100 : 0, 
-                feedback: ["Module 1 Knowledge Exam Completed."]
+                score: finalScore > 33 ? 100 : 0, 
+                feedback: ["Interactive Audio Audit Completed."]
             },
             "Qualification Framework": {
-                score: score,
-                feedback: ["Module 1 Knowledge Exam Completed."]
+                score: finalScore,
+                feedback: ["Interactive Audio Audit Completed."]
             }
         }
       };
 
       try {
-          const btn = document.getElementById('btn-submit-course');
+          const btn = document.getElementById('btn-return-dashboard');
           const originalText = btn.textContent;
           btn.textContent = "Grading & Saving to Database...";
           btn.disabled = true;
@@ -340,12 +443,13 @@ const app = {
           btn.textContent = originalText;
           btn.disabled = false;
           
-          showToast(`Course Passed! You scored ${score}%`, 'success');
-          
+          // Hydrate right away
           if (typeof fetchProgress === 'function') {
-             await fetchProgress(); // Dynamically re-hydrate Dashboard chart vectors
+             await fetchProgress(); 
           }
-          this.showScreen('scenarios');
+          
+          document.getElementById('course-final-score').textContent = `Final Audit Score: ${finalScore}%`;
+          btn.onclick = () => { this.showScreen('scenarios'); }
           
       } catch(e) {
           console.error(e);
