@@ -194,11 +194,7 @@ function renderPerformanceSidebar(stages, progress) {
   html += '<div class="perf-skills-card">' +
     '<div class="perf-skills-title" style="text-transform: uppercase;">Focus Areas</div>';
 
-  var rawEntries = Object.entries(categories);
-  // Filter out any 0 scores as they represent abandoned/unattempted calls
-  var catEntries = rawEntries.filter(function(entry) {
-    return entry[1].latest > 0;
-  });
+  var catEntries = Object.entries(categories);
 
   if (catEntries.length === 0) {
     // Empty state when no real data exists to prevent vanishing layout

@@ -255,7 +255,10 @@ router.get('/progress', async (req, res) => {
           catScore = Number(catData) || 0;
         }
         
-        categories[catName].scores.push(catScore);
+        // Exclude completely abandoned zero scores so they don't skew historical metrics
+        if (catScore > 0) {
+          categories[catName].scores.push(catScore);
+        }
       }
     }
     for (const [catName, catAgg] of Object.entries(categories)) {
