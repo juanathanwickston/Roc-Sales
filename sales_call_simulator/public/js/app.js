@@ -273,7 +273,7 @@ const app = {
 
       // 1. The Configuration Array
       this.courseConfig = {
-          audioSrc: '', // Placeholder until user drops exactly named .mp3 into folder
+          audioSrc: '/media/module1_audio.mp3', 
           questions: [
               {
                   id: 'q1', time: 26, answered: false,
