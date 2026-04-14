@@ -296,8 +296,20 @@ router.get('/progress', async (req, res) => {
       }
     }
 
-    // Determine current stage (highest stage with a scored scenario)
-    const currentStage = 1; // Only Stage 1 has scenarios today
+    // Determine current stage: advance past any stage whose scenario has a passing session
+    const { SALES_STAGES } = require('../stages');
+    let currentStage = 1;
+    for (const stage of SALES_STAGES) {
+      if (!stage.scenarioId) break; // No scenario = can't progress further
+      const hasPassed = sessions.some(
+        s => s.scenario_id === stage.scenarioId && s.overall_verdict === 'pass'
+      );
+      if (hasPassed) {
+        currentStage = stage.id + 1; // Advance past this stage
+      } else {
+        break; // Can't skip stages
+      }
+    }
 
     res.json({
       overall: {
