@@ -276,7 +276,7 @@ const app = {
           audioSrc: '/media/module1_audio.mp3', 
           questions: [
               {
-                  id: 'q1', time: 26, answered: false,
+                  id: 'q1', time: 18.5, answered: false,
                   text: 'What critical discovery misstep did Alex just make?',
                   options: [
                       { text: "He didn't ask what brand of terminals Sarah is currently using.", correct: false },
@@ -286,7 +286,7 @@ const app = {
                   explanation: "<b>The 'N' in BANT:</b> Alex missed a massive opportunity to uncover the Need. When a prospect hands you a pain point, you must quantify the bleeding before applying the bandage. By instantly pitching hardware specs, Alex failed to ask high-leverage questions."
               },
               {
-                  id: 'q2', time: 42, answered: false,
+                  id: 'q2', time: 45.6, answered: false,
                   text: 'How should Alex have responded to Sarah\'s statement about her partner, Dave?',
                   options: [
                       { text: "Ask Sarah to put Dave on the phone right now.", correct: false },
@@ -296,7 +296,7 @@ const app = {
                   explanation: "<b>The 'A' in BANT:</b> Alex completely ignored the Authority signal. Pitching the dashboard to someone who doesn't use it or buy it is a waste of breath. Alex should have mapped the buying committee immediately."
               },
               {
-                  id: 'q3', time: 75, answered: false,
+                  id: 'q3', time: 74.6, answered: false,
                   text: 'Sarah dropped a massive buying signal. How did Alex fail to capitalize on it to close?',
                   options: [
                       { text: "He failed to establish a concrete Timeline for when they want to replace their vendor and did not secure a firm next step.", correct: true },
