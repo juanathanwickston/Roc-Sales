@@ -1199,7 +1199,7 @@
 
     /* Home two-column layout */
     .home-content { display: flex; gap: 28px; padding: 28px 24px; max-width: 1160px; margin: 0 auto; width: 100%; align-items: stretch; }
-    .home-journey { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
+    .home-journey { flex: 1; min-width: 0; display: grid; grid-template-rows: max-content 1fr; height: 100%; }
     .home-performance { width: 340px; flex-shrink: 0; }
     .home-section-title {
       font-size: var(--fs-xs); font-weight: var(--fw-semibold);
@@ -1209,7 +1209,7 @@
     .home-stage-indicator { font-size: var(--fs-sm); color: var(--text-muted); font-weight: var(--fw-medium); }
 
     /* Stage cards */
-    .stage-cards { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .stage-cards { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
     .stage-card {
       display: flex; gap: 16px; align-items: flex-start;
       background: #FFFFFF;
