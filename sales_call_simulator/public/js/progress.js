@@ -78,38 +78,44 @@ function renderStageCards(stages, progress) {
     var scenarioStats = stage.scenarioId ? (perScenario[stage.scenarioId] || null) : null;
 
     if (stage.available) {
-      // Active stage card (2x2 grid)
+      // Active stage card
       html += '<div class="stage-card stage-card-active" data-stage-id="' + stage.id + '">' +
-        '<div class="stage-card-number">' + String(stage.id).padStart(2, '0') + '</div>' +
-        '<div class="stage-card-body stage-card-body-flex">' +
-          '<div class="stage-active-row-top">' +
+        // Left
+        '<div class="stage-card-left">' +
+          '<div class="stage-card-number">' + String(stage.id).padStart(2, '0') + '</div>' +
+          '<div class="stage-card-content-left">' +
             '<div class="stage-card-header">' +
               '<h3 class="stage-card-title">' + esc(stage.name) + '</h3>' +
               '<span class="stage-status-badge stage-status-active">Active</span>' +
             '</div>' +
-            '<div class="stage-card-footer">' +
-              (stage.scenario && stage.scenario.durationMinutes ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> ' + stage.scenario.durationMinutes + ' min</span>' : '') +
-              (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Best: ' + scenarioStats.bestScore + '/100</span>' : '') +
-              (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14"/></svg> ' + scenarioStats.attempts + ' attempt' + (scenarioStats.attempts !== 1 ? 's' : '') + '</span>' : '') +
-            '</div>' +
-          '</div>' +
-          '<div class="stage-active-row-bottom">' +
             '<p class="stage-card-desc stage-card-desc-truncate">' + esc(stage.description) + '</p>' +
-            '<button class="btn btn-primary stage-card-cta" data-scenario-id="' + esc(stage.scenarioId) + '" type="button">Practice Now</button>' +
           '</div>' +
+        '</div>' +
+        // Right
+        '<div class="stage-card-right">' +
+          '<div class="stage-card-footer">' +
+            (stage.scenario && stage.scenario.durationMinutes ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> ' + stage.scenario.durationMinutes + ' min</span>' : '') +
+            (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Best: ' + scenarioStats.bestScore + '/100</span>' : '') +
+            (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14"/></svg> ' + scenarioStats.attempts + ' attempt' + (scenarioStats.attempts !== 1 ? 's' : '') + '</span>' : '') +
+          '</div>' +
+          '<button class="btn btn-primary stage-card-cta" data-scenario-id="' + esc(stage.scenarioId) + '" type="button">Practice Now</button>' +
         '</div>' +
       '</div>';
     } else {
-      // Locked stage card (single line row)
+      // Locked stage card
       html += '<div class="stage-card stage-card-locked">' +
-        '<div class="stage-card-number stage-number-locked">' + String(stage.id).padStart(2, '0') + '</div>' +
-        '<div class="stage-card-body">' +
-          '<div class="stage-card-header stage-card-locked-header">' +
-            '<h3 class="stage-card-title">' + esc(stage.name) + '</h3>' +
-            '<span class="stage-status-badge stage-status-locked">' +
-              '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>' +
-              ' Coming Soon' +
-            '</span>' +
+        // Left
+        '<div class="stage-card-left">' +
+          '<div class="stage-card-number stage-number-locked">' + String(stage.id).padStart(2, '0') + '</div>' +
+          '<div class="stage-card-content-left">' +
+            '<div class="stage-card-header">' +
+              '<h3 class="stage-card-title">' + esc(stage.name) + '</h3>' +
+              '<span class="stage-status-badge stage-status-locked">' +
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>' +
+                ' Coming Soon' +
+              '</span>' +
+            '</div>' +
+            '<p class="stage-card-desc stage-card-desc-truncate">' + esc(stage.description) + '</p>' +
           '</div>' +
         '</div>' +
       '</div>';

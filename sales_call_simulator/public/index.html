@@ -1190,7 +1190,7 @@
     .pipeline-active .pipeline-dot {
       background: transparent;
       color: var(--payroc-blue);
-      box-shadow: inset 0 0 0 2.5px var(--payroc-blue);
+      box-shadow: inset 0 0 0 1.5px var(--payroc-blue);
     }
     /* Locked: grey */
     .pipeline-locked .pipeline-dot { background: #EBEDF0; color: #B0B8C4; }
@@ -1211,10 +1211,11 @@
     /* Stage cards */
     .stage-cards { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
     .stage-card {
-      display: flex; gap: 16px; align-items: flex-start;
+      display: flex; justify-content: space-between; align-items: stretch; gap: 16px;
+      flex: 1; min-height: 0;
       background: #FFFFFF;
       border: 1px solid transparent;
-      border-radius: var(--r); padding: 20px 24px;
+      border-radius: var(--r); padding: 16px 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: all .25s ease;
     }
@@ -1228,9 +1229,7 @@
     }
     .stage-card-locked {
       background: #FBFBFC;
-      padding: 12px 20px;
-      align-items: center;
-      flex: 1; min-height: 0;
+      align-items: stretch;
     }
     .stage-card-number {
       font-size: 26px; font-weight: var(--fw-bold);
@@ -1238,12 +1237,12 @@
       padding-top: 2px;
     }
     .stage-number-locked { color: #D1D5DB; font-size: 18px; padding-top: 0; min-width: 28px; }
-    .stage-card-body { flex: 1; min-width: 0; }
-    .stage-card-body-flex { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
-    .stage-active-row-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-    .stage-active-row-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-    .stage-card-locked-header { margin-bottom: 0 !important; }
-    .stage-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+    
+    .stage-card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .stage-card-content-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .stage-card-right { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex-shrink: 0; }
+    
+    .stage-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
     .stage-card-title { font-size: 15px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; letter-spacing: -0.2px; }
     .stage-status-badge {
       padding: 3px 10px; border-radius: 50px;
@@ -1254,8 +1253,7 @@
     .stage-status-active { background: rgba(0,81,194,0.06); color: var(--payroc-blue); }
     .stage-status-locked { background: transparent; color: #B0B8C4; }
     .stage-card-scenario { font-size: var(--fs-sm); color: var(--payroc-blue); font-weight: var(--fw-medium); margin-bottom: 4px; }
-    .stage-card-desc { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-relaxed); margin-bottom: 0px; }
-    .stage-card-desc-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; margin-bottom: 0; padding-right: 16px; }
+    .stage-card-desc-truncate { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-relaxed); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; margin: 0; }
     .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); flex-wrap: wrap; }
     .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
     .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
