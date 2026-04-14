@@ -199,7 +199,7 @@ function renderPerformanceSidebar(stages, progress) {
     });
 
     html += '<div class="perf-skills-card">' +
-      '<div class="perf-skills-title">Global Mastery</div>';
+      '<div class="perf-skills-title" style="text-transform: uppercase;">Focus Areas</div>';
 
     // Inline render helper
     function renderSkillRow(entry, prefixLabel) {
@@ -234,7 +234,6 @@ function renderPerformanceSidebar(stages, progress) {
     var focusSkills = sortedSkills.slice(-3).reverse();
 
     if (focusSkills.length > 0) {
-      html += '<div class="perf-skills-subtitle" style="margin-bottom: 12px; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 6px;">Focus Areas</div>';
       for (var f = 0; f < focusSkills.length; f++) {
         var prefix = (f === 0) ? 'Priority' : null;
         html += renderSkillRow(focusSkills[f], prefix);
