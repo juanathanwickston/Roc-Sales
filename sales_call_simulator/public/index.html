@@ -195,27 +195,30 @@
       text-align: center;
       box-shadow: var(--shadow-card);
     }
-    .lobby-icon { font-size: 48px; margin-bottom: 16px; }
-    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--text-primary); }
-    .lobby-status { color: var(--text-muted); font-size: var(--fs-sm); margin-bottom: 24px; }
+    .lobby-icon { margin-bottom: 24px; display: flex; justify-content: center; }
+    .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--text-primary); letter-spacing: -0.3px; }
+    .lobby-status { color: var(--payroc-blue); font-weight: var(--fw-medium); font-size: var(--fs-sm); margin-bottom: 24px; }
     .lobby-spinner { margin-bottom: 24px; }
     .lobby-tips {
       text-align: left;
-      background: var(--bg-page);
+      background: #F7F8FA;
       border-radius: var(--rs);
       padding: 16px;
       margin-bottom: 24px;
     }
-    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--payroc-blue); }
+    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 12px; color: var(--text-primary); }
     .lobby-tips ul { list-style: none; }
     .lobby-tips li {
       padding: 4px 0;
       font-size: var(--fs-sm);
       color: var(--text-muted);
       position: relative;
-      padding-left: 16px;
+      padding-left: 20px;
     }
-    .lobby-tips li::before { content: '→'; position: absolute; left: 0; color: var(--payroc-teal); }
+    .lobby-tips li::before {
+      content: ''; position: absolute; left: 0; top: 12px;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--payroc-blue);
+    }
 
     /* ─── Call Screen — Teams-Style Layout ─── */
     .call-layout {
@@ -228,24 +231,29 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 16px;
-      background: var(--n2);
-      border-bottom: 1px solid var(--gb);
+      padding: 12px 24px;
+      background: #FFFFFF;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
       flex-shrink: 0;
       z-index: var(--z-sticky);
     }
-    .call-topbar-left { display: flex; align-items: center; gap: 8px; }
-    .call-indicator { animation: blink 1.5s infinite; }
+    .call-topbar-left { display: flex; align-items: center; gap: 12px; }
+    .call-indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--color-fail); animation: blink 2s infinite; }
     @keyframes blink { 50% { opacity: .3; } }
-    .call-scenario-label { font-size: var(--fs-sm); font-weight: var(--fw-medium); }
-    .call-timer { font-size: var(--fs-md); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+    .call-scenario-label { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text-primary); letter-spacing: -0.3px; }
+    .call-timer { 
+       font-size: var(--fs-sm); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; 
+       background: #F7F8FA; color: var(--text-primary); padding: 4px 12px; border-radius: 50px;
+    }
     .call-status-badge {
-      padding: 4px 8px;
-      border-radius: var(--r-sm);
-      background: rgba(0,224,184,.12);
-      color: var(--green);
-      font-size: var(--fs-2xs);
+      padding: 4px 10px;
+      border-radius: 50px;
+      background: rgba(0,81,194,0.06);
+      color: var(--payroc-blue);
+      font-size: 10px;
       font-weight: var(--fw-semibold);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
     /* Two-panel layout: video + sidebar */
@@ -330,54 +338,53 @@
     .captions-text { font-size: var(--fs-sm); color: var(--white); line-height: var(--lh-normal); }
     .caption-placeholder { color: var(--gray); }
 
-    /* Control bar */
+    /* Control bar (Glassmorphism Dock) */
     .call-controls {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: var(--n2);
-      border-top: 1px solid var(--gb);
-      flex-shrink: 0;
+      gap: 16px;
+      padding: 12px 20px;
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      background: rgba(10, 22, 40, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      z-index: 10;
     }
     .control-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      width: 56px;
-      height: 56px;
-      background: var(--n3);
-      border: 1px solid var(--gb);
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.05);
       border-radius: 50%;
       color: var(--white);
       cursor: pointer;
       font-family: inherit;
-      font-size: var(--fs-xs);
-      transition: background .15s, border-color .15s, transform .1s;
+      transition: all .2s;
     }
     .control-btn:hover, .control-btn:focus-visible {
-      background: var(--n4);
-      border-color: rgba(59,130,246,.4);
+      background: rgba(255,255,255,0.2);
       outline: none;
       transform: scale(1.05);
     }
     .control-btn:active { transform: scale(.95); }
-    .control-btn.active { border-color: var(--blue); background: rgba(59,130,246,.12); }
-    .control-btn.muted { border-color: var(--red); background: rgba(255,68,102,.12); }
-    .control-icon { font-size: var(--fs-lg); }
-    .control-label { font-size: 9px; color: var(--gray); line-height: 1; }
+    .control-btn.active { border-color: var(--payroc-blue); background: var(--payroc-blue); }
+    .control-btn.muted { border-color: var(--color-fail); background: var(--color-fail); }
+    .control-icon { font-size: 20px; }
+    .control-label { display: none; }
     .control-btn-end {
-      background: var(--red);
-      border-color: var(--red);
-      color: #fff;
-      width: 64px;
-      height: 56px;
-      border-radius: 28px;
+      background: var(--color-fail);
+      border-color: var(--color-fail);
+      width: 48px;
     }
-    .control-btn-end:hover { background: #E63950; transform: scale(1.05); }
+    .control-btn-end:hover { background: #d93856; border-color: #d93856; }
     .control-btn-guide {
       display: none; /* Shown on mobile only */
     }
@@ -385,27 +392,28 @@
     /* ─── Coaching Sidebar ─── */
     .call-sidebar {
       width: 340px;
-      background: var(--n2);
-      border-left: 1px solid var(--gb);
+      background: #FFFFFF;
+      border-left: 1px solid rgba(0,0,0,0.06);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       flex-shrink: 0;
     }
     .sidebar-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--gb);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex-shrink: 0;
     }
     .sidebar-header h3 {
       font-size: var(--fs-sm);
       font-weight: var(--fw-semibold);
+      color: var(--text-primary);
       margin: 0;
     }
-    .sidebar-header-icon { color: var(--green); }
+    .sidebar-header-icon { color: var(--payroc-blue); }
     .sidebar-body {
       flex: 1;
       overflow-y: auto;
@@ -413,32 +421,32 @@
     }
     .sidebar-body::-webkit-scrollbar { width: 4px; }
     .sidebar-body::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-body::-webkit-scrollbar-thumb { background: var(--n4); border-radius: 2px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
 
     /* Accordion */
-    .guide-section { border-bottom: 1px solid rgba(59,130,246,.06); }
+    .guide-section { border-bottom: 1px solid rgba(0,0,0,0.04); }
     .guide-section-btn {
       display: flex;
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      padding: 12px 16px;
+      padding: 14px 20px;
       background: none;
       border: none;
-      color: var(--white);
+      color: var(--text-primary);
       font-family: inherit;
       font-size: var(--fs-sm);
-      font-weight: var(--fw-medium);
+      font-weight: var(--fw-semibold);
       cursor: pointer;
       text-align: left;
       transition: background .15s;
     }
-    .guide-section-btn:hover { background: rgba(59,130,246,.06); }
-    .guide-section-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .guide-section-btn:hover { background: #FBFBFC; }
+    .guide-section-btn:focus-visible { outline: 2px solid var(--payroc-blue); outline-offset: -2px; }
     .guide-section-title { display: flex; align-items: center; gap: 8px; }
     .guide-chevron {
       font-size: var(--fs-xs);
-      color: var(--gray);
+      color: var(--text-muted);
       transition: transform .2s;
     }
     .guide-section.open .guide-chevron { transform: rotate(90deg); }
@@ -451,39 +459,45 @@
       max-height: 600px;
     }
     .guide-section-inner {
-      padding: 0 16px 12px 16px;
+      padding: 0 20px 16px 20px;
     }
     .guide-section-inner p {
-      font-size: var(--fs-xs);
-      color: var(--gray);
+      font-size: 13px;
+      color: var(--text-muted);
       line-height: var(--lh-relaxed);
       margin-bottom: 8px;
     }
     .guide-section-inner ul { list-style: none; }
     .guide-section-inner li {
       padding: 4px 0;
-      font-size: var(--fs-xs);
-      color: var(--gray);
+      font-size: 13px;
+      color: var(--text-muted);
       position: relative;
       padding-left: 16px;
       line-height: var(--lh-normal);
     }
     .guide-section-inner li::before {
-      content: '→';
+      content: '';
       position: absolute;
-      left: 0;
-      color: var(--green);
+      left: 0; top: 10px;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--payroc-blue);
     }
-    .guide-mistake li::before { content: '✗'; color: var(--red); }
+    .guide-mistake li::before { background: var(--color-fail); }
     .guide-sample {
-      background: var(--n3);
-      border-radius: var(--r-sm);
-      padding: 8px 12px;
-      margin-top: 4px;
-      font-size: var(--fs-xs);
-      color: var(--gray);
+      background: rgba(0,81,194,0.04);
+      border-radius: var(--rs);
+      padding: 10px 14px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--payroc-blue);
+      font-weight: var(--fw-medium);
       font-style: italic;
-      border-left: 2px solid var(--blue);
+    }
+    .guide-alert { 
+      background: rgba(239, 68, 68, 0.08); border-left: 3px solid var(--color-fail); 
+      padding: 10px 14px; border-radius: 0 var(--rs) var(--rs) 0; color: #b91c1c; 
+      font-size: 12px; font-weight: var(--fw-medium); margin-top: 12px; line-height: 1.4;
     }
     .guide-badge {
       display: inline-flex;
@@ -583,6 +597,16 @@
       z-index: calc(var(--z-modal) - 1);
     }
     .drawer-overlay.visible { display: block; }
+    
+    .debrief-loading {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; min-height: 400px;
+    }
+    .debrief-loading-card {
+      background: #FFFFFF; padding: 48px; border-radius: var(--rl); box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
+      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 400px; max-width: 90%; margin: auto; border: 1px solid rgba(0,0,0,0.04);
+    }
+    .debrief-loading-text { font-weight: var(--fw-semibold); color: var(--payroc-blue); margin-top: 24px; font-size: var(--fs-md); letter-spacing: -0.2px; text-align: center; }
 
     /* Tablet sidebar */
     @media (min-width: 768px) and (max-width: 1023px) {
@@ -1626,8 +1650,10 @@
     <main class="debrief-main" aria-label="Call debrief and scorecard">
       <!-- Score summary -->
       <div id="debrief-loading" class="debrief-loading" aria-busy="true">
-        <div class="spinner spinner-large" role="status" aria-label="Evaluating performance"></div>
-        <p>Evaluating your performance...</p>
+        <div class="debrief-loading-card">
+          <div class="spinner spinner-large" role="status" aria-label="Evaluating performance"></div>
+          <p class="debrief-loading-text">Evaluating your performance...</p>
+        </div>
       </div>
 
       <div id="debrief-content" class="debrief-content" style="display:none;">
