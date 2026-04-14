@@ -89,10 +89,11 @@
 
     /* ─── Header ─── */
     .app-header {
-      padding: 14px 24px;
+      padding: 10px 24px;
       background: #FFFFFF;
       box-shadow: 0 1px 0 rgba(0,0,0,0.06);
-      position: relative;
+      position: sticky;
+      top: 0;
       z-index: var(--z-sticky);
     }
     .header-brand { display: flex; align-items: center; gap: 12px; }
@@ -1170,17 +1171,13 @@
 
     /* ─── Progress Dashboard ─── */
 
-    /* Pipeline bar */
-    .pipeline-section {
-      padding: 20px 24px 0;
-      background: #FFFFFF;
-    }
-    .pipeline-track { display: flex; align-items: center; justify-content: center; gap: 0; max-width: 720px; margin: 0 auto; padding-bottom: 20px; }
-    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 72px; position: relative; }
+    /* Pipeline bar (lives inside header) */
+    .pipeline-track { display: flex; align-items: center; gap: 0; }
+    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 52px; position: relative; }
     .pipeline-dot {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: var(--fs-sm); font-weight: var(--fw-bold);
+      font-size: 11px; font-weight: var(--fw-bold);
       transition: all .4s ease;
       position: relative;
     }
@@ -1188,15 +1185,15 @@
     .pipeline-active .pipeline-dot {
       background: linear-gradient(135deg, var(--payroc-blue), #003D99);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(0,81,194,0.3), 0 0 0 4px rgba(0,81,194,0.1);
+      box-shadow: 0 1px 4px rgba(0,81,194,0.3), 0 0 0 3px rgba(0,81,194,0.1);
     }
-    .pipeline-done .pipeline-dot { background: var(--payroc-teal); color: #fff; box-shadow: 0 2px 6px rgba(0,224,184,0.25); }
+    .pipeline-done .pipeline-dot { background: var(--payroc-teal); color: #fff; box-shadow: 0 1px 4px rgba(0,224,184,0.2); }
     .pipeline-locked .pipeline-dot { background: #EBEDF0; color: #B0B8C4; }
-    .pipeline-label { font-size: var(--fs-2xs); font-weight: var(--fw-medium); text-align: center; white-space: nowrap; }
+    .pipeline-label { font-size: 9px; font-weight: var(--fw-medium); text-align: center; white-space: nowrap; }
     .pipeline-active .pipeline-label { color: var(--payroc-blue); font-weight: var(--fw-semibold); }
     .pipeline-locked .pipeline-label { color: #B0B8C4; }
     .pipeline-done .pipeline-label { color: var(--payroc-teal); }
-    .pipeline-connector { flex: 1; height: 2px; background: #EBEDF0; min-width: 16px; max-width: 56px; margin-top: -24px; }
+    .pipeline-connector { flex: 1; height: 2px; background: #EBEDF0; min-width: 10px; max-width: 32px; margin-top: -16px; }
     .pipeline-connector-filled { background: linear-gradient(90deg, var(--payroc-teal), var(--payroc-blue)); }
 
     /* Home two-column layout */
@@ -1314,9 +1311,10 @@
       .home-content { flex-direction: column; gap: 20px; padding: 16px; }
       .home-performance { width: 100%; }
       .perf-sidebar-card { position: static; }
-      .pipeline-step { min-width: 44px; }
-      .pipeline-label { font-size: 9px; }
-      .pipeline-connector { min-width: 8px; }
+      .pipeline-step { min-width: 36px; }
+      .pipeline-label { display: none; }
+      .pipeline-dot { width: 24px; height: 24px; font-size: 10px; }
+      .pipeline-connector { min-width: 6px; max-width: 16px; margin-top: 0; }
       .stage-card { padding: 16px; }
       .stage-card-number { font-size: var(--fs-xl); min-width: 28px; }
     }
@@ -1336,18 +1334,14 @@
         </div>
         <h1>Sales Call Simulator</h1>
       </div>
+      <div id="pipeline-bar" aria-label="Sales stage progress">
+        <!-- Populated by progress.js -->
+      </div>
       <div style="display:flex;align-items:center;gap:12px;">
         <span id="stage-indicator" class="home-stage-indicator"></span>
         <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
       </div>
     </header>
-
-    <!-- Pipeline progress bar -->
-    <div class="pipeline-section">
-      <div id="pipeline-bar" aria-label="Sales stage progress">
-        <!-- Populated by progress.js -->
-      </div>
-    </div>
 
     <!-- Two-column layout: Journey + Performance -->
     <div class="home-content">
