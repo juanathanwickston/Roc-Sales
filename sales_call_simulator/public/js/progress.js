@@ -23,7 +23,7 @@ async function loadProgress() {
 
     renderPipeline(stagesData.stages, progressData);
     renderStageCards(stagesData.stages, progressData);
-    renderPerformanceSidebar(progressData);
+    renderPerformanceSidebar(stagesData.stages, progressData);
   } catch (err) {
     console.error('[Progress] Failed to load progress:', err);
   }
@@ -120,7 +120,7 @@ function renderStageCards(stages, progress) {
 /**
  * Render the performance sidebar: score ring, stat cards, trend chart, skill bars.
  */
-function renderPerformanceSidebar(progress) {
+function renderPerformanceSidebar(stages, progress) {
   var sidebar = document.getElementById('performance-sidebar');
   if (!sidebar) return;
 
@@ -140,14 +140,15 @@ function renderPerformanceSidebar(progress) {
 
   var html = '';
 
-  // Score ring
-  var latestScore = overall.latestScore || 0;
-  var delta = overall.latestScore - overall.previousScore;
+  // Score ring (now representing Overall Mastery)
+  var masteryScore = overall.masteryScore || 0;
+  // We compare masteryScore to previousScore (assuming backend maps previous to something logical or just to show the delta concept)
+  var delta = masteryScore - (overall.previousScore || 0);
   var deltaClass = delta > 0 ? 'delta-up' : (delta < 0 ? 'delta-down' : 'delta-same');
   var deltaText = delta > 0 ? ('+' + delta) : (delta === 0 ? '—' : String(delta));
-  var ringColor = latestScore >= 80 ? 'var(--color-pass)' : (latestScore >= 50 ? 'var(--color-warning)' : 'var(--color-fail)');
+  var ringColor = masteryScore >= 80 ? 'var(--color-pass)' : (masteryScore >= 50 ? 'var(--color-warning)' : 'var(--color-fail)');
   var circumference = 2 * Math.PI * 54; // r=54
-  var offset = circumference - (latestScore / 100) * circumference;
+  var offset = circumference - (masteryScore / 100) * circumference;
 
   html += '<div class="perf-score-ring">' +
     '<svg viewBox="0 0 120 120" width="100" height="100">' +
@@ -158,27 +159,28 @@ function renderPerformanceSidebar(progress) {
         'style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.5s ease"/>' +
     '</svg>' +
     '<div class="perf-score-text">' +
-      '<span class="perf-score-number">' + latestScore + '</span>' +
-      '<span class="perf-score-label">Latest</span>' +
+      '<span class="perf-score-number">' + masteryScore + '</span>' +
+      '<span class="perf-score-label">Mastery</span>' +
     '</div>' +
   '</div>' +
   (overall.previousScore > 0 ? '<div class="perf-delta ' + deltaClass + '">' + deltaText + ' from last</div>' : '');
 
   // Stat cards (2x2 grid)
+  var completed = overall.completedStages || 0;
+  var focusArea = overall.weakestStage || 'None';
+  
   html += '<div class="perf-stats-grid">' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + overall.bestScore + '</div><div class="perf-stat-label">Best Score</div></div>' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + overall.passRate + '%</div><div class="perf-stat-label">Pass Rate</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + completed + '/6</div><div class="perf-stat-label">Pipeline</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value" style="font-size:16px;">' + esc(focusArea) + '</div><div class="perf-stat-label">Focus Area</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + streaks.currentStreak + '</div><div class="perf-stat-label">Sessions</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + streaks.consecutivePasses + '</div><div class="perf-stat-label">Pass Streak</div></div>' +
   '</div>';
 
-  // Score trend chart (SVG)
-  if (overall.trend && overall.trend.length >= 2) {
-    html += '<div class="perf-chart-card">' +
-      '<div class="perf-chart-title">Score Trend</div>' +
-      '<div class="perf-chart-container" id="trend-chart-container"></div>' +
-    '</div>';
-  }
+  // Stage Mastery chart (SVG)
+  html += '<div class="perf-chart-card">' +
+    '<div class="perf-chart-title">Stage Mastery</div>' +
+    '<div class="perf-chart-container" id="mastery-chart-container"></div>' +
+  '</div>';
 
   // Skill bars
   var catEntries = Object.entries(categories);
@@ -220,78 +222,67 @@ function renderPerformanceSidebar(progress) {
     });
   }, 200);
 
-  // Render SVG trend chart after DOM is ready
-  if (overall.trend && overall.trend.length >= 2) {
-    setTimeout(function() {
-      renderTrendChart(overall.trend);
-    }, 100);
-  }
+  // Render SVG mastery chart after DOM is ready
+  setTimeout(function() {
+    renderStageMasteryChart(stages, progress.perScenario || {});
+  }, 100);
 }
 
 /**
- * Render SVG line chart for score trend.
- * Uses the payroc.com chart style: teal line on white card with gradient fill.
+ * Render SVG 6-bar chart for Stage Mastery.
+ * Uses exact text overlays instead of Y-axis grids.
  */
-function renderTrendChart(trend) {
-  var container = document.getElementById('trend-chart-container');
+function renderStageMasteryChart(stages, perScenario) {
+  var container = document.getElementById('mastery-chart-container');
   if (!container) return;
 
   var width = container.offsetWidth || 300;
-  var height = 140;
-  var padding = { top: 16, right: 16, bottom: 24, left: 32 };
+  var height = 150;
+  var padding = { top: 28, right: 10, bottom: 24, left: 10 };
   var chartWidth = width - padding.left - padding.right;
   var chartHeight = height - padding.top - padding.bottom;
 
-  // Scale
-  var minScore = 0;
-  var maxScore = 100;
-  var n = trend.length;
+  var n = stages.length; // Always 6
+  var barWidth = Math.min(24, Math.floor(chartWidth / n) - 8);
 
-  function x(i) { return padding.left + (i / (n - 1)) * chartWidth; }
-  function y(score) { return padding.top + chartHeight - ((score - minScore) / (maxScore - minScore)) * chartHeight; }
+  var svg = '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">';
 
-  // Build path
-  var linePath = 'M' + x(0) + ',' + y(trend[0].score);
-  for (var i = 1; i < n; i++) {
-    linePath += ' L' + x(i) + ',' + y(trend[i].score);
-  }
-
-  // Fill path (area under the line)
-  var fillPath = linePath + ' L' + x(n - 1) + ',' + (height - padding.bottom) + ' L' + x(0) + ',' + (height - padding.bottom) + ' Z';
-
-  // Pass threshold line (y=80)
-  var thresholdY = y(80);
-
-  // Build SVG
-  var svg = '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">' +
-    '<defs>' +
-      '<linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="var(--payroc-teal)" stop-opacity="0.3"/>' +
-        '<stop offset="100%" stop-color="var(--payroc-teal)" stop-opacity="0.02"/>' +
-      '</linearGradient>' +
-    '</defs>';
-
-  // Y-axis labels
-  for (var yVal = 0; yVal <= 100; yVal += 25) {
-    var yPos = y(yVal);
-    svg += '<line x1="' + padding.left + '" y1="' + yPos + '" x2="' + (width - padding.right) + '" y2="' + yPos + '" stroke="var(--border-light)" stroke-width="1" stroke-dasharray="4,4"/>';
-    svg += '<text x="' + (padding.left - 8) + '" y="' + (yPos + 4) + '" fill="var(--text-muted)" font-size="10" text-anchor="end">' + yVal + '</text>';
-  }
-
-  // Pass threshold
+  // Pass threshold line
+  var thresholdY = padding.top + chartHeight - (80 / 100) * chartHeight;
   svg += '<line x1="' + padding.left + '" y1="' + thresholdY + '" x2="' + (width - padding.right) + '" y2="' + thresholdY + '" stroke="var(--color-pass)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.6"/>';
-  svg += '<text x="' + (width - padding.right + 4) + '" y="' + (thresholdY + 4) + '" fill="var(--color-pass)" font-size="9" opacity="0.8">Pass</text>';
+  svg += '<text x="' + width + '" y="' + (thresholdY - 4) + '" fill="var(--color-pass)" font-size="9" opacity="0.8" text-anchor="end">Pass</text>';
 
-  // Area fill
-  svg += '<path d="' + fillPath + '" fill="url(#trendFill)"/>';
+  for (var i = 0; i < n; i++) {
+    var stage = stages[i];
+    var sBest = (stage.scenarioId && perScenario[stage.scenarioId]) ? perScenario[stage.scenarioId].bestScore : null;
+    var cx = padding.left + (i + 0.5) * (chartWidth / n);
+    var bx = cx - (barWidth / 2);
 
-  // Line
-  svg += '<path d="' + linePath + '" fill="none" stroke="var(--payroc-teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    // X-axis label (S1, S2, etc)
+    svg += '<text x="' + cx + '" y="' + (height - 4) + '" fill="var(--text-muted)" font-size="10" text-anchor="middle">S' + stage.id + '</text>';
 
-  // Dots
-  for (var j = 0; j < n; j++) {
-    var dotColor = trend[j].score >= 80 ? 'var(--color-pass)' : 'var(--payroc-blue)';
-    svg += '<circle cx="' + x(j) + '" cy="' + y(trend[j].score) + '" r="4" fill="var(--bg-card)" stroke="' + dotColor + '" stroke-width="2.5"/>';
+    if (sBest !== null && sBest > 0) {
+      var bHeight = (sBest / 100) * chartHeight;
+      // Ensure a minimum height so small scores are visible
+      bHeight = Math.max(bHeight, 4); 
+      var by = padding.top + chartHeight - bHeight;
+      var fillColor = sBest >= 80 ? 'var(--payroc-teal)' : 'var(--payroc-blue)';
+      
+      // Bar
+      svg += '<rect x="' + bx + '" y="' + by + '" width="' + barWidth + '" height="' + bHeight + '" fill="' + fillColor + '" rx="2" ry="2"/>';
+      
+      // Number explicitly on top of bar
+      svg += '<text x="' + cx + '" y="' + (by - 6) + '" fill="var(--text-primary)" font-size="11" font-weight="600" text-anchor="middle">' + sBest + '</text>';
+    } else {
+      // Unattempted empty dashed column
+      var emptyPath = 'M' + bx + ',' + (padding.top + chartHeight) + 
+                      ' L' + bx + ',' + padding.top + 
+                      ' A2,2 0 0,1 ' + (bx+2) + ',' + (padding.top-2) + 
+                      ' L' + (bx+barWidth-2) + ',' + (padding.top-2) + 
+                      ' A2,2 0 0,1 ' + (bx+barWidth) + ',' + padding.top + 
+                      ' L' + (bx+barWidth) + ',' + (padding.top + chartHeight);
+      svg += '<path d="' + emptyPath + '" fill="none" stroke="var(--border-light)" stroke-width="1.5" stroke-dasharray="4,4"/>';
+    }
   }
 
   svg += '</svg>';

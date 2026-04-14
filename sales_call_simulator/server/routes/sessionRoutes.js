@@ -299,8 +299,25 @@ router.get('/progress', async (req, res) => {
     // Determine current stage: advance past any stage whose scenario has a passing session
     const { SALES_STAGES } = require('../stages');
     let currentStage = 1;
+    let attemptedStagesCount = 0;
+    let masteryScoreSum = 0;
+    let lowestBestScore = 101;
+    let weakestStage = null;
+
     for (const stage of SALES_STAGES) {
       if (!stage.scenarioId) break; // No scenario = can't progress further
+      
+      const sBest = perScenario[stage.scenarioId] ? perScenario[stage.scenarioId].bestScore : null;
+      if (sBest !== null) {
+        attemptedStagesCount++;
+        masteryScoreSum += sBest;
+        
+        if (sBest <= lowestBestScore) {
+          lowestBestScore = sBest;
+          weakestStage = stage.shortName;
+        }
+      }
+
       const hasPassed = sessions.some(
         s => s.scenario_id === stage.scenarioId && s.overall_verdict === 'pass'
       );
@@ -311,10 +328,19 @@ router.get('/progress', async (req, res) => {
       }
     }
 
+    const masteryScore = attemptedStagesCount > 0 ? Math.round(masteryScoreSum / attemptedStagesCount) : 0;
+    
+    // We calculate a simulated 'previous mastery score' using only the `previousScore` variable from the latest session logic to give a general delta idea, but to be strictly accurate we will use previousScore for the entire dashboard shift, or simply compare mastery to a simulated previous block. Since `latestScore` and `previousScore` were single-session oriented, we will map them conceptually to mastery here for the progress ring delta.
+    // For simplicity, we'll keep `latestScore` and `previousScore` in the response but provide `masteryScore`.
+    const completedStages = currentStage > 1 ? currentStage - 1 : 0;
+
     res.json({
       overall: {
         totalAttempts: sessions.length,
         scoredAttempts: sessions.length,
+        masteryScore,
+        completedStages,
+        weakestStage,
         bestScore,
         averageScore,
         latestScore,
