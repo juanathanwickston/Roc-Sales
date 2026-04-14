@@ -126,7 +126,7 @@ const app = {
         if (cta) {
           const sid = cta.dataset.scenarioId;
           // Pilot: Route Module 1 to Course Player instead of AI Simulator
-          if (sid === 'module1_discovery') {
+          if (sid === 'module1_identifying_customer') {
               app.startCoursePilot();
           } else {
               app.selectScenario(sid);
@@ -310,7 +310,7 @@ const app = {
       // JSON mapping masking as AI evaluation hook
       const payload = {
         session_id: 'lms_' + Date.now(),
-        scenario_id: 'module1_discovery', // Bind identically to AI stage payload map
+        scenario_id: 'module1_identifying_customer', // Bind identically to AI stage payload map
         overall_score: score,
         duration_seconds: 300,
         categories: {
