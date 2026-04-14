@@ -124,9 +124,25 @@ const app = {
       stageCards.addEventListener('click', function(e) {
         const cta = e.target.closest('[data-scenario-id]');
         if (cta) {
-          app.selectScenario(cta.dataset.scenarioId);
+          const sid = cta.dataset.scenarioId;
+          // Pilot: Route Module 1 to Course Player instead of AI Simulator
+          if (sid === 'module1_discovery') {
+              app.startCoursePilot();
+          } else {
+              app.selectScenario(sid);
+          }
         }
       });
+    }
+
+    // --- Course Player Binding ---
+    const btnCourseBack = document.getElementById('btn-course-back');
+    if (btnCourseBack) {
+       btnCourseBack.addEventListener('click', function() { app.showScreen('scenarios'); });
+    }
+    const btnSubmitCourse = document.getElementById('btn-submit-course');
+    if (btnSubmitCourse) {
+       btnSubmitCourse.addEventListener('click', function() { app.submitCoursePilot(); });
     }
 
     // --- Coaching Sidebar: Accordion ---
@@ -250,6 +266,93 @@ const app = {
    * The home screen is now stage-based (rendered by progress.js).
    * This method just fetches and caches data needed for selectScenario().
    */
+  async startCoursePilot() {
+      // Hardcoded Pilot payload for Module 1
+      document.getElementById('course-title').textContent = "Identify the Customer";
+      document.getElementById('course-stage-name').textContent = "Module 1 – Discovery Framework";
+      document.getElementById('course-description').textContent = "Learn to qualify suspects through discovery calls before ever launching into your product pitch.";
+
+      const quizHTML = `
+        <div class="quiz-question" style="margin-bottom:20px;">
+          <p style="margin-bottom:8px;font-weight:600;">1. What is the primary goal of the initial discovery call?</p>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="wrong"> To pitch the Payroc product catalog immediately</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="correct"> To qualify the prospect and uncover their pain points</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q1" value="wrong"> To close the sale on the first interaction</label>
+        </div>
+        <div class="quiz-question" style="margin-bottom:20px;">
+          <p style="margin-bottom:8px;font-weight:600;">2. In the BANT qualification framework, what does 'A' stand for?</p>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="wrong"> Assets</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="correct"> Authority</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q2" value="wrong"> Awareness</label>
+        </div>
+        <div class="quiz-question" style="margin-bottom:20px;">
+          <p style="margin-bottom:8px;font-weight:600;">3. Which is the best closing sequence for a module 1 interaction?</p>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="wrong"> "Can I get your credit card to process the setup fee today?"</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="wrong"> "How does our tier-pricing look compared to Square?"</label>
+          <label style="display:block;margin-bottom:8px;cursor:pointer;"><input type="radio" name="q3" value="correct"> "Would it make sense to set up a follow-up call with the rest of your decision-makers?"</label>
+        </div>
+      `;
+      document.getElementById('course-quiz-form').innerHTML = quizHTML;
+      this.showScreen('course-player');
+  },
+
+  async submitCoursePilot() {
+      const form = document.getElementById('course-quiz-form');
+      const formData = new FormData(form);
+      
+      let score = 0;
+      if (formData.get('q1') === 'correct') score += 33.3;
+      if (formData.get('q2') === 'correct') score += 33.3;
+      if (formData.get('q3') === 'correct') score += 33.4;
+
+      score = Math.round(score);
+
+      // JSON mapping masking as AI evaluation hook
+      const payload = {
+        session_id: 'lms_' + Date.now(),
+        scenario_id: 'module1_discovery', // Bind identically to AI stage payload map
+        overall_score: score,
+        duration_seconds: 300,
+        categories: {
+            "Discovery Questions": {
+                score: score > 33 ? 100 : 0, 
+                feedback: ["Module 1 Knowledge Exam Completed."]
+            },
+            "Qualification Framework": {
+                score: score,
+                feedback: ["Module 1 Knowledge Exam Completed."]
+            }
+        }
+      };
+
+      try {
+          const btn = document.getElementById('btn-submit-course');
+          const originalText = btn.textContent;
+          btn.textContent = "Grading & Saving to Database...";
+          btn.disabled = true;
+
+          await fetch('/api/sessions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+          
+          btn.textContent = originalText;
+          btn.disabled = false;
+          
+          showToast(`Course Passed! You scored ${score}%`, 'success');
+          
+          if (typeof fetchProgress === 'function') {
+             await fetchProgress(); // Dynamically re-hydrate Dashboard chart vectors
+          }
+          this.showScreen('scenarios');
+          
+      } catch(e) {
+          console.error(e);
+          showToast('Database error while saving LMS record.', 'error');
+      }
+  },
+
   async loadScenarios() {
     try {
       const res = await fetch('/api/scenarios');
