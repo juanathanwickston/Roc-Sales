@@ -1228,14 +1228,21 @@
     }
     .stage-card-locked {
       background: #FBFBFC;
+      padding: 12px 20px;
+      align-items: center;
     }
     .stage-card-number {
       font-size: 26px; font-weight: var(--fw-bold);
       color: var(--payroc-blue); line-height: 1; min-width: 36px;
       padding-top: 2px;
     }
-    .stage-number-locked { color: #D1D5DB; }
+    .stage-number-locked { color: #D1D5DB; font-size: 18px; padding-top: 0; min-width: 28px; }
     .stage-card-body { flex: 1; min-width: 0; }
+    .stage-card-body-flex { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .stage-content-left { flex: 1; min-width: 0; }
+    .stage-content-left .stage-card-desc { margin-bottom: 0; }
+    .stage-actions-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; flex-wrap: wrap; }
+    .stage-card-locked-header { margin-bottom: 0 !important; }
     .stage-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
     .stage-card-title { font-size: 15px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; letter-spacing: -0.2px; }
     .stage-status-badge {
@@ -1248,7 +1255,7 @@
     .stage-status-locked { background: transparent; color: #B0B8C4; }
     .stage-card-scenario { font-size: var(--fs-sm); color: var(--payroc-blue); font-weight: var(--fw-medium); margin-bottom: 4px; }
     .stage-card-desc { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-relaxed); margin-bottom: 12px; }
-    .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 12px; flex-wrap: wrap; }
+    .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); flex-wrap: wrap; }
     .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
     .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
     .stage-card-cta {
@@ -1259,7 +1266,7 @@
     /* Performance sidebar */
     .perf-sidebar-card {
       background: #FFFFFF;
-      border-radius: var(--r); padding: 24px;
+      border-radius: var(--r); padding: 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       position: sticky; top: 24px;
     }
@@ -1278,7 +1285,7 @@
     .perf-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
     .perf-stat {
       background: #F7F8FA; border-radius: var(--rs);
-      padding: 14px 12px; text-align: center;
+      padding: 10px 8px; text-align: center;
     }
     .perf-stat-value { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-primary); letter-spacing: -0.5px; }
     .perf-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
