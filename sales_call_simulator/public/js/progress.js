@@ -190,17 +190,29 @@ function renderPerformanceSidebar(stages, progress) {
     '<div class="perf-chart-container" id="mastery-chart-container"></div>' +
   '</div>';
 
-  // Skill bars
+  // Skill bars - The "Focus 3" Logic
   var catEntries = Object.entries(categories);
   if (catEntries.length > 0) {
-    html += '<div class="perf-skills-card">' +
-      '<div class="perf-skills-title">Skills</div>';
+    // Sort descending by latest score to map global extremes
+    var sortedSkills = catEntries.sort(function(a, b) {
+      return b[1].latest - a[1].latest;
+    });
 
-    for (var c = 0; c < catEntries.length; c++) {
-      var catName = catEntries[c][0];
-      var catData = catEntries[c][1];
+    html += '<div class="perf-skills-card">' +
+      '<div class="perf-skills-title">Global Mastery</div>';
+
+    // Inline render helper
+    function renderSkillRow(entry, prefixLabel, isFocusArea) {
+      var catName = entry[0];
+      var catData = entry[1];
       var displayName = catName.replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
-      var barColor = catData.latest >= 70 ? 'var(--color-pass)' : (catData.latest >= 50 ? 'var(--color-warning)' : 'var(--color-fail)');
+      var safeName = esc(displayName);
+      
+      if (prefixLabel) safeName = '<span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-right:6px;">' + prefixLabel + '</span> ' + safeName;
+
+      var barColor = isFocusArea ? 'var(--color-fail)' : 'var(--color-pass)';
+      if (!isFocusArea && !prefixLabel && catData.latest < 70) barColor = 'var(--color-warning)'; // Fallback
+
       var trendArrow = '';
       if (catData.trend && catData.trend.length >= 2) {
         var prev = catData.trend[catData.trend.length - 2];
@@ -210,14 +222,37 @@ function renderPerformanceSidebar(stages, progress) {
         else trendArrow = '<span class="skill-trend skill-trend-same">—</span>';
       }
 
-      html += '<div class="perf-skill-row">' +
-        '<div class="perf-skill-name">' + esc(displayName) + '</div>' +
+      return '<div class="perf-skill-row" style="margin-bottom: 8px;">' +
+        '<div class="perf-skill-name">' + safeName + '</div>' +
         '<div class="perf-skill-bar-wrap">' +
           '<div class="perf-skill-bar" style="width:0;background:' + barColor + '" data-target="' + catData.latest + '%"></div>' +
         '</div>' +
         '<div class="perf-skill-score">' + catData.latest + '%' + trendArrow + '</div>' +
       '</div>';
     }
+
+    // Top Strength (Rank 1)
+    var topSkill = sortedSkills[0];
+    if (topSkill) {
+      html += renderSkillRow(topSkill, 'Top Strength', false);
+    }
+
+    // Focus Areas (Bottom 1 or 2)
+    var focusSkills = [];
+    if (sortedSkills.length > 1) {
+      focusSkills.push(sortedSkills[sortedSkills.length - 1]); // The absolute lowest
+    }
+    if (sortedSkills.length > 2) {
+      focusSkills.unshift(sortedSkills[sortedSkills.length - 2]); // The second lowest
+    }
+
+    if (focusSkills.length > 0) {
+      html += '<div class="perf-skills-subtitle" style="margin-top: 14px; margin-bottom: 8px; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 4px;">Focus Areas</div>';
+      for (var f = 0; f < focusSkills.length; f++) {
+        html += renderSkillRow(focusSkills[f], null, true);
+      }
+    }
+
     html += '</div>';
   }
 
