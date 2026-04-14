@@ -322,6 +322,9 @@ const app = {
       const newAudioEl = audioEl.cloneNode(true);
       audioEl.parentNode.replaceChild(newAudioEl, audioEl);
 
+      // Force browser to fetch and buffer the MP3 payload
+      newAudioEl.load();
+
       // 2. The Interruption Engine (timeupdate hook)
       newAudioEl.addEventListener('timeupdate', () => {
           const currentTime = newAudioEl.currentTime;
