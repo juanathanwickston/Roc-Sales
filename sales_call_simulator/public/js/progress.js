@@ -250,7 +250,6 @@ function renderStageMasteryChart(stages, perScenario) {
   // Pass threshold line
   var thresholdY = padding.top + chartHeight - (80 / 100) * chartHeight;
   svg += '<line x1="' + padding.left + '" y1="' + thresholdY + '" x2="' + (width - padding.right) + '" y2="' + thresholdY + '" stroke="var(--color-pass)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.6"/>';
-  svg += '<text x="' + width + '" y="' + (thresholdY - 4) + '" fill="var(--color-pass)" font-size="9" opacity="0.8" text-anchor="end">Pass</text>';
 
   for (var i = 0; i < n; i++) {
     var stage = stages[i];
