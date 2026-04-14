@@ -277,7 +277,7 @@ const app = {
           questions: [
               {
                   id: 'q1', time: 18.5, answered: false,
-                  text: 'What critical discovery misstep did Alex just make?',
+                  text: 'Quiz 1: What Did Alex Do Wrong?',
                   options: [
                       { text: "He didn't ask what brand of terminals Sarah is currently using.", correct: false },
                       { text: "He engaged in 'feature dumping' instead of exploring the business impact.", correct: true },
@@ -287,7 +287,7 @@ const app = {
               },
               {
                   id: 'q2', time: 45.6, answered: false,
-                  text: 'How should Alex have responded to Sarah\'s statement about her partner, Dave?',
+                  text: 'Quiz 2: What Should Alex Have Done?',
                   options: [
                       { text: "Ask Sarah to put Dave on the phone right now.", correct: false },
                       { text: "Continue pitching Sarah so she can convince Dave later.", correct: false },
@@ -297,7 +297,7 @@ const app = {
               },
               {
                   id: 'q3', time: 74.6, answered: false,
-                  text: 'Sarah dropped a massive buying signal. How did Alex fail to capitalize on it to close?',
+                  text: 'Quiz 3: How Did Alex Fail to Close the Discovery?',
                   options: [
                       { text: "He failed to establish a concrete Timeline for when they want to replace their vendor and did not secure a firm next step.", correct: true },
                       { text: "He didn't explain the exact difference between pricing structures.", correct: false },
