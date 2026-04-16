@@ -276,34 +276,64 @@ const app = {
           audioSrc: '/media/module1_audio.mp3', 
           questions: [
               {
-                  id: 'q1', time: 18.5, answered: false,
-                  text: 'Quiz 1: What Did Alex Do Wrong?',
+                  id: 'q1', time: 28.87, answered: false,
+                  text: 'What critical mistake did Jake make here?',
                   options: [
-                      { text: "He didn't ask what brand of terminals Sarah is currently using.", correct: false },
-                      { text: "He engaged in 'feature dumping' instead of exploring the business impact.", correct: true },
-                      { text: "He didn't immediately offer her a discount on new hardware.", correct: false }
+                      { text: "He pitched his product's value before understanding if the customer even had a need for it.", correct: true },
+                      { text: "He didn't offer a discount early enough in the call.", correct: false },
+                      { text: "He spoke for too long without asking for an email address.", correct: false }
                   ],
-                  explanation: "<b>The 'N' in BANT:</b> Alex missed a massive opportunity to uncover the Need. When a prospect hands you a pain point, you must quantify the bleeding before applying the bandage. By instantly pitching hardware specs, Alex failed to ask high-leverage questions."
+                  explanation: "<b>Product-Pushing:</b> Jake failed to execute discovery. Proposing a solution to a problem that hasn't been defined is a fatal error."
               },
               {
-                  id: 'q2', time: 45.6, answered: false,
-                  text: 'Quiz 2: What Should Alex Have Done?',
+                  id: 'q2', time: 49.56, answered: false,
+                  text: 'How did Jake mishandle the qualification phase?',
                   options: [
-                      { text: "Ask Sarah to put Dave on the phone right now.", correct: false },
-                      { text: "Continue pitching Sarah so she can convince Dave later.", correct: false },
-                      { text: "Pivot to ask how Dave evaluates new vendors and request a joint intro.", correct: true }
+                      { text: "He should have asked for Mike's exact software stack before moving forward.", correct: false },
+                      { text: "He assumed Mike was a good fit without verifying his industry or business model.", correct: true },
+                      { text: "He completely forgot to establish who the decision maker was.", correct: false }
                   ],
-                  explanation: "<b>The 'A' in BANT:</b> Alex completely ignored the Authority signal. Pitching the dashboard to someone who doesn't use it or buy it is a waste of breath. Alex should have mapped the buying committee immediately."
+                  explanation: "<b>Assuming ICP:</b> Jake guessed the prospect's industry incorrectly based on an internal assumption. You must confirm the Ideal Customer Profile before establishing fit."
               },
               {
-                  id: 'q3', time: 74.6, answered: false,
-                  text: 'Quiz 3: How Did Alex Fail to Close the Discovery?',
+                  id: 'q3', time: 65.42, answered: false,
+                  text: 'What assumption did Jake make about Mike\'s current situation?',
                   options: [
-                      { text: "He failed to establish a concrete Timeline for when they want to replace their vendor and did not secure a firm next step.", correct: true },
-                      { text: "He didn't explain the exact difference between pricing structures.", correct: false },
-                      { text: "He didn't ask her what her monthly processing volume (Budget) was.", correct: false }
+                      { text: "He assumed Mike was overpaying and had a problem, without Mike ever defining a need.", correct: true },
+                      { text: "He assumed Mike was the sole decision maker in the practice.", correct: false },
+                      { text: "He assumed Mike was already actively using a direct competitor.", correct: false }
                   ],
-                  explanation: "<b>The 'T' in BANT:</b> Sarah handed Alex a gift: 'We're definitely fed up.' Instead of locking down the Timeline, Alex retreated to the safety of 'sending an email.' Hope is not a sales strategy."
+                  explanation: "<b>Assuming Need:</b> Jake stated 'most businesses are overpaying.' Never assume a prospect has a problem until they articulate it themselves."
+              },
+              {
+                  id: 'q4', time: 80.52, answered: false,
+                  text: 'Why is Jake\'s attempt to "ballpark" savings ineffective here?',
+                  options: [
+                      { text: "Because Mike probably knows exactly what he pays and is just hiding it.", correct: false },
+                      { text: "Because he is pushing a financial solution without building any context or trust first.", correct: true },
+                      { text: "Because ballpark figures are mathematically inaccurate and lead to customer churn.", correct: false }
+                  ],
+                  explanation: "<b>Pushing Value Prematurely:</b> Jake is still trying to force a value proposition (savings) onto a prospect who hasn't expressed any active pain regarding their processing costs."
+              },
+              {
+                  id: 'q5', time: 97.22, answered: false,
+                  text: 'How did Jake fail to secure the Authority in the BANT framework?',
+                  options: [
+                      { text: "He accepted 'kind of' as an answer without identifying the specific roles of the partner and accountant.", correct: true },
+                      { text: "He didn't explicitly demand the partner's cell phone number before moving on.", correct: false },
+                      { text: "He made Mike feel uncomfortable by asking too many organizational questions.", correct: false }
+                  ],
+                  explanation: "<b>Failing Authority:</b> In BANT, you must explicitly map the entire buying committee. Allowing fuzzy answers like 'kind of' leaves massive pipeline blind spots."
+              },
+              {
+                  id: 'q6', time: 114.67, answered: false,
+                  text: 'Why did the call end in a weak "send me some info" brush-off?',
+                  options: [
+                      { text: "Jake forgot to send the calendar invite while keeping Mike on the line.", correct: false },
+                      { text: "Jake failed to establish any Urgency or Timeline, allowing Mike to logically defer the decision.", correct: true },
+                      { text: "Mike was simply too busy running a healthcare practice to take a demo.", correct: false }
+                  ],
+                  explanation: "<b>No Timeline or Urgency:</b> Without uncovering a bleeding neck problem, there is absolutely no urgency to change providers. Jake accepted a total stall tactic."
               }
           ]
       };
@@ -328,7 +358,7 @@ const app = {
       // 2. The Interruption Engine (timeupdate hook)
       newAudioEl.addEventListener('timeupdate', () => {
           const currentTime = newAudioEl.currentTime;
-          
+
           for (let i = 0; i < this.courseConfig.questions.length; i++) {
               const q = this.courseConfig.questions[i];
               if (!q.answered && currentTime >= q.time) {
@@ -377,7 +407,7 @@ const app = {
               if (opt.correct) {
                   btn.style.background = 'rgba(16, 185, 129, 0.1)';
                   btn.style.borderColor = 'var(--color-pass)';
-                  this.courseScore += 33.3; // Give points
+                  this.courseScore += (100 / this.courseConfig.questions.length); // Give proportional points
               } else {
                   btn.style.background = 'rgba(239, 68, 68, 0.1)';
                   btn.style.borderColor = 'var(--color-fail)';
