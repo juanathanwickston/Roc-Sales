@@ -273,10 +273,10 @@ const app = {
 
       // 1. The Configuration Array
       this.courseConfig = {
-          audioSrc: '/media/module1_audio.mp3', 
+          audioSrc: '/media/module1_audio.wav', 
           questions: [
               {
-                  id: 'q1', time: 28.87, answered: false,
+                  id: 'q1', time: 25.17, answered: false,
                   text: 'What critical mistake did Jake make here?',
                   options: [
                       { text: "He pitched his product's value before understanding if the customer even had a need for it.", correct: true },
@@ -286,7 +286,7 @@ const app = {
                   explanation: "<b>Product-Pushing:</b> Jake failed to execute discovery. Proposing a solution to a problem that hasn't been defined is a fatal error."
               },
               {
-                  id: 'q2', time: 49.56, answered: false,
+                  id: 'q2', time: 43.84, answered: false,
                   text: 'How did Jake mishandle the qualification phase?',
                   options: [
                       { text: "He should have asked for Mike's exact software stack before moving forward.", correct: false },
@@ -296,7 +296,7 @@ const app = {
                   explanation: "<b>Assuming ICP:</b> Jake guessed the prospect's industry incorrectly based on an internal assumption. You must confirm the Ideal Customer Profile before establishing fit."
               },
               {
-                  id: 'q3', time: 65.42, answered: false,
+                  id: 'q3', time: 57.54, answered: false,
                   text: 'What assumption did Jake make about Mike\'s current situation?',
                   options: [
                       { text: "He assumed Mike was overpaying and had a problem, without Mike ever defining a need.", correct: true },
@@ -306,7 +306,7 @@ const app = {
                   explanation: "<b>Assuming Need:</b> Jake stated 'most businesses are overpaying.' Never assume a prospect has a problem until they articulate it themselves."
               },
               {
-                  id: 'q4', time: 80.52, answered: false,
+                  id: 'q4', time: 70.48, answered: false,
                   text: 'Why is Jake\'s attempt to "ballpark" savings ineffective here?',
                   options: [
                       { text: "Because Mike probably knows exactly what he pays and is just hiding it.", correct: false },
@@ -316,7 +316,7 @@ const app = {
                   explanation: "<b>Pushing Value Prematurely:</b> Jake is still trying to force a value proposition (savings) onto a prospect who hasn't expressed any active pain regarding their processing costs."
               },
               {
-                  id: 'q5', time: 97.22, answered: false,
+                  id: 'q5', time: 84.78, answered: false,
                   text: 'How did Jake fail to secure the Authority in the BANT framework?',
                   options: [
                       { text: "He accepted 'kind of' as an answer without identifying the specific roles of the partner and accountant.", correct: true },
@@ -326,7 +326,7 @@ const app = {
                   explanation: "<b>Failing Authority:</b> In BANT, you must explicitly map the entire buying committee. Allowing fuzzy answers like 'kind of' leaves massive pipeline blind spots."
               },
               {
-                  id: 'q6', time: 114.67, answered: false,
+                  id: 'q6', time: 100.21, answered: false,
                   text: 'Why did the call end in a weak "send me some info" brush-off?',
                   options: [
                       { text: "Jake forgot to send the calendar invite while keeping Mike on the line.", correct: false },
