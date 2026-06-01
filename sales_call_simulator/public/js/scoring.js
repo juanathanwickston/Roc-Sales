@@ -69,7 +69,7 @@ const scoring = {
     const numberEl = document.getElementById('score-number');
 
     // Color based on score
-    const color = (score >= 70) ? 'var(--green)' : ((score >= 50) ? 'var(--orange)' : 'var(--red)');
+    const color = (score >= window.SCORE_PASS_THRESHOLD) ? 'var(--green)' : ((score >= window.SCORE_WARNING_THRESHOLD) ? 'var(--orange)' : 'var(--red)');
     fillEl.style.stroke = color;
 
     // Calculate offset for ring
@@ -105,9 +105,9 @@ const scoring = {
     const container = document.getElementById('score-categories');
     container.innerHTML = Object.entries(categories)
       .map(([name, data]) => {
-        const verdict = data.verdict || ((data.score >= 70) ? 'Strong' : ((data.score >= 50) ? 'Adequate' : 'Weak'));
+        const verdict = data.verdict || ((data.score >= window.SCORE_PASS_THRESHOLD) ? 'Strong' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'Adequate' : 'Weak'));
         const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const barColor = (data.score >= 70) ? 'var(--green)' : ((data.score >= 50) ? 'var(--orange)' : 'var(--red)');
+        const barColor = (data.score >= window.SCORE_PASS_THRESHOLD) ? 'var(--green)' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'var(--orange)' : 'var(--red)');
         const countText = (data.observed_count !== undefined && data.total_count !== undefined)
           ? ` (${data.observed_count}/${data.total_count})`
           : '';

@@ -154,7 +154,7 @@ function renderPerformanceSidebar(stages, progress) {
   var delta = masteryScore - (overall.previousScore || 0);
   var deltaClass = delta > 0 ? 'delta-up' : (delta < 0 ? 'delta-down' : 'delta-same');
   var deltaText = delta > 0 ? ('+' + delta) : (delta === 0 ? '—' : String(delta));
-  var ringColor = masteryScore >= 80 ? 'var(--color-pass)' : (masteryScore >= 50 ? 'var(--color-warning)' : 'var(--color-fail)');
+  var ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
   var circumference = 2 * Math.PI * 54; // r=54
   var offset = circumference - (masteryScore / 100) * circumference;
 
@@ -216,7 +216,7 @@ function renderPerformanceSidebar(stages, progress) {
       
       if (prefixLabel) safeName = '<span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-right:6px;">' + prefixLabel + '</span> ' + safeName;
 
-      var barColor = catData.latest >= 80 ? 'var(--color-pass)' : (catData.latest >= 60 ? 'var(--color-warning)' : 'var(--color-fail)');
+      var barColor = catData.latest >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (catData.latest >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
 
       var trendArrow = '';
       if (catData.trend && catData.trend.length >= 2) {
