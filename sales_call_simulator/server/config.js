@@ -50,9 +50,6 @@ function validateConfig() {
   if (!config.JWT_SECRET) {
     warnings.push('JWT_SECRET is not set - auth will be disabled.');
   }
-  if (!config.SIMULATOR_SYNC_SECRET) {
-    warnings.push('SIMULATOR_SYNC_SECRET is not set - academy completion callbacks will be skipped.');
-  }
 
   if (warnings.length > 0) {
     console.warn('\n[CONFIG] Missing configuration:');
