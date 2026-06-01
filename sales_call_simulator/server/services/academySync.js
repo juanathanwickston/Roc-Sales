@@ -31,10 +31,13 @@ async function sendCompletionCallback({ sessionId, scorecard, scenarioId, userId
   // Log the sync attempt
   await logSyncAttempt(sessionId, payload, 'pending');
 
-  // Skip callback if ROC Academy URL is not configured or is localhost default
-  if (!config.ROC_ACADEMY_URL || config.ROC_ACADEMY_URL === 'http://localhost:3000') {
-    console.log('[AcademySync] Skipping callback - ROC Academy URL not configured for remote');
-    await updateSyncStatus(sessionId, 'skipped', null, null);
+  // Skip callback if SIMULATOR_SYNC_SECRET is not configured
+  // This code change may be deployed before the ROC Academy validator is updated
+  // only if stakeholders accept that completion callbacks will be skipped until
+  // both systems are configured. Prefer a coordinated staging deployment first.
+  if (!config.SIMULATOR_SYNC_SECRET) {
+    console.warn('[AcademySync] Skipping callback - SIMULATOR_SYNC_SECRET is not configured');
+    await updateSyncStatus(sessionId, 'skipped', null, 'SIMULATOR_SYNC_SECRET not configured');
     return;
   }
 
@@ -48,7 +51,7 @@ async function sendCompletionCallback({ sessionId, scorecard, scenarioId, userId
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(config.JWT_SECRET ? { 'X-Simulator-Secret': config.JWT_SECRET } : {}),
+        'X-Simulator-Secret': config.SIMULATOR_SYNC_SECRET,
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
