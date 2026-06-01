@@ -6,6 +6,7 @@
 const express = require('express');
 
 const db = require('../db');
+const { requireAuth } = require('../middleware/auth');
 const { tavusFetch } = require('../services/tavusClient');
 const { extractTranscript } = require('../services/tavusNormalizer');
 const { processSession, generateCoachingAnalysis, scoreTranscript } = require('../services/postCallProcessor');
@@ -737,7 +738,9 @@ router.get('/:id/perception', async (req, res) => {
  * Runs existing raw_transcript data through the updated normalizer to fix
  * duplicates, em dashes, and interleaved text. One-time migration utility.
  */
-router.post('/renormalize-all', async (req, res) => {
+// Tier 0: requireAuth enforces valid JWT. Tier 1 must add role/service authorization
+// before exposing these endpoints beyond trusted operators.
+router.post('/renormalize-all', requireAuth, async (req, res) => {
   if (!db.isAvailable()) {
     return res.status(503).json({ error: 'Database not available' });
   }
@@ -782,7 +785,7 @@ router.post('/renormalize-all', async (req, res) => {
  * POST /api/sessions/:id/generate-coaching - Generate coaching for an existing scored session.
  * Used to backfill coaching for sessions that were scored before the coaching feature existed.
  */
-router.post('/:id/generate-coaching', async (req, res) => {
+router.post('/:id/generate-coaching', requireAuth, async (req, res) => {
   if (!db.isAvailable()) {
     return res.status(503).json({ error: 'Database not available' });
   }
@@ -847,7 +850,7 @@ router.post('/:id/generate-coaching', async (req, res) => {
  * POST /api/sessions/:id/rescore - Re-score an existing session with the current rubric.
  * Used to backfill mechanical scoring for sessions scored with the old subjective rubric.
  */
-router.post('/:id/rescore', async (req, res) => {
+router.post('/:id/rescore', requireAuth, async (req, res) => {
   if (!db.isAvailable()) {
     return res.status(503).json({ error: 'Database not available' });
   }
