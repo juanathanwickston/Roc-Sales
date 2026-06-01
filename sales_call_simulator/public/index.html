@@ -1237,7 +1237,7 @@
       flex: 1; min-height: 0;
       background: #FFFFFF;
       border: 1px solid transparent;
-      border-radius: var(--r); padding: 12px 16px;
+      border-radius: var(--r); padding: 16px 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: all .25s ease;
     }
@@ -1260,8 +1260,8 @@
     }
     .stage-number-locked { color: #D1D5DB; font-size: 18px; padding-top: 0; min-width: 28px; }
     
-    .stage-card-left { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
-    .stage-card-content-left { display: flex; flex-direction: column; justify-content: flex-start; min-width: 0; }
+    .stage-card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .stage-card-content-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
     .stage-card-right { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex-shrink: 0; }
     
     .stage-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
@@ -1279,13 +1279,10 @@
     .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); flex-wrap: wrap; }
     .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
     .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
-    .stage-card-cta-link {
-      background: transparent; border: none; padding: 0; margin: 0;
-      color: #000000; font-size: 13px; font-weight: var(--fw-bold);
-      text-decoration: underline; text-underline-offset: 3px;
-      cursor: pointer; transition: color 0.15s ease;
+    .stage-card-cta {
+      padding: 8px 20px; border-radius: var(--rs);
+      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
     }
-    .stage-card-cta-link:hover { color: var(--payroc-blue); }
 
     /* Performance sidebar */
     .perf-sidebar-card {
@@ -1772,72 +1769,6 @@
               <p>Loading transcript...</p>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- ═══════════════ SCREEN 6: COURSE PLAYER ═══════════════ -->
-  <div id="screen-course-player" class="screen" style="background: var(--bg-body); min-height: 100vh;">
-    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="header-brand">
-        <div class="brand-icon" aria-hidden="true"></div>
-        <div>
-          <h1>Module Training</h1>
-          <span class="header-subtitle" id="course-stage-name">Module Name</span>
-        </div>
-      </div>
-      <button id="btn-course-back" class="btn btn-ghost" aria-label="Back to dashboard">← Back to Dashboard</button>
-    </header>
-
-    <main class="course-main" style="padding: 40px 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box;">
-      <div class="course-content-card" style="background: #fff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 id="course-title" style="margin-top: 0; font-size: 24px; color: var(--text-primary);">Intro Brief</h2>
-        <div id="course-description" style="color: var(--text-body); line-height: 1.6; margin-bottom: 32px;"></div>
-        
-        <!-- Audio Player Engine -->
-        <div id="course-audio-container" style="background: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 8px; padding: 32px 24px; margin-bottom: 24px; display: flex; flex-direction: column; transition: all 0.3s ease;">
-             
-             <!-- Audio Wrapper -->
-             <div style="position: relative; width: 100%;">
-                 <!-- Primary Audio Element -->
-                 <audio id="course-audio-player" controls controlsList="nodownload" style="width: 100%; outline: none;" src="">
-                    Your browser does not support the audio element.
-                 </audio>
-                 
-                 <!-- Audio Lock Shield -->
-                 <div id="audio-lock-shield" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(250, 250, 250, 0.4); z-index: 5; cursor: not-allowed; border-radius: 30px;"></div>
-             </div>
-
-             <!-- Quiz Interstitial Expandable Card -->
-             <div id="audio-interruption-modal" style="display: none; flex-direction: column; margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
-                 <div id="interruption-content">
-                    <h3 id="interruption-question" style="margin-top: 0; font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px;">What just happened?</h3>
-                    <div id="interruption-options" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                        <!-- injected options -->
-                    </div>
-                    <div id="interruption-feedback" style="display: none; padding: 16px; border-radius: 8px; font-size: 15px; margin-bottom: 24px; line-height: 1.6; background: rgba(0,81,194,0.05); color: var(--text-primary); border-left: 4px solid var(--payroc-blue);">
-                       <!-- injected trainer explanation -->
-                    </div>
-                    <div style="display: flex; justify-content: flex-end;">
-                        <button id="btn-resume-audio" class="btn btn-primary" style="display: none; padding: 12px 32px; font-weight: 600;">Resume Call &rarr;</button>
-                    </div>
-                 </div>
-             </div>
-        </div>
-
-        <!-- Completion Reward Container -->
-        <div id="course-completion-container" style="display: none; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 32px; text-align: center;">
-            <h3 style="margin-top: 0; font-size: 20px; color: var(--text-primary);">Module Complete</h3>
-            <p id="course-final-score" style="font-size: 16px; color: var(--text-muted); margin-bottom: 24px;">Your score has been logged.</p>
-            
-            <div style="background: rgba(0,81,194,0.05); border: 2px dashed rgba(0,81,194,0.3); border-radius: 8px; padding: 24px;">
-                <h4 style="margin: 0 0 12px 0; color: var(--payroc-blue); font-size: 16px;">Unlocked Resource: Qualification Framework</h4>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Master the BANT discovery process with your official cheat sheet.</p>
-                <button type="button" class="btn btn-secondary" style="background: #fff; pointer-events: none;">⬇ Download Cheat Sheet (Coming Soon)</button>
-            </div>
-            
-            <button type="button" id="btn-return-dashboard" class="btn btn-primary" style="margin-top: 32px; width: 100%; padding: 14px; font-size: 16px;">Return to Global Dashboard</button>
         </div>
       </div>
     </main>

@@ -98,7 +98,7 @@ function renderStageCards(stages, progress) {
             (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Best: ' + scenarioStats.bestScore + '/100</span>' : '') +
             (scenarioStats ? '<span class="stage-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14"/></svg> ' + scenarioStats.attempts + ' attempt' + (scenarioStats.attempts !== 1 ? 's' : '') + '</span>' : '') +
           '</div>' +
-          '<button class="stage-card-cta-link" data-scenario-id="' + esc(stage.scenarioId) + '" type="button">Practice Now</button>' +
+          '<button class="btn btn-primary stage-card-cta" data-scenario-id="' + esc(stage.scenarioId) + '" type="button">Practice Now</button>' +
         '</div>' +
       '</div>';
     } else {
