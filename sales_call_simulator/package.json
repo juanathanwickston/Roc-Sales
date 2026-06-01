@@ -5,7 +5,9 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "node server/server.js"
+    "dev": "node server/server.js",
+    "lint": "node scripts/check-syntax.js",
+    "ai:verify": "npm run lint"
   },
   "engines": {
     "node": ">=18"
