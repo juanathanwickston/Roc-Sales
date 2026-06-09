@@ -18,6 +18,47 @@ const {
 } = require('./tavusNormalizer');
 const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
+const logger = require('../utils/logger');
+
+// Shadow global console to redirect all logs through structured JSON logger
+const console = {
+  log: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.info(formattedMessage, context);
+  },
+  warn: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.warn(formattedMessage, context);
+  },
+  error: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.error(formattedMessage, context);
+  }
+};
 
 /**
  * Process a completed call session.
@@ -521,9 +562,7 @@ function calculateMechanicalScore(extraction, rubric, autoFailTriggers) {
   // If any auto-fail is triggered, final_score = 0 and verdict = fail
   const hasAutoFail = triggeredFails.length > 0;
   const finalScore = hasAutoFail ? 0 : rawScore;
-  const overallVerdict = hasAutoFail
-    ? 'fail'
-    : (rawScore >= 70 ? 'pass' : (rawScore >= 50 ? 'needs_work' : 'fail'));
+  const overallVerdict = (finalScore >= 80) ? 'pass' : 'fail';
 
   return {
     overall_score: finalScore,

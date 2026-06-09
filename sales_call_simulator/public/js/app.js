@@ -241,12 +241,15 @@ const app = {
    * Load and cache available scenarios.
    * The home screen is now stage-based (rendered by progress.js).
    * This method just fetches and caches data needed for selectScenario().
-   */
   async loadScenarios() {
     try {
       const res = await fetch('/api/scenarios');
-      const data = await res.json();
-      this.scenarios = data.scenarios || [];
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || err.error || `Failed to load scenarios: ${res.status}`);
+      }
+      const envelope = await res.json();
+      this.scenarios = envelope.data.scenarios || [];
       console.log('[App] Loaded ' + this.scenarios.length + ' scenario(s)');
     } catch (err) {
       console.error('[App] Failed to load scenarios:', err);
@@ -281,8 +284,12 @@ const app = {
   async selectScenario(scenarioId) {
     try {
       const res = await fetch('/api/scenarios/' + scenarioId);
-      if (!res.ok) throw new Error('Scenario not found');
-      this.currentScenario = await res.json();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || err.error || `Scenario not found: ${res.status}`);
+      }
+      const envelope = await res.json();
+      this.currentScenario = envelope.data;
 
       document.getElementById('lobby-scenario-name').textContent = this.currentScenario.name;
       document.getElementById('lobby-status').textContent = 'Setting up the conversation...';
@@ -291,7 +298,7 @@ const app = {
       await callManager.startCall(this.currentScenario);
     } catch (err) {
       console.error('[App] Error selecting scenario:', err);
-      toast('Failed to start scenario. Please try again.', 'error');
+      toast(err.message || 'Failed to start scenario. Please try again.', 'error');
       this.showScreen('scenarios');
     }
   },
@@ -407,7 +414,8 @@ const app = {
 
         if (!res.ok) continue;
 
-        const session = await res.json();
+        const envelope = await res.json();
+        const session = envelope.data;
 
         if (session.status === 'completed' || session.status === 'failed') {
           return session.status;
@@ -439,7 +447,8 @@ const app = {
         return null;
       }
 
-      return await res.json();
+      const envelope = await res.json();
+      return envelope.data;
     } catch (err) {
       console.warn('[App] Scorecard fetch error:', err.message);
       return null;

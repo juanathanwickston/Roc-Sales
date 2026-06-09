@@ -9,6 +9,47 @@
 
 const db = require('../db');
 const { config } = require('../config');
+const logger = require('../utils/logger');
+
+// Shadow global console to redirect all logs through structured JSON logger
+const console = {
+  log: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.info(formattedMessage, context);
+  },
+  warn: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.warn(formattedMessage, context);
+  },
+  error: (message, ...args) => {
+    let formattedMessage = message;
+    let context = {};
+    if (args.length > 0) {
+      if (args[0] && typeof args[0] === 'object') {
+        context = args[0];
+      } else {
+        formattedMessage += ' ' + args.join(' ');
+      }
+    }
+    logger.error(formattedMessage, context);
+  }
+};
 
 // Maximum time to wait for ROC Academy response
 const CALLBACK_TIMEOUT_MS = 10000;

@@ -74,13 +74,28 @@ function loadProgress() {
     var modulesRes = results[0];
     var progressRes = results[1];
 
+    if (!modulesRes.ok) {
+      return modulesRes.json().then(function(err) {
+        throw new Error(err.detail || err.error || 'Failed to load modules');
+      }).catch(function() {
+        throw new Error('Failed to load modules (' + modulesRes.status + ')');
+      });
+    }
+    if (!progressRes.ok) {
+      return progressRes.json().then(function(err) {
+        throw new Error(err.detail || err.error || 'Failed to load progress');
+      }).catch(function() {
+        throw new Error('Failed to load progress (' + progressRes.status + ')');
+      });
+    }
+
     return Promise.all([
       modulesRes.json(),
       progressRes.json()
     ]);
   }).then(function(data) {
-    var modulesData = data[0];
-    var progressData = data[1];
+    var modulesData = data[0].data;
+    var progressData = data[1].data;
 
     _cachedModules = modulesData;
     _cachedProgress = progressData;
@@ -90,7 +105,6 @@ function loadProgress() {
     renderCertificate(progressData);
   }).catch(function(err) {
     console.error('[Progress] Failed to load progress:', err);
-    // Render empty states on error
     renderModuleCardsFallback();
   });
 }

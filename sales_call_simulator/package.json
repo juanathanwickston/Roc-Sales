@@ -7,7 +7,8 @@
     "start": "node server/server.js",
     "dev": "node server/server.js",
     "lint": "node scripts/check-syntax.js",
-    "ai:verify": "npm run lint"
+    "test:security": "node scripts/test-security-audit.js",
+    "ai:verify": "npm run lint && npm run test:security"
   },
   "engines": {
     "node": ">=18"

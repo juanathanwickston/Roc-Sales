@@ -40,6 +40,10 @@ const callManager = {
       this.updateLobbyStatus('Preparing session...');
       this.sessionId = await this.createSession(scenario.id);
 
+      if (!this.sessionId) {
+        throw new Error('Failed to create simulation session. Please try again.');
+      }
+
       // Fetch relationship continuity summary for Module 2 scenarios
       if (scenario.module_id === 'module2' && scenario.persona_id) {
         var lobbyToken = localStorage.getItem('roc_token');
@@ -48,14 +52,10 @@ const callManager = {
             headers: lobbyToken ? { 'Authorization': 'Bearer ' + lobbyToken } : {},
           });
           if (notesRes.ok) {
-            var notesData = await notesRes.json();
-            if (notesData.relationship_summary && notesEl) {
-              var formattedNotes = esc(notesData.relationship_summary)
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/- (.*?)\n/g, '<li>$1</li>')
-                .replace(/\n/g, '<br>');
-              notesEl.innerHTML = '<h4 style="margin:0 0 8px;font-size:13px;color:var(--payroc-blue);">Previous Call Notes</h4>' +
-                '<div style="font-size:12px;color:var(--text-muted);line-height:1.5;">' + formattedNotes + '</div>';
+            const notesEnvelope = await notesRes.json();
+            var notesData = notesEnvelope.data;
+            if (notesData && notesData.relationship_summary && notesEl) {
+              this.renderFormattedNotes(notesEl, notesData.relationship_summary);
               notesEl.style.display = 'block';
             }
           }
@@ -83,10 +83,11 @@ const callManager = {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Failed to create conversation: ${res.status}`);
+        throw new Error(err.detail || err.error || `Failed to create conversation: ${res.status}`);
       }
 
-      const data = await res.json();
+      const envelope = await res.json();
+      const data = envelope.data;
       this.conversationId = data.conversationId;
       this.conversationUrl = data.conversationUrl;
 
@@ -110,6 +111,61 @@ const callManager = {
       this.cleanup();
       this.updateLobbyStatus(`Error: ${err.message}`);
       setTimeout(() => app.showScreen('scenarios'), 3000);
+    }
+  },
+
+  /**
+   * Safely render formatted notes into container to avoid XSS.
+   */
+  renderFormattedNotes(container, text) {
+    container.innerHTML = ''; // Clear container
+
+    var header = document.createElement('h4');
+    header.style.cssText = 'margin:0 0 8px;font-size:13px;color:var(--payroc-blue);';
+    header.textContent = 'Previous Call Notes';
+    container.appendChild(header);
+
+    var div = document.createElement('div');
+    div.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.5;';
+
+    var lines = text.split('\n');
+    var ul = null;
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        if (!ul) {
+          ul = document.createElement('ul');
+          ul.style.cssText = 'margin:4px 0;padding-left:16px;';
+          div.appendChild(ul);
+        }
+        var li = document.createElement('li');
+        this.parseAndAppendFormattedText(li, line.substring(2));
+        ul.appendChild(li);
+      } else {
+        ul = null; // Reset list context
+        var p = document.createElement('p');
+        p.style.margin = '4px 0';
+        this.parseAndAppendFormattedText(p, line);
+        div.appendChild(p);
+      }
+    }
+
+    container.appendChild(div);
+  },
+
+  parseAndAppendFormattedText(element, text) {
+    var parts = text.split(/\*\*(.*?)\*\*/g);
+    for (var i = 0; i < parts.length; i++) {
+      if (i % 2 === 1) {
+        var strong = document.createElement('strong');
+        strong.textContent = parts[i];
+        element.appendChild(strong);
+      } else {
+        element.appendChild(document.createTextNode(parts[i]));
+      }
     }
   },
 
@@ -373,8 +429,8 @@ const callManager = {
 
       overlay.innerHTML = `
         <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" style="background:var(--n3,#152240);border:1px solid var(--gb,rgba(59,130,246,.12));border-radius:12px;padding:24px;max-width:400px;width:90%;color:var(--white,#EDF2FF);font-family:var(--font,'Geist',sans-serif);">
-          <h3 id="confirm-title" style="margin:0 0 8px;font-size:18px;">${title}</h3>
-          <p style="margin:0 0 24px;color:var(--gray,#7B8BA8);font-size:14px;">${message}</p>
+          <h3 id="confirm-title" style="margin:0 0 8px;font-size:18px;"></h3>
+          <p id="confirm-message" style="margin:0 0 24px;color:var(--gray,#7B8BA8);font-size:14px;"></p>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button id="confirm-cancel" style="padding:8px 16px;border-radius:8px;border:1px solid var(--gb,rgba(59,130,246,.12));background:var(--n4,#1C2D4E);color:var(--white,#EDF2FF);cursor:pointer;font-size:13px;">Cancel</button>
             <button id="confirm-ok" style="padding:8px 16px;border-radius:8px;border:none;background:var(--red,#FF4466);color:#fff;cursor:pointer;font-size:13px;font-weight:600;">End Call</button>
@@ -382,6 +438,9 @@ const callManager = {
         </div>`;
 
       document.body.appendChild(overlay);
+
+      overlay.querySelector('#confirm-title').textContent = title;
+      overlay.querySelector('#confirm-message').textContent = message;
 
       // Auto-focus Cancel per standard
       overlay.querySelector('#confirm-cancel').focus();
@@ -467,7 +526,8 @@ const callManager = {
         return null;
       }
 
-      const session = await res.json();
+      const envelope = await res.json();
+      const session = envelope.data;
       console.log(`[Call] Session created: ${session.id}`);
       return session.id;
     } catch (err) {

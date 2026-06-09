@@ -48,11 +48,15 @@ async function loadHistory(page) {
   try {
     const offset = page * HISTORY_PAGE_SIZE;
     const res = await fetchWithAuth(`/api/sessions?limit=${HISTORY_PAGE_SIZE}&offset=${offset}`);
-    if (!res.ok) throw new Error('Failed to load sessions');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.error || `Failed to load sessions: ${res.status}`);
+    }
 
-    const data = await res.json();
+    const envelope = await res.json();
+    const data = envelope.data || {};
     const sessions = data.sessions || [];
-    historyTotalSessions = data.total || 0;
+    historyTotalSessions = (envelope.meta && envelope.meta.totalItems) || 0;
 
     loadingEl.style.display = 'none';
 
@@ -255,15 +259,19 @@ async function viewSessionScore(sessionId) {
     var scenariosRes = fetch('/api/scenarios'); // Public endpoint
     var results = await Promise.all([scoreRes, scenariosRes]);
 
-    if (!results[0].ok) throw new Error('Score not found');
+    if (!results[0].ok) {
+      const err = await results[0].json().catch(() => ({}));
+      throw new Error(err.detail || err.error || 'Score not found');
+    }
 
-    var scorecard = await results[0].json();
+    var scoreEnvelope = await results[0].json();
+    var scorecard = scoreEnvelope.data;
 
     // Match scenario by finding which rubric's category keys match scorecard categories
     var scenario = null;
     if (results[1].ok) {
-      var scenariosData = await results[1].json();
-      var scenariosList = scenariosData.scenarios || scenariosData || [];
+      var scenariosEnvelope = await results[1].json();
+      var scenariosList = (scenariosEnvelope.data && scenariosEnvelope.data.scenarios) || [];
       if (Array.isArray(scenariosList)) {
         var scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
         scenario = scenariosList.find(function(s) {
@@ -347,15 +355,20 @@ async function loadCoaching(sessionId) {
     var scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
     var results = await Promise.all([coachRes, scoreRes]);
 
-    if (!results[0].ok) throw new Error('Coaching not found');
+    if (!results[0].ok) {
+      const err = await results[0].json().catch(() => ({}));
+      throw new Error(err.detail || err.error || 'Coaching not found');
+    }
 
-    var coachData = await results[0].json();
+    var coachEnvelope = await results[0].json();
+    var coachData = coachEnvelope.data || {};
     cachedCoaching = coachData.coaching_analysis || null;
 
     // Get score data for stats (non-blocking if unavailable)
     var scoreData = null;
     if (results[1].ok) {
-      scoreData = await results[1].json();
+      var scoreEnvelope = await results[1].json();
+      scoreData = scoreEnvelope.data;
     }
 
     if (!cachedCoaching) {
@@ -456,9 +469,13 @@ async function loadTranscript(sessionId) {
 
   try {
     var res = await fetchWithAuth('/api/sessions/' + sessionId + '/transcript');
-    if (!res.ok) throw new Error('Transcript not found');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.error || 'Transcript not found');
+    }
 
-    var data = await res.json();
+    var envelope = await res.json();
+    var data = envelope.data || {};
     cachedTranscript = data.transcript || '';
 
     if (!cachedTranscript) {

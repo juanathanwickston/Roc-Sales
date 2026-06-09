@@ -12,37 +12,53 @@ const { config } = require('../config');
 
 const { tavusFetch } = require('../services/tavusClient');
 const { extractConversationMeta } = require('../services/tavusNormalizer');
+const { sendSuccess, sendError } = require('../utils/response');
+const logger = require('../utils/logger');
 
 const router = express.Router();
+
+const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
+
+function loadScenarioConfig(scenarioId) {
+  try {
+    const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
+    for (const file of files) {
+      const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
+      if (scenario.id === scenarioId) {
+        return scenario;
+      }
+    }
+  } catch (err) {
+    logger.warn('Could not load scenario config in Tavus router', { scenarioId, error: err.message });
+  }
+  return null;
+}
 
 // --- Personas ---
 
 /**
  * GET /api/tavus/personas - List available personas.
- * Persona data is passed through without normalization because
- * persona config is authored by us, not by the Tavus runtime.
  */
 router.get('/personas', async (req, res) => {
   try {
     const data = await tavusFetch('/personas');
-    res.json(data);
+    return sendSuccess(res, data);
   } catch (err) {
-    console.error('[Tavus] List personas error:', err.message);
-    res.status(err.status || 500).json({ error: 'Unable to load personas. Please try again.' });
+    logger.error('List personas error', { error: err.message, path: req.path });
+    return sendError(res, req, err.status || 500, 'Unable to load personas. Please try again.');
   }
 });
 
 /**
  * GET /api/tavus/personas/:id - Get specific persona.
- * Persona data is passed through (see note above).
  */
 router.get('/personas/:id', async (req, res) => {
   try {
     const data = await tavusFetch(`/personas/${req.params.id}`);
-    res.json(data);
+    return sendSuccess(res, data);
   } catch (err) {
-    console.error('[Tavus] Get persona error:', err.message);
-    res.status(err.status || 500).json({ error: 'Unable to load persona details.' });
+    logger.error('Get persona error', { error: err.message, path: req.path });
+    return sendError(res, req, err.status || 500, 'Unable to load persona details.');
   }
 });
 
@@ -50,116 +66,96 @@ router.get('/personas/:id', async (req, res) => {
 
 /**
  * POST /api/tavus/conversations - Start a new call session.
- * Body: { persona_id, conversation_name?, conversational_context?, properties? }
+ * Body: { sessionId, properties? }
  * Returns normalized conversation data with stable internal field names.
  */
 router.post('/conversations', async (req, res) => {
+  if (!db.isAvailable()) {
+    return sendError(res, req, 503, 'Database not available');
+  }
+
   try {
-    const {
-      sessionId,
-      persona_id,
-      replica_id,
-      conversation_name,
-      conversational_context,
-      custom_greeting,
-      properties,
-      require_auth,
-    } = req.body;
+    const { sessionId, properties } = req.body;
 
-    const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
-
-    function loadScenarioConfig(scenarioId) {
-      try {
-        const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
-        for (const file of files) {
-          const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
-          if (scenario.id === scenarioId) {
-            return scenario;
-          }
-        }
-      } catch (err) {
-        console.warn(`[Tavus] Could not load scenario config for ${scenarioId}:`, err.message);
-      }
-      return null;
+    if (!sessionId) {
+      return sendError(res, req, 400, 'sessionId is required');
     }
 
-    let personaId = persona_id;
-    let replicaId = replica_id;
-    let name = conversation_name;
-    let context = conversational_context;
-    let greeting = custom_greeting;
-    let props = properties;
-    let reqAuth = require_auth;
+    // Load session from DB
+    const sessionResult = await db.query(
+      'SELECT * FROM simulation_sessions WHERE id = $1',
+      [sessionId]
+    );
+    if (sessionResult.rows.length === 0) {
+      return sendError(res, req, 404, 'Session not found');
+    }
 
-    if (sessionId) {
-      if (!db.isAvailable()) {
-        return res.status(503).json({ error: 'Database not available' });
+    const session = sessionResult.rows[0];
+
+    // Validate ownership
+    if (!req.user || !req.user.userId) {
+      return sendError(res, req, 401, 'Authentication required');
+    }
+
+    if (session.external_user_id !== req.user.userId && req.user.role !== 'admin') {
+      if (req.user.role === 'manager') {
+        return sendError(res, req, 403, 'Access denied: cohort scoping is pending integration.');
       }
+      return sendError(res, req, 403, 'Access denied: Session belongs to another user.');
+    }
 
-      // Load session from DB
-      const sessionResult = await db.query(
-        'SELECT * FROM simulation_sessions WHERE id = $1',
-        [sessionId]
+    // Load scenario config
+    const scenario = loadScenarioConfig(session.scenario_id);
+    if (!scenario) {
+      return sendError(res, req, 404, 'Scenario configuration not found.');
+    }
+
+    // Check if scenario is archived
+    if (scenario.id.startsWith('archive/') || (scenario.status && scenario.status === 'archived')) {
+      return sendError(res, req, 403, 'Cannot launch an archived scenario.');
+    }
+
+    const personaId = scenario.persona_id_tavus || scenario.persona_id;
+    const replicaId = scenario.replica_id || null;
+
+    const cfg = scenario.conversation_config || {};
+    let name = cfg.conversation_name || null;
+    let context = cfg.conversational_context || '';
+    let greeting = cfg.custom_greeting || null;
+    let props = cfg.properties || {};
+    let reqAuth = cfg.require_auth !== undefined ? cfg.require_auth : null;
+
+    // Handle Module 2 continuity (retrieve and append relationship summary)
+    if (session.module_id === 'module2' && session.persona_id) {
+      const summaryResult = await db.query(
+        `SELECT s.relationship_summary FROM simulation_sessions s
+         INNER JOIN session_scores sc ON sc.session_id = s.id
+         WHERE s.external_user_id = $1
+           AND s.module_id = 'module1'
+           AND s.persona_id = $2
+           AND s.status = 'completed'
+           AND s.relationship_summary IS NOT NULL
+           AND sc.final_score >= 80
+           AND sc.overall_verdict = 'pass'
+         ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
+         LIMIT 1`,
+        [session.external_user_id, session.persona_id]
       );
-      if (sessionResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Session not found' });
-      }
 
-      const session = sessionResult.rows[0];
-
-      // Validate ownership (if user authenticated)
-      if (req.user && req.user.userId && session.external_user_id && session.external_user_id !== req.user.userId) {
-        return res.status(403).json({ error: 'Access denied: Session belongs to another user.' });
-      }
-
-      // Load scenario config
-      const scenario = loadScenarioConfig(session.scenario_id);
-      if (!scenario) {
-        return res.status(404).json({ error: 'Scenario configuration not found.' });
-      }
-
-      personaId = scenario.persona_id_tavus || scenario.persona_id;
-      replicaId = scenario.replica_id || null;
-
-      const cfg = scenario.conversation_config || {};
-      name = cfg.conversation_name || null;
-      context = cfg.conversational_context || '';
-      greeting = cfg.custom_greeting || null;
-      props = cfg.properties || {};
-      reqAuth = cfg.require_auth !== undefined ? cfg.require_auth : null;
-
-      // Handle Module 2 continuity (retrieve and append relationship summary)
-      if (session.module_id === 'module2' && session.persona_id) {
-        const summaryResult = await db.query(
-          `SELECT relationship_summary FROM simulation_sessions
-           WHERE external_user_id = $1
-             AND module_id = 'module1'
-             AND persona_id = $2
-             AND status = 'completed'
-             AND relationship_summary IS NOT NULL
-           ORDER BY completed_at DESC
-           LIMIT 1`,
-          [session.external_user_id, session.persona_id]
-        );
-
-        if (summaryResult.rows.length > 0 && summaryResult.rows[0].relationship_summary) {
-          const summaryText = summaryResult.rows[0].relationship_summary;
-          context += `\n\n[CONTINUITY CONTEXT - PRIOR MEETING NOTES]:\nYou are continuing a conversation from a prior call. The following facts were established during Module 1. Do not contradict them and acknowledge them if referenced by the representative:\n${summaryText}\n[END PRIOR MEETING NOTES]`;
-          console.log(`[Tavus] Continuity summary injected server-side for session ${sessionId}`);
-        }
+      if (summaryResult.rows.length > 0 && summaryResult.rows[0].relationship_summary) {
+        const summaryText = summaryResult.rows[0].relationship_summary;
+        context += `\n\n[CONTINUITY CONTEXT - PRIOR MEETING NOTES]:\nYou are continuing a conversation from a prior call. The following facts were established during Module 1. Do not contradict them and acknowledge them if referenced by the representative:\n${summaryText}\n[END PRIOR MEETING NOTES]`;
+        logger.info('Continuity summary injected server-side', { sessionId });
       }
     }
 
     if (!personaId) {
-      return res.status(400).json({ error: 'persona_id (or sessionId) is required' });
+      return sendError(res, req, 400, 'personaId resolved from scenario config is empty');
     }
 
     // Fail-fast guard for placeholder Tavus IDs outside of local development
     if (config.NODE_ENV !== 'development' && personaId.startsWith('TAVUS_PERSONA_')) {
-      return res.status(403).json({
-        error: 'Simulation disabled: Scenario is using a placeholder Tavus Persona ID.',
-        details: { persona_id: personaId }
-      });
+      return sendError(res, req, 403, 'Simulation disabled: Scenario is using a placeholder Tavus Persona ID.');
     }
 
     const payload = {
@@ -175,6 +171,7 @@ router.post('/conversations', async (req, res) => {
         participant_absent_timeout: 120,
         enable_closed_captions: true,
         ...(props || {}),
+        ...(properties || {}), // Accept properties passed from the frontend for WebRTC setup
       },
     };
 
@@ -183,51 +180,18 @@ router.post('/conversations', async (req, res) => {
       body: JSON.stringify(payload),
     });
 
-    // M7: User attribution logging
-    const userId = req.user?.userId || 'unknown';
-    const username = req.user?.username || 'anonymous';
-    console.log(`[Tavus] Conversation created: ${data.conversation_id} by user ${username} (${userId})`);
+    const username = req.user.username || 'anonymous';
+    logger.info('Tavus conversation created', { conversationId: data.conversation_id, username, userId: req.user.userId });
 
     // Normalize before sending to frontend
     const meta = extractConversationMeta(data);
-    res.json({
+    return sendSuccess(res, {
       conversationId: meta.conversationId,
       conversationUrl: data.conversation_url || null,
     });
   } catch (err) {
-    console.error('[Tavus] Create conversation error:', err.message);
-    res.status(err.status || 500).json({ error: 'Unable to create conversation. Please try again.' });
-  }
-});
-
-/**
- * GET /api/tavus/conversations/:id - Get conversation status.
- * Returns normalized conversation metadata.
- */
-router.get('/conversations/:id', async (req, res) => {
-  try {
-    const data = await tavusFetch(`/conversations/${req.params.id}`);
-    const meta = extractConversationMeta(data);
-    res.json(meta);
-  } catch (err) {
-    console.error('[Tavus] Get conversation error:', err.message);
-    res.status(err.status || 500).json({ error: 'Unable to retrieve conversation.' });
-  }
-});
-
-/**
- * DELETE /api/tavus/conversations/:id - End a conversation.
- * Returns our own status shape (Tavus DELETE has no body).
- */
-router.delete('/conversations/:id', async (req, res) => {
-  try {
-    await tavusFetch(`/conversations/${req.params.id}`, { method: 'DELETE' });
-    const userId = req.user?.userId || 'unknown';
-    console.log(`[Tavus] Conversation ended: ${req.params.id} by user ${userId}`);
-    res.json({ status: 'ended' });
-  } catch (err) {
-    console.error('[Tavus] End conversation error:', err.message);
-    res.status(err.status || 500).json({ error: 'Unable to end conversation.' });
+    logger.error('Create Tavus conversation error', { error: err.message, path: req.path });
+    return sendError(res, req, err.status || 500, 'Unable to create conversation. Please try again.');
   }
 });
 

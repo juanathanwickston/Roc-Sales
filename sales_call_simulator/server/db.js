@@ -11,6 +11,7 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const { config } = require('./config');
+const logger = require('./utils/logger');
 
 // Connection pool timeout in milliseconds
 const CONNECTION_TIMEOUT_MS = 5000;
@@ -39,7 +40,7 @@ if (config.DATABASE_URL) {
   });
 
   pool.on('error', (err) => {
-    console.error('[DB] Unexpected pool error:', err.message);
+    logger.error('Unexpected database pool error', { error: err.message });
   });
 }
 
@@ -58,7 +59,7 @@ async function query(text, params) {
   const duration = Date.now() - start;
 
   if (duration > SLOW_QUERY_THRESHOLD_MS) {
-    console.warn(`[DB] Slow query (${duration}ms):`, text.substring(0, 80));
+    logger.warn('Slow query detected', { durationMs: duration, query: text.substring(0, 80) });
   }
 
   return result;
@@ -83,7 +84,7 @@ async function getClient() {
  */
 async function migrate() {
   if (!pool) {
-    console.warn('[DB] DATABASE_URL not set - skipping migrations');
+    logger.warn('DATABASE_URL not set - skipping migrations');
     return;
   }
 
@@ -98,7 +99,7 @@ async function migrate() {
 
   const migrationsDir = path.join(__dirname, 'migrations');
   if (!fs.existsSync(migrationsDir)) {
-    console.log('[DB] No migrations directory found. Skipping.');
+    logger.info('No migrations directory found. Skipping.');
     return;
   }
 
@@ -109,10 +110,26 @@ async function migrate() {
   const applied = await query('SELECT name FROM migrations');
   const appliedSet = new Set(applied.rows.map(r => r.name));
 
-  for (const file of files) {
-    if (appliedSet.has(file)) continue;
+  // Map renamed files to old names to prevent double-runs
+  const MIGRATION_ALIASES = {
+    '003_completion_sync.sql': ['002_completion_sync.sql'],
+    '004_perception_analysis.sql': ['003_perception_analysis.sql'],
+    '005_module_tracking.sql': ['004_module_tracking.sql'],
+  };
 
-    console.log(`[DB] Applying migration: ${file}`);
+  const isApplied = (file) => {
+    if (appliedSet.has(file)) return true;
+    const aliases = MIGRATION_ALIASES[file] || [];
+    for (const alias of aliases) {
+      if (appliedSet.has(alias)) return true;
+    }
+    return false;
+  };
+
+  for (const file of files) {
+    if (isApplied(file)) continue;
+
+    logger.info('Applying database migration', { file });
     const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
 
     const client = await getClient();
@@ -121,10 +138,10 @@ async function migrate() {
       await client.query(sql);
       await client.query('INSERT INTO migrations (name) VALUES ($1)', [file]);
       await client.query('COMMIT');
-      console.log(`[DB] Applied: ${file}`);
+      logger.info('Database migration applied', { file });
     } catch (err) {
       await client.query('ROLLBACK');
-      console.error(`[DB] Migration failed: ${file}`, err.message);
+      logger.error('Database migration failed', { file, error: err.message });
       throw err;
     } finally {
       client.release();

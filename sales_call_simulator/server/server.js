@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 const { config, validateConfig } = require('./config');
+const logger = require('./utils/logger');
 const db = require('./db');
 const { COURSE_MODULES } = require('./modules');
 
@@ -79,7 +80,7 @@ app.use(express.json({ limit: '1mb' }));
 // Request logging
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    logger.info('API request', { method: req.method, path: req.path });
   }
   next();
 });
@@ -95,10 +96,10 @@ const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessi
 // but never blocks requests (standalone/staging mode).
 // Hard auth enforcement happens at the ROC Academy gateway level.
 
-app.use('/api/tavus', optionalAuth, tavusRoutes);
+app.use('/api/tavus', requireAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
-app.use('/api/sessions', optionalAuth, sessionRoutes);
-app.get('/api/admin/dashboard', optionalAuth, requireAuth, requireAnyRole('manager', 'admin'), adminDashboardHandler);
+app.use('/api/sessions', requireAuth, sessionRoutes);
+app.get('/api/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'), adminDashboardHandler);
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -159,7 +160,7 @@ app.get('*', (req, res) => {
 // --- Error Handler ---
 
 app.use((err, req, res, _next) => {
-  console.error('[Server Error]', err.stack || err.message);
+  logger.error('Server error', { error: err.stack || err.message, path: req.path });
   res.status(err.status || 500).json({
     error: config.NODE_ENV === 'development' ? err.message : 'Internal server error',
   });
@@ -178,12 +179,14 @@ async function start() {
   }
 
   const server = app.listen(config.PORT, () => {
-    console.log(`\nSales Call Simulator running on http://localhost:${config.PORT}`);
-    console.log(`   Environment: ${config.NODE_ENV}`);
-    console.log(`   Tavus API: ${config.TAVUS_API_KEY ? 'configured' : 'NOT SET'}`);
-    console.log(`   OpenAI:    ${config.OPENAI_API_KEY ? 'configured' : 'NOT SET'}`);
-    console.log(`   Database:  ${config.DATABASE_URL ? 'configured' : 'NOT SET'}`);
-    console.log(`   Auth:      ${config.JWT_SECRET ? 'configured' : 'disabled (dev mode)'}\n`);
+    logger.info('Sales Call Simulator running', {
+      port: config.PORT,
+      environment: config.NODE_ENV,
+      tavusConfigured: !!config.TAVUS_API_KEY,
+      openaiConfigured: !!config.OPENAI_API_KEY,
+      dbConfigured: !!config.DATABASE_URL,
+      authConfigured: !!config.JWT_SECRET,
+    });
   });
 
   return server;
@@ -198,10 +201,10 @@ serverPromise.then(s => { serverInstance = s; });
 // --- Process Error Handlers ---
 
 process.on('unhandledRejection', (err) => {
-  console.error('[UNHANDLED REJECTION]', err);
+  logger.error('Unhandled Rejection', { error: err.stack || err.message || err });
 });
 process.on('uncaughtException', (err) => {
-  console.error('[UNCAUGHT EXCEPTION]', err);
+  logger.error('Uncaught Exception', { error: err.stack || err.message || err });
   process.exit(1);
 });
 

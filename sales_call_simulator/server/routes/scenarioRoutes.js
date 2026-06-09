@@ -9,6 +9,8 @@ const fs = require('fs');
 const path = require('path');
 
 const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
+const { sendSuccess, sendError } = require('../utils/response');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -30,9 +32,9 @@ function loadScenarios() {
       const raw = fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf-8');
       scenarios.push(JSON.parse(raw));
     }
-    console.log(`[Scenarios] Loaded ${scenarios.length} scenario(s) from disk.`);
+    logger.info(`Loaded scenario(s) from disk.`, { count: scenarios.length });
   } catch (err) {
-    console.error('[Scenarios] Error loading scenarios:', err.message);
+    logger.error('Error loading scenarios', { error: err.message });
   }
   return scenarios;
 }
@@ -77,7 +79,7 @@ router.get('/modules', (req, res) => {
     };
   });
 
-  res.json({ modules });
+  return sendSuccess(res, { modules });
 });
 
 /**
@@ -95,7 +97,7 @@ router.get('/', (req, res) => {
     product: s.product || null,
     durationMinutes: s.duration_minutes,
   }));
-  res.json({ scenarios: summaries });
+  return sendSuccess(res, { scenarios: summaries });
 });
 
 /**
@@ -110,13 +112,13 @@ router.get('/:id', (req, res) => {
         scenario = JSON.parse(fs.readFileSync(archivePath, 'utf-8'));
       }
     } catch (err) {
-      console.warn(`[Scenarios] Failed to load archived scenario ${req.params.id}:`, err.message);
+      logger.warn('Failed to load archived scenario fallback', { scenarioId: req.params.id, error: err.message });
     }
   }
   if (!scenario) {
-    return res.status(404).json({ error: 'Scenario not found' });
+    return sendError(res, req, 404, 'Scenario not found');
   }
-  res.json(scenario);
+  return sendSuccess(res, scenario);
 });
 
 module.exports = router;
