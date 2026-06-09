@@ -253,6 +253,7 @@ const app = {
    * Load and cache available scenarios.
    * The home screen is now stage-based (rendered by progress.js).
    * This method just fetches and caches data needed for selectScenario().
+   */
   async loadScenarios() {
     try {
       const res = await fetch('/api/scenarios');
