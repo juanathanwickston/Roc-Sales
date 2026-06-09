@@ -16,17 +16,7 @@ let currentDetailSessionId = null;
 let cachedTranscript = null;
 let cachedCoaching = null;
 
-/**
- * Helper to inject the roc_token into API requests
- */
-function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem('roc_token');
-  const headers = new Headers(options.headers || {});
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-  return fetch(url, { ...options, headers });
-}
+// fetchWithAuth is defined globally in app.js
 
 /**
  * Load session history from the API and render the history screen.

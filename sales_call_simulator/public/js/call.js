@@ -46,11 +46,8 @@ const callManager = {
 
       // Fetch relationship continuity summary for Module 2 scenarios
       if (scenario.module_id === 'module2' && scenario.persona_id) {
-        var lobbyToken = localStorage.getItem('roc_token');
         try {
-          var notesRes = await fetch('/api/sessions/continuity?personaId=' + scenario.persona_id, {
-            headers: lobbyToken ? { 'Authorization': 'Bearer ' + lobbyToken } : {},
-          });
+          var notesRes = await fetchWithAuth('/api/sessions/continuity?personaId=' + scenario.persona_id);
           if (notesRes.ok) {
             const notesEnvelope = await notesRes.json();
             var notesData = notesEnvelope.data;
@@ -71,12 +68,10 @@ const callManager = {
         sessionId: this.sessionId,
       };
 
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch('/api/tavus/conversations', {
+      const res = await fetchWithAuth('/api/tavus/conversations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(conversationPayload),
       });
@@ -511,12 +506,10 @@ const callManager = {
    */
   async createSession(scenarioId) {
     try {
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch('/api/sessions', {
+      const res = await fetchWithAuth('/api/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ scenarioId }),
       });
@@ -544,7 +537,6 @@ const callManager = {
     if (!this.sessionId) return;
 
     try {
-      const token = localStorage.getItem('roc_token');
       const body = { status };
 
       if (extras) {
@@ -552,11 +544,10 @@ const callManager = {
         if (extras.durationSeconds !== undefined) body.durationSeconds = extras.durationSeconds;
       }
 
-      const res = await fetch(`/api/sessions/${this.sessionId}/status`, {
+      const res = await fetchWithAuth(`/api/sessions/${this.sessionId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(body),
       });

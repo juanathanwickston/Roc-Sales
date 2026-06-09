@@ -9,12 +9,24 @@
 /**
  * Escape HTML entities in user-sourced strings.
  */
-const esc = function(str) {
+function esc(str) {
   if (!str) return '';
   const d = document.createElement('div');
   d.textContent = String(str);
   return d.innerHTML;
-};
+}
+
+/**
+ * Helper to inject the roc_token into API requests.
+ */
+function fetchWithAuth(url, options = {}) {
+  const token = localStorage.getItem('roc_token');
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(url, { ...options, headers });
+}
 
 /**
  * Toast notification system.
@@ -391,7 +403,6 @@ const app = {
   async pollSessionStatus(sessionId) {
     const POLL_INTERVAL_MS = 2000;
     const MAX_POLLS = 150; // 5 minutes max
-    const token = localStorage.getItem('roc_token');
     const loadingText = document.querySelector('#debrief-loading p');
 
     for (let poll = 1; poll <= MAX_POLLS; poll++) {
@@ -408,9 +419,7 @@ const app = {
       }
 
       try {
-        const res = await fetch(`/api/sessions/${sessionId}`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
+        const res = await fetchWithAuth(`/api/sessions/${sessionId}`);
 
         if (!res.ok) continue;
 
@@ -437,10 +446,7 @@ const app = {
    */
   async fetchScorecard(sessionId) {
     try {
-      const token = localStorage.getItem('roc_token');
-      const res = await fetch(`/api/sessions/${sessionId}/score`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      });
+      const res = await fetchWithAuth(`/api/sessions/${sessionId}/score`);
 
       if (!res.ok) {
         console.warn('[App] Scorecard fetch failed:', res.status);

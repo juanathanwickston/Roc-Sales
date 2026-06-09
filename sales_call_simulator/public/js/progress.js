@@ -68,8 +68,8 @@ var _cachedProgress = null;
  */
 function loadProgress() {
   return Promise.all([
-    fetch('/api/scenarios/modules'),
-    fetch('/api/sessions/progress')
+    fetchWithAuth('/api/scenarios/modules'),
+    fetchWithAuth('/api/sessions/progress')
   ]).then(function(results) {
     var modulesRes = results[0];
     var progressRes = results[1];
