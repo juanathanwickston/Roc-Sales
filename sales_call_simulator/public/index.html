@@ -1191,36 +1191,15 @@
       .history-ring-text { font-size: var(--fs-xs); }
     }
 
-    /* ─── Progress Dashboard ─── */
+    /* ─── Progress Dashboard (2-Module LMS) ─── */
 
-    /* Pipeline bar (lives inside header) */
-    .pipeline-track { display: flex; align-items: center; gap: 0; }
-    .pipeline-step { display: flex; align-items: center; justify-content: center; min-width: 36px; position: relative; }
-    .pipeline-dot {
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: var(--fw-bold);
-      transition: all .4s ease;
-    }
-    .pipeline-number { line-height: 1; }
-    /* Completed: solid blue */
-    .pipeline-done .pipeline-dot {
-      background: linear-gradient(135deg, var(--payroc-blue), #003D99);
-      color: #fff;
-    }
-    /* Current stage: blue ring (outline, not filled) */
-    .pipeline-active .pipeline-dot {
-      background: transparent;
-      color: var(--payroc-blue);
-      box-shadow: inset 0 0 0 1.5px var(--payroc-blue);
-    }
-    /* Locked: grey */
-    .pipeline-locked .pipeline-dot { background: #EBEDF0; color: #B0B8C4; }
-    .pipeline-connector { flex: 1; height: 2px; background: #EBEDF0; min-width: 10px; max-width: 32px; }
-    .pipeline-connector-filled { background: linear-gradient(90deg, var(--payroc-blue), var(--payroc-blue)); }
+    /* Course header */
+    .course-header { text-align: center; margin-bottom: 24px; }
+    .course-header h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); color: var(--text-primary); margin-bottom: 6px; }
+    .course-header p { color: var(--text-muted); font-size: var(--fs-sm); max-width: 520px; margin: 0 auto; }
 
     /* Home two-column layout */
-    .home-content { display: flex; gap: 28px; padding: 16px 24px; max-width: 1160px; margin: 0 auto; width: 100%; align-items: stretch; }
+    .home-content { display: flex; gap: 28px; padding: 16px 24px; max-width: 1160px; margin: 0 auto; width: 100%; align-items: flex-start; }
     .home-journey { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .home-performance { width: 340px; flex-shrink: 0; }
     .home-section-title {
@@ -1228,60 +1207,275 @@
       color: var(--text-muted); margin-bottom: 14px;
       text-transform: uppercase; letter-spacing: 0.8px;
     }
-    .home-stage-indicator { font-size: var(--fs-sm); color: var(--text-muted); font-weight: var(--fw-medium); }
 
-    /* Stage cards */
-    .stage-cards { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
-    .stage-card {
-      display: flex; justify-content: space-between; align-items: stretch; gap: 16px;
-      flex: 1; min-height: 0;
-      background: #FFFFFF;
-      border: 1px solid transparent;
-      border-radius: var(--r); padding: 16px 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      transition: all .25s ease;
+    /* ─── Module Cards ─── */
+    .module-cards { display: flex; flex-direction: column; gap: 16px; }
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-card);
+      transition: box-shadow .25s ease, border-color .25s ease;
     }
-    .stage-card-active {
-      border-color: transparent;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04), inset 4px 0 0 var(--payroc-blue);
+    .module-card:hover {
+      box-shadow: var(--shadow-card-hover);
     }
-    .stage-card-active:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08), inset 4px 0 0 var(--payroc-blue);
-      transform: translateY(-1px);
+    .module-card-header {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 8px;
     }
-    .stage-card-locked {
-      background: #FBFBFC;
-      align-items: stretch;
+    .module-card-number {
+      font-size: var(--fs-sm); font-weight: var(--fw-bold);
+      color: var(--payroc-blue); text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-    .stage-card-number {
-      font-size: 26px; font-weight: var(--fw-bold);
-      color: var(--payroc-blue); line-height: 1; min-width: 36px;
-      padding-top: 2px;
+    .module-card-name {
+      font-size: var(--fs-lg); font-weight: var(--fw-semibold);
+      color: var(--text-primary); margin: 0; flex: 1;
+      letter-spacing: -0.3px;
     }
-    .stage-number-locked { color: #D1D5DB; font-size: 18px; padding-top: 0; min-width: 28px; }
-    
-    .stage-card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
-    .stage-card-content-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-    .stage-card-right { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex-shrink: 0; }
-    
-    .stage-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
-    .stage-card-title { font-size: 15px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; letter-spacing: -0.2px; }
-    .stage-status-badge {
+    .module-card-status-badge {
       padding: 3px 10px; border-radius: 50px;
       font-size: 10px; font-weight: var(--fw-semibold);
       text-transform: uppercase; letter-spacing: .5px;
       display: inline-flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
     }
-    .stage-status-active { background: rgba(0,81,194,0.06); color: var(--payroc-blue); }
-    .stage-status-locked { background: transparent; color: #B0B8C4; }
-    .stage-card-scenario { font-size: var(--fs-sm); color: var(--payroc-blue); font-weight: var(--fw-medium); margin-bottom: 4px; }
-    .stage-card-desc-truncate { font-size: var(--fs-sm); color: var(--text-muted); line-height: var(--lh-relaxed); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; margin: 0; }
-    .stage-card-footer { display: flex; gap: 16px; font-size: var(--fs-xs); color: var(--text-muted); flex-wrap: wrap; }
-    .stage-meta-item { display: inline-flex; align-items: center; gap: 4px; }
-    .stage-meta-item svg { color: var(--text-muted); flex-shrink: 0; }
-    .stage-card-cta {
-      padding: 8px 20px; border-radius: var(--rs);
+    .module-status-available { background: rgba(0,81,194,0.06); color: var(--payroc-blue); }
+    .module-status-mastered { background: rgba(0,224,184,0.12); color: #059669; }
+    .module-status-locked { background: transparent; color: #B0B8C4; }
+    .module-card-desc {
+      font-size: var(--fs-sm); color: var(--text-muted);
+      line-height: var(--lh-relaxed); margin-bottom: 16px;
+    }
+    .module-card-cta {
+      padding: 10px 24px; border-radius: var(--rs);
       font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+    }
+    .module-card-progress {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .module-card-progress-bar {
+      flex: 1; height: 6px; background: #EBEDF0; border-radius: 3px; overflow: hidden;
+    }
+    .module-card-progress-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, var(--payroc-teal), #059669);
+      transition: width .8s ease;
+    }
+    .module-card-progress-text {
+      font-size: var(--fs-xs); color: var(--text-muted); white-space: nowrap;
+    }
+    .module-card-lock-msg {
+      font-size: var(--fs-sm); color: #9CA3AF;
+      display: flex; align-items: center; gap: 4px;
+      margin: 0;
+    }
+
+    /* Locked module card */
+    .module-card-locked {
+      background: #FBFBFC;
+      border-color: #EBEDF0;
+      opacity: 0.75;
+    }
+    .module-card-locked .module-card-name { color: #9CA3AF; }
+    .module-card-locked .module-card-desc { color: #C0C5CC; }
+
+    /* Mastered module card */
+    .module-card-mastered {
+      border-color: rgba(0,224,184,0.3);
+      box-shadow: var(--shadow-card), inset 0 0 0 1px rgba(0,224,184,0.12);
+    }
+
+    /* ─── Scenario Selector Modal ─── */
+    .scenario-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: var(--z-modal);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .scenario-modal {
+      background: var(--bg-card);
+      border-radius: var(--r-lg);
+      max-width: 640px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      animation: modalSlideIn .25s ease;
+    }
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .scenario-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .scenario-modal-header h3 {
+      font-size: var(--fs-md); font-weight: var(--fw-semibold);
+      color: var(--text-primary); margin: 0;
+    }
+    .scenario-modal-close {
+      width: 32px; height: 32px; border: none;
+      background: #F3F4F6; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      font-size: 18px; transition: all .15s;
+      flex-shrink: 0;
+    }
+    .scenario-modal-close:hover { background: #E5E7EB; color: var(--text-primary); }
+    .scenario-modal-close:focus-visible { outline: 2px solid var(--payroc-blue); outline-offset: 2px; }
+    .scenario-modal-body { padding: 20px 24px; }
+
+    /* ─── Persona Cards Grid ─── */
+    .scenario-modal-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 480px) {
+      .scenario-modal-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .persona-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r);
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s, transform .15s;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .persona-card:hover:not(.persona-card-locked),
+    .persona-card:focus-visible:not(.persona-card-locked) {
+      border-color: var(--payroc-blue);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .persona-card:active:not(.persona-card-locked) {
+      transform: translateY(0);
+    }
+    .persona-card-icon {
+      font-size: 28px; line-height: 1;
+    }
+    .persona-card-info { flex: 1; }
+    .persona-card-name {
+      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+      color: var(--text-primary); margin-bottom: 2px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .persona-card-business {
+      font-size: var(--fs-xs); color: var(--text-muted);
+    }
+    .persona-card-product {
+      font-size: var(--fs-2xs); color: var(--payroc-blue);
+      font-weight: var(--fw-medium); margin-top: 2px;
+    }
+    .persona-card-stats {
+      display: flex; gap: 12px; font-size: var(--fs-xs); color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .persona-stat {
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .persona-card-lock-info {
+      display: flex; align-items: center; gap: 6px;
+      font-size: var(--fs-xs); color: #9CA3AF; margin-top: 4px;
+    }
+
+    /* Locked persona card */
+    .persona-card-locked {
+      background: #FBFBFC;
+      border-color: #EBEDF0;
+      cursor: not-allowed; opacity: 0.6;
+    }
+
+    /* Mastered persona card */
+    .persona-card-mastered {
+      border-color: rgba(0,224,184,0.3);
+    }
+
+    /* ─── Persona Mastery Badge ─── */
+    .persona-mastery-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 1px 8px; border-radius: 50px;
+      background: rgba(0,224,184,0.12); color: #059669;
+      font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+
+    /* ─── Certificate Section ─── */
+    .certificate-section {
+      margin-top: 24px;
+    }
+    .certificate-inner {
+      background: linear-gradient(135deg, #001D4E 0%, #003080 100%);
+      border-radius: var(--r-lg);
+      padding: 40px 32px;
+      text-align: center;
+      color: #FFFFFF;
+    }
+    .certificate-badge { font-size: 48px; margin-bottom: 12px; }
+    .certificate-title {
+      font-size: var(--fs-2xl); font-weight: var(--fw-bold);
+      margin-bottom: 8px;
+    }
+    .certificate-subtitle {
+      font-size: var(--fs-sm); opacity: 0.8; margin-bottom: 4px;
+    }
+    .certificate-course-name {
+      font-size: var(--fs-xl); font-weight: var(--fw-semibold);
+      color: var(--payroc-teal); margin-bottom: 12px;
+    }
+    .certificate-detail {
+      font-size: var(--fs-sm); opacity: 0.7; margin-bottom: 4px;
+    }
+    .certificate-date {
+      font-size: var(--fs-xs); opacity: 0.5; margin-bottom: 24px;
+    }
+    .certificate-print-area { display: none; }
+
+    /* Print styles for certificate */
+    @media print {
+      body * { visibility: hidden; }
+      .certificate-print-area,
+      .certificate-print-area * { visibility: visible; }
+      .certificate-print-area {
+        display: block;
+        position: fixed;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+      }
+      .certificate-printable {
+        width: 100%; height: 100%;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 48px;
+        border: 4px double var(--payroc-navy);
+        text-align: center;
+      }
+      .cert-header {
+        font-size: 14px; letter-spacing: 4px;
+        text-transform: uppercase; color: var(--payroc-navy);
+        margin-bottom: 32px;
+      }
+      .cert-logo {
+        font-size: 28px; font-weight: 700;
+        color: var(--payroc-blue); margin-bottom: 40px;
+      }
+      .cert-body { text-align: center; color: var(--text-body); }
+      .cert-body p { font-size: 14px; margin-bottom: 8px; }
+      .cert-name { font-size: 32px; margin: 16px 0; color: var(--payroc-navy); }
+      .cert-course { font-size: 20px; color: var(--payroc-blue); margin: 12px 0 20px; }
+      .cert-modules { font-size: 13px; color: var(--text-muted); line-height: 1.8; margin-bottom: 32px; }
+      .cert-date { font-size: 13px; color: var(--text-muted); }
     }
 
     /* Performance sidebar */
@@ -1340,11 +1534,10 @@
       .home-content { flex-direction: column; gap: 20px; padding: 16px; }
       .home-performance { width: 100%; }
       .perf-sidebar-card { position: static; }
-      .pipeline-step { min-width: 28px; }
-      .pipeline-dot { width: 24px; height: 24px; font-size: 10px; }
-      .pipeline-connector { min-width: 6px; max-width: 16px; }
-      .stage-card { padding: 16px; }
-      .stage-card-number { font-size: var(--fs-xl); min-width: 28px; }
+      .module-card { padding: 20px 16px; }
+      .scenario-modal-grid { grid-template-columns: 1fr; }
+      .scenario-modal { max-width: 95%; }
+      .certificate-inner { padding: 28px 16px; }
     }
 
   </style>
@@ -1353,35 +1546,39 @@
   <!-- Toast container for all notifications -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- ═══════════════ SCREEN 1: HOME (STAGE-BASED) ═══════════════ -->
+  <!-- ═══════════════ SCREEN 1: HOME (2-MODULE COURSE) ═══════════════ -->
   <div id="screen-scenarios" class="screen active">
     <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="header-brand">
         <div class="header-brand-icon">
           <img src="payroc-logo.png" alt="Payroc Logo" style="height: 24px; object-fit: contain;">
         </div>
-        <h1>Hello, John</h1>
-      </div>
-      <div id="pipeline-bar" aria-label="Sales stage progress">
-        <!-- Populated by progress.js -->
+        <h1>Sales Call Certification</h1>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span id="stage-indicator" class="home-stage-indicator"></span>
         <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
       </div>
     </header>
 
-    <!-- Two-column layout: Journey + Performance -->
+    <!-- Course header -->
+    <div class="course-header" style="padding-top: 24px;">
+      <h2>Sales Call Certification</h2>
+      <p>Master two modules with four unique buyer personas each. Pass all scenarios to earn your certification.</p>
+    </div>
+
+    <!-- Two-column layout: Modules + Performance -->
     <div class="home-content">
       <div class="home-journey">
-        <h2 class="home-section-title">Your Journey</h2>
-        <div id="stage-cards" class="stage-cards" aria-label="Sales training stages">
+        <h2 class="home-section-title">Your Modules</h2>
+        <div id="module-cards" class="module-cards" aria-label="Training modules">
           <!-- Populated by progress.js -->
           <div class="scenario-loading">
-            <div class="spinner" role="status" aria-label="Loading stages"></div>
-            <span>Loading your training stages...</span>
+            <div class="spinner" role="status" aria-label="Loading modules"></div>
+            <span>Loading your training modules...</span>
           </div>
         </div>
+        <!-- Certificate section -->
+        <div id="certificate-section" class="certificate-section" style="display:none" aria-label="Certification"></div>
       </div>
       <aside class="home-performance">
         <h2 class="home-section-title">Performance</h2>
@@ -1394,6 +1591,21 @@
           </div>
         </div>
       </aside>
+    </div>
+
+    <!-- Scenario Selector Modal -->
+    <div id="scenario-modal" class="scenario-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="scenario-modal-title">
+      <div class="scenario-modal">
+        <div class="scenario-modal-header">
+          <h3 id="scenario-modal-title">Select Your Assigned Scenario</h3>
+          <button class="scenario-modal-close" aria-label="Close modal" type="button">&times;</button>
+        </div>
+        <div class="scenario-modal-body">
+          <div id="scenario-modal-grid" class="scenario-modal-grid">
+            <!-- Populated by progress.js -->
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

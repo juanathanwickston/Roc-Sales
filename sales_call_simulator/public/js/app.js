@@ -118,16 +118,8 @@ const app = {
       });
     }
 
-    // Stage card CTA clicks - event delegation on the stage cards container
-    const stageCards = document.getElementById('stage-cards');
-    if (stageCards) {
-      stageCards.addEventListener('click', function(e) {
-        const cta = e.target.closest('[data-scenario-id]');
-        if (cta) {
-          app.selectScenario(cta.dataset.scenarioId);
-        }
-      });
-    }
+    // Module card and scenario modal events are handled by progress.js initProgressEvents()
+
 
     // --- Coaching Sidebar: Accordion ---
     const sidebarBody = document.querySelector('.sidebar-body');
