@@ -5,6 +5,10 @@
  */
 
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const db = require('../db');
+const { config } = require('../config');
 
 const { tavusFetch } = require('../services/tavusClient');
 const { extractConversationMeta } = require('../services/tavusNormalizer');
@@ -52,6 +56,7 @@ router.get('/personas/:id', async (req, res) => {
 router.post('/conversations', async (req, res) => {
   try {
     const {
+      sessionId,
       persona_id,
       replica_id,
       conversation_name,
@@ -61,23 +66,115 @@ router.post('/conversations', async (req, res) => {
       require_auth,
     } = req.body;
 
-    if (!persona_id) {
-      return res.status(400).json({ error: 'persona_id is required' });
+    const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
+
+    function loadScenarioConfig(scenarioId) {
+      try {
+        const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
+        for (const file of files) {
+          const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
+          if (scenario.id === scenarioId) {
+            return scenario;
+          }
+        }
+      } catch (err) {
+        console.warn(`[Tavus] Could not load scenario config for ${scenarioId}:`, err.message);
+      }
+      return null;
+    }
+
+    let personaId = persona_id;
+    let replicaId = replica_id;
+    let name = conversation_name;
+    let context = conversational_context;
+    let greeting = custom_greeting;
+    let props = properties;
+    let reqAuth = require_auth;
+
+    if (sessionId) {
+      if (!db.isAvailable()) {
+        return res.status(503).json({ error: 'Database not available' });
+      }
+
+      // Load session from DB
+      const sessionResult = await db.query(
+        'SELECT * FROM simulation_sessions WHERE id = $1',
+        [sessionId]
+      );
+      if (sessionResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      const session = sessionResult.rows[0];
+
+      // Validate ownership (if user authenticated)
+      if (req.user && req.user.userId && session.external_user_id && session.external_user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Access denied: Session belongs to another user.' });
+      }
+
+      // Load scenario config
+      const scenario = loadScenarioConfig(session.scenario_id);
+      if (!scenario) {
+        return res.status(404).json({ error: 'Scenario configuration not found.' });
+      }
+
+      personaId = scenario.persona_id_tavus || scenario.persona_id;
+      replicaId = scenario.replica_id || null;
+
+      const cfg = scenario.conversation_config || {};
+      name = cfg.conversation_name || null;
+      context = cfg.conversational_context || '';
+      greeting = cfg.custom_greeting || null;
+      props = cfg.properties || {};
+      reqAuth = cfg.require_auth !== undefined ? cfg.require_auth : null;
+
+      // Handle Module 2 continuity (retrieve and append relationship summary)
+      if (session.module_id === 'module2' && session.persona_id) {
+        const summaryResult = await db.query(
+          `SELECT relationship_summary FROM simulation_sessions
+           WHERE external_user_id = $1
+             AND module_id = 'module1'
+             AND persona_id = $2
+             AND status = 'completed'
+             AND relationship_summary IS NOT NULL
+           ORDER BY completed_at DESC
+           LIMIT 1`,
+          [session.external_user_id, session.persona_id]
+        );
+
+        if (summaryResult.rows.length > 0 && summaryResult.rows[0].relationship_summary) {
+          const summaryText = summaryResult.rows[0].relationship_summary;
+          context += `\n\n[CONTINUITY CONTEXT - PRIOR MEETING NOTES]:\nYou are continuing a conversation from a prior call. The following facts were established during Module 1. Do not contradict them and acknowledge them if referenced by the representative:\n${summaryText}\n[END PRIOR MEETING NOTES]`;
+          console.log(`[Tavus] Continuity summary injected server-side for session ${sessionId}`);
+        }
+      }
+    }
+
+    if (!personaId) {
+      return res.status(400).json({ error: 'persona_id (or sessionId) is required' });
+    }
+
+    // Fail-fast guard for placeholder Tavus IDs outside of local development
+    if (config.NODE_ENV !== 'development' && personaId.startsWith('TAVUS_PERSONA_')) {
+      return res.status(403).json({
+        error: 'Simulation disabled: Scenario is using a placeholder Tavus Persona ID.',
+        details: { persona_id: personaId }
+      });
     }
 
     const payload = {
-      persona_id,
-      ...(replica_id && { replica_id }),
-      ...(conversation_name && { conversation_name }),
-      ...(conversational_context && { conversational_context }),
-      ...(custom_greeting && { custom_greeting }),
-      ...(require_auth !== undefined && { require_auth }),
+      persona_id: personaId,
+      ...(replicaId && { replica_id: replicaId }),
+      ...(name && { conversation_name: name }),
+      ...(context && { conversational_context: context }),
+      ...(greeting && { custom_greeting: greeting }),
+      ...(reqAuth !== null && reqAuth !== undefined && { require_auth: reqAuth }),
       properties: {
         max_call_duration: 600, // 10 min default for training
         participant_left_timeout: 30,
         participant_absent_timeout: 120,
         enable_closed_captions: true,
-        ...(properties || {}),
+        ...(props || {}),
       },
     };
 

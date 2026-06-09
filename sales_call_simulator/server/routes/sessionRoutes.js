@@ -15,6 +15,25 @@ const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
 
 const router = express.Router();
 
+const fs = require('fs');
+const path = require('path');
+const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
+
+function loadScenarioConfig(scenarioId) {
+  try {
+    const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
+    for (const file of files) {
+      const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
+      if (scenario.id === scenarioId) {
+        return scenario;
+      }
+    }
+  } catch (err) {
+    console.warn(`[Sessions] Could not load scenario config for ${scenarioId}:`, err.message);
+  }
+  return null;
+}
+
 // Fetch retry constants shared with postCallProcessor.js
 // Both files have independent transcript fetch paths that need these values.
 const { TRANSCRIPT_RETRY_DELAY_MS } = require('../services/tavusNormalizer');
@@ -147,11 +166,19 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const { scenarioId, moduleId, personaId } = req.body;
+    const { scenarioId } = req.body;
 
     if (!scenarioId) {
       return res.status(400).json({ error: 'scenarioId is required' });
     }
+
+    const scenario = loadScenarioConfig(scenarioId);
+    if (!scenario) {
+      return res.status(404).json({ error: 'Scenario not found' });
+    }
+
+    const moduleId = scenario.module_id;
+    const personaId = scenario.persona_id;
 
     // Use external user ID from JWT if available
     const externalUserId = req.user ? req.user.userId : null;
@@ -209,7 +236,7 @@ router.post('/', async (req, res) => {
 
     const session = result.rows[0];
 
-    // Attach relationship context for Module 2 sessions (used by frontend to inject into Tavus config)
+    // Attach relationship context for Module 2 sessions (used by frontend to display notes / verify)
     if (relationshipSummary) {
       session.relationship_context = {
         summary: relationshipSummary,
@@ -223,6 +250,66 @@ router.post('/', async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Create error:', err.message);
     res.status(500).json({ error: 'Unable to create session. Please try again.' });
+  }
+});
+
+/**
+ * GET /api/sessions/continuity - Retrieve relationship summary for a persona.
+ * Query: ?personaId=...
+ * Protected by requireAuth.
+ */
+router.get('/continuity', requireAuth, async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const { personaId } = req.query;
+    const externalUserId = req.user ? req.user.userId : null;
+
+    if (!externalUserId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!personaId) {
+      return res.status(400).json({ error: 'personaId is required' });
+    }
+
+    // Allowlist validation
+    const allowedPersonas = ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'];
+    if (!allowedPersonas.includes(personaId)) {
+      return res.status(400).json({ error: 'Invalid personaId' });
+    }
+
+    // Retrieve latest passing Module 1 session's summary (final_score >= 80, pass)
+    const result = await db.query(
+      `SELECT s.relationship_summary, s.relationship_summary_json, sc.final_score
+       FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       WHERE s.external_user_id = $1
+         AND s.module_id = 'module1'
+         AND s.persona_id = $2
+         AND s.status = 'completed'
+         AND s.relationship_summary IS NOT NULL
+         AND s.relationship_summary != ''
+         AND sc.final_score >= 80
+         AND sc.overall_verdict = 'pass'
+       ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
+       LIMIT 1`,
+      [externalUserId, personaId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No passing Module 1 summary found for this persona.' });
+    }
+
+    res.json({
+      relationship_summary: result.rows[0].relationship_summary,
+      relationship_summary_json: result.rows[0].relationship_summary_json,
+    });
+  } catch (err) {
+    console.error('[Sessions] Continuity retrieval error:', err.message);
+    res.status(500).json({ error: 'Unable to retrieve continuity data.' });
   }
 });
 
@@ -323,21 +410,22 @@ router.get('/progress', async (req, res) => {
       };
     }
 
-    // Certificate unlocked when ALL personas in ALL modules are mastered
-    let allMastered = true;
-    for (const mod of COURSE_MODULES) {
-      for (const personaId of mod.personas) {
-        const key = `${mod.id}:${personaId}`;
-        if (!masteryLookup[key]) {
-          allMastered = false;
-          break;
-        }
-      }
-      if (!allMastered) break;
+    // Certificates map (Option A: per persona)
+    const certificates = {};
+    for (const personaId of ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller']) {
+      const m1Key = `module1:${personaId}`;
+      const m2Key = `module2:${personaId}`;
+      certificates[personaId] = {
+        unlocked: !!(masteryLookup[m1Key] && masteryLookup[m2Key])
+      };
     }
+
+    // Global course completion: true if ALL certificates are unlocked
+    let allMastered = Object.values(certificates).every(c => c.unlocked);
 
     res.json({
       modules,
+      certificates,
       certificate: { unlocked: allMastered },
     });
   } catch (err) {
@@ -891,12 +979,7 @@ router.post('/:id/rescore', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * GET /api/sessions/admin/dashboard - Admin/Manager dashboard.
- * Protected by requireAuth + requireAnyRole('manager', 'admin').
- * Managers see only their cohort. Admins see all users.
- */
-router.get('/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'), async (req, res) => {
+const adminDashboardHandler = async (req, res) => {
   if (!db.isAvailable()) {
     return res.status(503).json({ error: 'Database not available' });
   }
@@ -993,6 +1076,9 @@ router.get('/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'), 
     console.error('[Sessions] Admin dashboard error:', err.message);
     res.status(500).json({ error: 'Unable to load dashboard.' });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  router,
+  adminDashboardHandler
+};

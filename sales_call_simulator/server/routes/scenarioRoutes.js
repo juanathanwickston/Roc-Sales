@@ -102,7 +102,17 @@ router.get('/', (req, res) => {
  * GET /api/scenarios/:id - Get full scenario details
  */
 router.get('/:id', (req, res) => {
-  const scenario = cachedScenarios.find(s => s.id === req.params.id);
+  let scenario = cachedScenarios.find(s => s.id === req.params.id);
+  if (!scenario) {
+    try {
+      const archivePath = path.join(SCENARIOS_DIR, 'archive', `${req.params.id}.json`);
+      if (fs.existsSync(archivePath)) {
+        scenario = JSON.parse(fs.readFileSync(archivePath, 'utf-8'));
+      }
+    } catch (err) {
+      console.warn(`[Scenarios] Failed to load archived scenario ${req.params.id}:`, err.message);
+    }
+  }
   if (!scenario) {
     return res.status(404).json({ error: 'Scenario not found' });
   }

@@ -86,10 +86,10 @@ app.use((req, res, next) => {
 
 // --- API Routes ---
 
-const { optionalAuth, verifyLaunchToken } = require('./middleware/auth');
+const { optionalAuth, requireAuth, requireAnyRole, verifyLaunchToken } = require('./middleware/auth');
 const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
-const sessionRoutes = require('./routes/sessionRoutes');
+const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessionRoutes');
 
 // optionalAuth: populates req.user when JWT is present (integrated mode),
 // but never blocks requests (standalone/staging mode).
@@ -98,6 +98,7 @@ const sessionRoutes = require('./routes/sessionRoutes');
 app.use('/api/tavus', optionalAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
 app.use('/api/sessions', optionalAuth, sessionRoutes);
+app.get('/api/admin/dashboard', optionalAuth, requireAuth, requireAnyRole('manager', 'admin'), adminDashboardHandler);
 
 // Health check
 app.get('/api/health', async (req, res) => {

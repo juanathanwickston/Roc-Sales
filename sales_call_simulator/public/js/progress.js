@@ -30,7 +30,7 @@ var PERSONA_META = {
     product: 'Roc Services',
     icon: '🔧'
   },
-  pastor_david_miller: {
+  david_miller: {
     name: 'Pastor David Miller',
     business: 'New Hope Community Church',
     product: 'Roc Giving',
@@ -324,7 +324,7 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
     }
   }
 
-  var personaIds = ['sam_patel', 'carla_reyes', 'mike_turner', 'pastor_david_miller'];
+  var personaIds = ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'];
   var html = '';
 
   for (var i = 0; i < personaIds.length; i++) {
@@ -543,12 +543,15 @@ function renderCertificate(progressData) {
   var container = document.getElementById('certificate-section');
   if (!container) return;
 
-  var cert = (progressData && progressData.certificate) ? progressData.certificate : {};
-  var m1 = countMasteredPersonas('module1', progressData);
-  var m2 = countMasteredPersonas('module2', progressData);
-  var allMastered = m1 >= 4 && m2 >= 4;
+  var certs = (progressData && progressData.certificates) ? progressData.certificates : {};
+  var unlockedPersonas = [];
+  for (var pid in certs) {
+    if (certs.hasOwnProperty(pid) && certs[pid].unlocked) {
+      unlockedPersonas.push(pid);
+    }
+  }
 
-  if (!allMastered && !cert.unlocked) {
+  if (unlockedPersonas.length === 0) {
     container.style.display = 'none';
     return;
   }
@@ -556,13 +559,19 @@ function renderCertificate(progressData) {
   container.style.display = '';
   var completionDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  container.innerHTML = '<div class="certificate-inner">' +
+  var html = '<div class="certificate-inner">' +
     '<div class="certificate-badge" aria-hidden="true">🎓</div>' +
     '<h2 class="certificate-title">Congratulations!</h2>' +
-    '<p class="certificate-subtitle">You have successfully completed the</p>' +
-    '<h3 class="certificate-course-name">Sales Call Certification Course</h3>' +
-    '<p class="certificate-detail">All 8 personas mastered across both modules</p>' +
-    '<p class="certificate-date">Completed: ' + esc(completionDate) + '</p>' +
+    '<p class="certificate-subtitle">You have earned certifications for:</p>' +
+    '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0;">';
+
+  for (var j = 0; j < unlockedPersonas.length; j++) {
+    var upid = unlockedPersonas[j];
+    var meta = PERSONA_META[upid] || { name: upid };
+    html += '<button class="btn btn-primary btn-print-persona-cert" data-persona-id="' + upid + '" type="button">Print ' + esc(meta.name) + ' Cert</button>';
+  }
+
+  html += '</div>' +
     '<div class="certificate-print-area" id="certificate-print-area">' +
       '<div class="certificate-printable">' +
         '<div class="cert-header">CERTIFICATE OF COMPLETION</div>' +
@@ -570,21 +579,30 @@ function renderCertificate(progressData) {
         '<div class="cert-body">' +
           '<p>This certifies that</p>' +
           '<h2 class="cert-name">Sales Representative</h2>' +
-          '<p>has successfully completed</p>' +
+          '<p>has successfully completed the</p>' +
           '<h3 class="cert-course">Sales Call Certification</h3>' +
-          '<p class="cert-modules">Module 1: Discovery & Qualification<br>Module 2: Objection Handling & Close</p>' +
+          '<p class="cert-modules" id="cert-printable-persona-name"></p>' +
           '<p class="cert-date">' + esc(completionDate) + '</p>' +
         '</div>' +
       '</div>' +
     '</div>' +
-    '<button class="btn btn-primary" type="button" id="btn-print-certificate" aria-label="Print certificate">Print Certificate</button>' +
   '</div>';
 
-  // Bind print button
-  var printBtn = document.getElementById('btn-print-certificate');
-  if (printBtn) {
-    printBtn.addEventListener('click', function() {
-      window.print();
+  container.innerHTML = html;
+
+  // Bind print buttons
+  var buttons = container.querySelectorAll('.btn-print-persona-cert');
+  for (var k = 0; k < buttons.length; k++) {
+    buttons[k].addEventListener('click', function(e) {
+      var personaId = e.currentTarget.getAttribute('data-persona-id');
+      var meta = PERSONA_META[personaId] || { name: personaId, business: '' };
+      var nameEl = document.getElementById('cert-printable-persona-name');
+      if (nameEl) {
+        nameEl.innerHTML = esc(meta.name) + '<br><span style="font-size:12px;color:var(--text-muted);font-weight:normal;">' + esc(meta.business) + '</span>';
+      }
+      setTimeout(function() {
+        window.print();
+      }, 50);
     });
   }
 }

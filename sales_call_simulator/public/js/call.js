@@ -28,31 +28,48 @@ const callManager = {
     // Always clean up any previous call object before starting
     this.cleanup();
 
+    // Clear any previous continuity notes
+    var notesEl = document.getElementById('lobby-continuity-notes');
+    if (notesEl) {
+      notesEl.style.display = 'none';
+      notesEl.innerHTML = '';
+    }
+
     try {
       // Step 1: Create a session record to track this call attempt
       this.updateLobbyStatus('Preparing session...');
       this.sessionId = await this.createSession(scenario.id);
 
+      // Fetch relationship continuity summary for Module 2 scenarios
+      if (scenario.module_id === 'module2' && scenario.persona_id) {
+        var lobbyToken = localStorage.getItem('roc_token');
+        try {
+          var notesRes = await fetch('/api/sessions/continuity?personaId=' + scenario.persona_id, {
+            headers: lobbyToken ? { 'Authorization': 'Bearer ' + lobbyToken } : {},
+          });
+          if (notesRes.ok) {
+            var notesData = await notesRes.json();
+            if (notesData.relationship_summary && notesEl) {
+              var formattedNotes = esc(notesData.relationship_summary)
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/- (.*?)\n/g, '<li>$1</li>')
+                .replace(/\n/g, '<br>');
+              notesEl.innerHTML = '<h4 style="margin:0 0 8px;font-size:13px;color:var(--payroc-blue);">Previous Call Notes</h4>' +
+                '<div style="font-size:12px;color:var(--text-muted);line-height:1.5;">' + formattedNotes + '</div>';
+              notesEl.style.display = 'block';
+            }
+          }
+        } catch (e) {
+          console.warn('[Call] Failed to fetch continuity notes:', e.message);
+        }
+      }
+
       // Step 2: Create conversation via our backend proxy
       this.updateLobbyStatus('Creating conversation...');
 
-      // C2 fix: Only send Tavus-accepted keys - never send rubric/coaching_notes
       const conversationPayload = {
-        persona_id: scenario.persona_id,
+        sessionId: this.sessionId,
       };
-      // Optionally pass replica_id if scenario defines one (H1)
-      if (scenario.replica_id) {
-        conversationPayload.replica_id = scenario.replica_id;
-      }
-      // Pass only valid conversation properties
-      if (scenario.conversation_config) {
-        const cfg = scenario.conversation_config;
-        if (cfg.conversation_name) conversationPayload.conversation_name = cfg.conversation_name;
-        if (cfg.conversational_context) conversationPayload.conversational_context = cfg.conversational_context;
-        if (cfg.custom_greeting) conversationPayload.custom_greeting = cfg.custom_greeting;
-        if (cfg.properties) conversationPayload.properties = cfg.properties;
-        if (cfg.require_auth !== undefined) conversationPayload.require_auth = cfg.require_auth;
-      }
 
       const token = localStorage.getItem('roc_token');
       const res = await fetch('/api/tavus/conversations', {
