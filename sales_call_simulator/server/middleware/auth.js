@@ -89,5 +89,21 @@ function verifyLaunchToken(token) {
   }
 }
 
-module.exports = { requireAuth, optionalAuth, verifyLaunchToken };
+/**
+ * Require the authenticated user to have one of the specified roles.
+ * Must be used after requireAuth so that req.user is populated.
+ */
+function requireAnyRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+    next();
+  };
+}
+
+module.exports = { requireAuth, optionalAuth, verifyLaunchToken, requireAnyRole };
 

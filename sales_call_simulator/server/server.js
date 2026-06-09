@@ -11,6 +11,7 @@ const rateLimit = require('express-rate-limit');
 
 const { config, validateConfig } = require('./config');
 const db = require('./db');
+const { COURSE_MODULES } = require('./modules');
 
 const app = express();
 

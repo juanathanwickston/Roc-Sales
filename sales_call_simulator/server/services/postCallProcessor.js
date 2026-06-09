@@ -1,7 +1,7 @@
 /**
  * Post-Call Processor
  * Backend service that orchestrates the full post-call pipeline:
- * fetch transcript -> score -> persist results -> notify ROC Academy -> update session status.
+ * fetch transcript -> score -> persist results -> mastery check -> summary generation -> notify ROC Academy -> update session status.
  *
  * This runs entirely server-side. The frontend triggers it via
  * POST /api/sessions/:id/process and polls for completion.
@@ -27,6 +27,16 @@ const { config } = require('../config');
 async function processSession(sessionId) {
   console.log(`[PostCall] Processing session ${sessionId}`);
 
+  // Idempotency: check if already scored
+  const existingScore = await db.query(
+    'SELECT session_id FROM session_scores WHERE session_id = $1',
+    [sessionId]
+  );
+  if (existingScore.rows.length > 0) {
+    console.log(`[PostCall] Session ${sessionId} already scored, skipping.`);
+    return { status: 'completed', scored: true, skipped: true };
+  }
+
   // Transition to processing
   await updateStatus(sessionId, 'processing');
 
@@ -43,15 +53,20 @@ async function processSession(sessionId) {
     // 2. Extract and persist perception analysis (non-blocking)
     await persistPerceptionAnalysis(sessionId, rawConversationData);
 
-    // 3. Load session to get scenario and user info
+    // 3. Load session to get scenario, module, persona, and user info
     const session = await db.query(
-      'SELECT scenario_id, external_user_id FROM simulation_sessions WHERE id = $1',
+      'SELECT scenario_id, module_id, persona_id, external_user_id FROM simulation_sessions WHERE id = $1',
       [sessionId]
     );
     const scenarioId = session.rows[0]?.scenario_id || 'unknown';
+    const moduleId = session.rows[0]?.module_id || null;
+    const personaId = session.rows[0]?.persona_id || null;
     const userId = session.rows[0]?.external_user_id || null;
 
-    // 4. Score the transcript
+    // 4. Load scenario config (for auto-fail triggers)
+    const scenarioConfig = loadScenarioConfig(scenarioId);
+
+    // 5. Score the transcript
     const scorecard = await scoreTranscript(transcript, scenarioId);
 
     if (!scorecard) {
@@ -60,23 +75,30 @@ async function processSession(sessionId) {
       return { status: 'completed', scored: false };
     }
 
-    // 5. Generate Coaching Analysis based on Scorecard
+    // 6. Generate Coaching Analysis based on Scorecard
     const coachingAnalysis = await generateCoachingAnalysis({ transcript, scenarioId, scorecard });
     if (coachingAnalysis) {
       scorecard.coaching_analysis = coachingAnalysis;
     }
 
-    // 6. Persist scoring results
-    await persistScore(sessionId, scorecard);
+    // 7. Persist scoring results + mastery calculation in a transaction
+    await persistScoreAndMastery(sessionId, scorecard, { moduleId, personaId, userId });
 
-    // 6. Notify ROC Academy (fire-and-forget, does not block completion)
+    // 8. Generate relationship summary if passing score and no auto-fails
+    if (scorecard.final_score >= 80 && scorecard.overall_verdict === 'pass' &&
+        (!scorecard.automatic_fails_triggered || scorecard.automatic_fails_triggered.length === 0)) {
+      await generateAndPersistRelationshipSummary(sessionId, transcript, scenarioId, scenarioConfig);
+    }
+
+    // 9. Notify ROC Academy (fire-and-forget, does not block completion)
     sendCompletionCallback({ sessionId, scorecard, scenarioId, userId }).catch(() => {});
 
-    // 7. Mark session as completed
+    // 10. Mark session as completed
     await updateStatus(sessionId, 'completed');
 
-    console.log(`[PostCall] Session ${sessionId} fully processed (score: ${scorecard.overall_score})`);
-    return { status: 'completed', scored: true, overallScore: scorecard.overall_score };
+    // Log metadata only - no PII, no transcripts, no summary text
+    console.log(`[PostCall] Session ${sessionId} fully processed (module: ${moduleId}, persona: ${personaId}, raw: ${scorecard.raw_score}, final: ${scorecard.final_score})`);
+    return { status: 'completed', scored: true, overallScore: scorecard.final_score };
   } catch (err) {
     console.error(`[PostCall] Processing failed for session ${sessionId}:`, err.message);
     await updateStatus(sessionId, 'failed').catch(() => {});
@@ -221,60 +243,10 @@ async function updatePerceptionStatus(sessionId, status) {
 }
 
 /**
- * Score a transcript using the OpenAI scoring endpoint.
- * Returns the parsed scorecard object, or null if scoring is unavailable.
+ * Load full scenario config from the scenarios directory.
+ * Returns the scenario object, or an empty object if not found.
  */
-async function scoreTranscript(transcript, scenarioId) {
-  if (!config.OPENAI_API_KEY) {
-    console.warn('[PostCall] OPENAI_API_KEY not configured - skipping scoring');
-    return null;
-  }
-
-  // Load scenario rubric from file system
-  const rubric = loadScenarioRubric(scenarioId);
-
-  const prompt = buildScoringPrompt(transcript, rubric, scenarioId);
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: prompt.system },
-        { role: 'user', content: prompt.user },
-      ],
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
-    }),
-  });
-
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  try {
-    const extraction = JSON.parse(data.choices[0].message.content);
-    const scorecard = calculateMechanicalScore(extraction, rubric);
-    console.log(`[PostCall] Scored scenario ${scenarioId}: overall ${scorecard.overall_score}/100`);
-    return scorecard;
-  } catch (parseErr) {
-    console.error('[PostCall] Failed to parse OpenAI response:', parseErr.message);
-    return null;
-  }
-}
-
-/**
- * Load scenario rubric from the scenarios directory.
- * Returns the rubric object, or an empty object if not found.
- */
-function loadScenarioRubric(scenarioId) {
+function loadScenarioConfig(scenarioId) {
   try {
     const fs = require('fs');
     const path = require('path');
@@ -284,22 +256,151 @@ function loadScenarioRubric(scenarioId) {
     for (const file of files) {
       const scenario = JSON.parse(fs.readFileSync(path.join(scenariosDir, file), 'utf8'));
       if (scenario.id === scenarioId) {
-        return scenario.rubric || {};
+        return scenario;
       }
     }
   } catch (err) {
-    console.warn(`[PostCall] Could not load rubric for scenario ${scenarioId}:`, err.message);
+    console.warn(`[PostCall] Could not load scenario config for ${scenarioId}:`, err.message);
   }
 
   return {};
 }
 
 /**
+ * Load scenario rubric from the scenarios directory.
+ * Returns the rubric object, or an empty object if not found.
+ */
+function loadScenarioRubric(scenarioId) {
+  const scenario = loadScenarioConfig(scenarioId);
+  return scenario.rubric || {};
+}
+
+/**
+ * Score a transcript using the OpenAI scoring endpoint.
+ * Returns the parsed scorecard object, or null if scoring is unavailable.
+ * Includes GPT validation with single retry on malformed response.
+ */
+async function scoreTranscript(transcript, scenarioId) {
+  if (!config.OPENAI_API_KEY) {
+    console.warn('[PostCall] OPENAI_API_KEY not configured - skipping scoring');
+    return null;
+  }
+
+  // Load scenario rubric and auto-fail triggers from file system
+  const scenarioConfig = loadScenarioConfig(scenarioId);
+  const rubric = scenarioConfig.rubric || {};
+  const autoFailTriggers = scenarioConfig.auto_fail_triggers || [];
+
+  const prompt = buildScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers);
+
+  let extraction = null;
+
+  // First attempt
+  extraction = await callOpenAIForScoring(prompt);
+
+  // Validate response structure
+  if (extraction && !validateScoringResponse(extraction, rubric)) {
+    console.warn('[PostCall] Malformed GPT response on first attempt, retrying with correction...');
+
+    // Retry with correction prompt
+    const correctionPrompt = buildCorrectionPrompt(extraction, rubric);
+    extraction = await callOpenAIForScoring(correctionPrompt);
+
+    if (extraction && !validateScoringResponse(extraction, rubric)) {
+      console.error('[PostCall] Malformed GPT response on retry. Scoring failed.');
+      return null;
+    }
+  }
+
+  if (!extraction) {
+    return null;
+  }
+
+  const scorecard = calculateMechanicalScore(extraction, rubric, autoFailTriggers);
+  console.log(`[PostCall] Scored scenario ${scenarioId}: raw ${scorecard.raw_score}, final ${scorecard.final_score}`);
+  return scorecard;
+}
+
+/**
+ * Call OpenAI API for scoring extraction.
+ * Returns the parsed JSON extraction, or null on failure.
+ */
+async function callOpenAIForScoring(prompt) {
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prompt.system },
+          { role: 'user', content: prompt.user },
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+  } catch (err) {
+    console.error('[PostCall] OpenAI scoring call failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Validate the GPT scoring response has the expected structure.
+ * Returns true if valid, false if malformed.
+ */
+function validateScoringResponse(extraction, rubric) {
+  if (!extraction || typeof extraction !== 'object') return false;
+  if (!extraction.checklist || typeof extraction.checklist !== 'object') return false;
+
+  // Check that all behavior IDs from rubric are present in checklist
+  for (const [, catData] of Object.entries(rubric)) {
+    const behaviors = catData.behaviors || [];
+    for (const b of behaviors) {
+      if (!extraction.checklist[b.id]) return false;
+      if (typeof extraction.checklist[b.id].observed !== 'boolean') return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Build a correction prompt for retry when GPT returns malformed JSON.
+ */
+function buildCorrectionPrompt(malformedResponse, rubric) {
+  const behaviorIds = [];
+  for (const [, catData] of Object.entries(rubric)) {
+    for (const b of (catData.behaviors || [])) {
+      behaviorIds.push(b.id);
+    }
+  }
+
+  return {
+    system: `Your previous response was malformed. You MUST return a JSON object with a "checklist" property containing entries for ALL of these behavior IDs: ${behaviorIds.join(', ')}. Each entry must have "observed" (boolean) and "evidence" (string) fields. Also include "top_strengths" (array of 2 strings), "critical_improvements" (array of 3 strings), "coaching_tip" (string), and "auto_fail_checks" (object with boolean values for each auto-fail trigger). Fix the response.`,
+    user: `Here was your malformed response:\n${JSON.stringify(malformedResponse)}\n\nPlease fix it and return valid JSON.`,
+  };
+}
+
+/**
  * Build the scoring prompt from transcript and behavioral checklist rubric.
  * GPT-4o only observes YES/NO per behavior with exact transcript quotes.
  * Score calculation happens server-side in calculateMechanicalScore.
+ * Also includes auto-fail trigger checks.
  */
-function buildScoringPrompt(transcript, rubric, scenarioId) {
+function buildScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers) {
   // Build behavior list from rubric
   const behaviorList = [];
   for (const [catName, catData] of Object.entries(rubric)) {
@@ -309,6 +410,11 @@ function buildScoringPrompt(transcript, rubric, scenarioId) {
     }
   }
   const behaviorText = behaviorList.join('\n');
+
+  // Build auto-fail trigger list
+  const autoFailText = autoFailTriggers.length > 0
+    ? autoFailTriggers.map(af => `- ${af.check}: ${af.description}`).join('\n')
+    : 'None';
 
   return {
     system: `You are an expert sales call evaluator. Your ONLY job is to determine whether specific behaviors were observed in the transcript.
@@ -321,6 +427,7 @@ RULES:
 5. A behavior is only OBSERVED if there is a direct, literal quote that proves it.
 6. Also provide top_strengths (2 items) and critical_improvements (3 items) based ONLY on observed evidence.
 7. Provide a single coaching_tip with one actionable recommendation.
+8. For each auto-fail trigger, determine if it was triggered (true) or not (false).
 
 Return a JSON object with this exact structure:
 {
@@ -329,6 +436,9 @@ Return a JSON object with this exact structure:
       "observed": true|false,
       "evidence": "<exact transcript quote or NOT OBSERVED>"
     }
+  },
+  "auto_fail_checks": {
+    "<trigger_check_id>": true|false
   },
   "top_strengths": ["<strength based on observed evidence>", "<strength based on observed evidence>"],
   "critical_improvements": ["<improvement based on missing behaviors>", "<improvement>", "<improvement>"],
@@ -340,18 +450,23 @@ Return a JSON object with this exact structure:
 BEHAVIORS TO EVALUATE:
 ${behaviorText}
 
+AUTO-FAIL TRIGGERS TO CHECK:
+${autoFailText}
+
 CALL TRANSCRIPT:
 ${transcript}
 
-Evaluate each behavior. Return JSON only.`,
+Evaluate each behavior and auto-fail trigger. Return JSON only.`,
   };
 }
 
 /**
  * Calculate mechanical score from GPT-4o checklist extraction and rubric behaviors.
+ * Computes raw_score from behaviors, checks auto-fail triggers.
+ * If any auto-fail is triggered, final_score = 0 and overall_verdict = 'fail'.
  * Returns a backward-compatible scorecard object.
  */
-function calculateMechanicalScore(extraction, rubric) {
+function calculateMechanicalScore(extraction, rubric, autoFailTriggers) {
   const checklist = extraction.checklist || {};
   let totalScore = 0;
   const categories = {};
@@ -390,11 +505,32 @@ function calculateMechanicalScore(extraction, rubric) {
     };
   }
 
-  const overallVerdict = totalScore >= 70 ? 'pass' : (totalScore >= 50 ? 'needs_work' : 'fail');
+  // Raw score is the sum of earned behavior points
+  const rawScore = totalScore;
+
+  // Check auto-fail triggers
+  const autoFailChecks = extraction.auto_fail_checks || {};
+  const triggeredFails = [];
+
+  for (const af of autoFailTriggers) {
+    if (autoFailChecks[af.check] === true) {
+      triggeredFails.push({ id: af.id, check: af.check, description: af.description });
+    }
+  }
+
+  // If any auto-fail is triggered, final_score = 0 and verdict = fail
+  const hasAutoFail = triggeredFails.length > 0;
+  const finalScore = hasAutoFail ? 0 : rawScore;
+  const overallVerdict = hasAutoFail
+    ? 'fail'
+    : (rawScore >= 70 ? 'pass' : (rawScore >= 50 ? 'needs_work' : 'fail'));
 
   return {
-    overall_score: totalScore,
+    overall_score: finalScore,
     overall_verdict: overallVerdict,
+    raw_score: rawScore,
+    final_score: finalScore,
+    automatic_fails_triggered: triggeredFails,
     categories: categories,
     checklist: checklist,
     top_strengths: extraction.top_strengths || [],
@@ -404,47 +540,252 @@ function calculateMechanicalScore(extraction, rubric) {
 }
 
 /**
- * Persist scoring results to session_scores table.
- * Maps scorecard fields to the schema defined in 001_core_schema.sql.
+ * Persist scoring results and calculate mastery in a single transaction.
+ * Uses db.getClient() for transaction boundaries.
  */
-async function persistScore(sessionId, scorecard) {
-  const rawResponse = JSON.stringify(scorecard);
-  const categories = JSON.stringify(scorecard.categories || {});
-  const topStrengths = JSON.stringify(scorecard.top_strengths || []);
-  const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
-  const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
+async function persistScoreAndMastery(sessionId, scorecard, { moduleId, personaId, userId }) {
+  const client = await db.getClient();
 
-  await db.query(
-    `INSERT INTO session_scores
-       (session_id, raw_response, overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip, coaching_analysis)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     ON CONFLICT (session_id)
-     DO UPDATE SET
-       raw_response = $2, overall_score = $3, overall_verdict = $4,
-       categories = $5, top_strengths = $6, critical_improvements = $7, coaching_tip = $8, coaching_analysis = $9`,
-    [
-      sessionId,
-      rawResponse,
-      scorecard.overall_score || 0,
-      scorecard.overall_verdict || 'unknown',
-      categories,
-      topStrengths,
-      criticalImprovements,
-      scorecard.coaching_tip || '',
-      coachingAnalysis
-    ]
-  );
+  try {
+    await client.query('BEGIN');
 
-  console.log(`[PostCall] Score persisted for session ${sessionId}`);
+    // 1. Persist score
+    const rawResponse = JSON.stringify(scorecard);
+    const categories = JSON.stringify(scorecard.categories || {});
+    const topStrengths = JSON.stringify(scorecard.top_strengths || []);
+    const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
+    const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
+    const autoFails = JSON.stringify(scorecard.automatic_fails_triggered || []);
+
+    await client.query(
+      `INSERT INTO session_scores
+         (session_id, raw_response, overall_score, overall_verdict, categories,
+          top_strengths, critical_improvements, coaching_tip, coaching_analysis,
+          raw_score, final_score, automatic_fails_triggered, rubric_version, scoring_model)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       ON CONFLICT (session_id)
+       DO UPDATE SET
+         raw_response = $2, overall_score = $3, overall_verdict = $4,
+         categories = $5, top_strengths = $6, critical_improvements = $7,
+         coaching_tip = $8, coaching_analysis = $9,
+         raw_score = $10, final_score = $11, automatic_fails_triggered = $12,
+         rubric_version = $13, scoring_model = $14`,
+      [
+        sessionId,
+        rawResponse,
+        scorecard.final_score || 0,
+        scorecard.overall_verdict || 'unknown',
+        categories,
+        topStrengths,
+        criticalImprovements,
+        scorecard.coaching_tip || '',
+        coachingAnalysis,
+        scorecard.raw_score || 0,
+        scorecard.final_score || 0,
+        autoFails,
+        '1.0',
+        'gpt-4o',
+      ]
+    );
+
+    // 2. Calculate mastery (rolling average of latest 3 scored attempts)
+    if (moduleId && personaId && userId && moduleId !== 'legacy') {
+      const recentSessions = await client.query(
+        `SELECT s.id, COALESCE(sc.final_score, sc.overall_score) AS effective_score
+         FROM simulation_sessions s
+         INNER JOIN session_scores sc ON sc.session_id = s.id
+         WHERE s.external_user_id = $1
+           AND s.module_id = $2
+           AND s.persona_id = $3
+           AND s.status = 'completed'
+         ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
+         LIMIT 3`,
+        [userId, moduleId, personaId]
+      );
+
+      // Include the current session in the calculation (it may not yet be 'completed')
+      const allScores = [];
+      const allSessionIds = [];
+      let currentIncluded = false;
+
+      for (const row of recentSessions.rows) {
+        if (row.id === parseInt(sessionId, 10)) {
+          currentIncluded = true;
+        }
+        allScores.push(parseFloat(row.effective_score));
+        allSessionIds.push(row.id);
+      }
+
+      // If current session not yet in results (status not completed yet), add it
+      if (!currentIncluded) {
+        allScores.unshift(scorecard.final_score || 0);
+        allSessionIds.unshift(parseInt(sessionId, 10));
+        // Keep only latest 3
+        if (allScores.length > 3) {
+          allScores.pop();
+          allSessionIds.pop();
+        }
+      }
+
+      if (allScores.length > 0) {
+        const rollingAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+
+        if (rollingAvg >= 80) {
+          await client.query(
+            `INSERT INTO module_masteries
+               (external_user_id, module_id, persona_id, mastery_score, source_session_ids)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (external_user_id, module_id, persona_id)
+             DO UPDATE SET
+               mastery_score = $4,
+               source_session_ids = $5,
+               mastered_at = NOW()`,
+            [userId, moduleId, personaId, Math.round(rollingAvg * 100) / 100, allSessionIds]
+          );
+
+          console.log(`[PostCall] Mastery updated for ${userId}/${moduleId}/${personaId}: ${Math.round(rollingAvg * 100) / 100}`);
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    console.log(`[PostCall] Score persisted for session ${sessionId}`);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(`[PostCall] Score/mastery persist failed for session ${sessionId}:`, err.message);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Generate and persist a relationship summary for passing sessions.
+ * Extracts only factual business parameters: discovered_facts, operational_pain_points, merchant_confirmed_details.
+ * Constrained to max 5 bullet points and under 1500 characters.
+ */
+async function generateAndPersistRelationshipSummary(sessionId, transcript, scenarioId, scenarioConfig) {
+  if (!config.OPENAI_API_KEY) {
+    console.warn('[PostCall] Relationship summary skipped: no OpenAI API key');
+    return;
+  }
+
+  try {
+    const personaName = scenarioConfig.name || scenarioId;
+    const product = scenarioConfig.product || 'Payroc solution';
+
+    const prompt = {
+      system: `You are a data extraction assistant. Extract ONLY factual business parameters that were explicitly discussed and confirmed by the merchant during this sales call. Do NOT infer, assume, or add information not stated in the transcript.
+
+Return valid JSON with this exact structure:
+{
+  "discovered_facts": ["<fact 1>", "<fact 2>"],
+  "operational_pain_points": ["<pain point 1>", "<pain point 2>"],
+  "merchant_confirmed_details": ["<detail 1>", "<detail 2>"]
+}
+
+RULES:
+- Maximum 5 bullet points total across all three categories.
+- Total output must be under 1500 characters.
+- Only include facts the merchant explicitly stated or confirmed.
+- Do not paraphrase extensively. Use the merchant's language where possible.
+- Do not include the rep's assumptions or claims.`,
+      user: `SCENARIO: ${personaName}
+PRODUCT: ${product}
+
+CALL TRANSCRIPT:
+${transcript}
+
+Extract the relationship summary. Return JSON only.`,
+    };
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prompt.system },
+          { role: 'user', content: prompt.user },
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    let summaryJson;
+
+    try {
+      summaryJson = JSON.parse(data.choices[0].message.content);
+    } catch (parseErr) {
+      console.error('[PostCall] Failed to parse relationship summary response:', parseErr.message);
+      return;
+    }
+
+    // Validate structure
+    if (!summaryJson.discovered_facts && !summaryJson.operational_pain_points && !summaryJson.merchant_confirmed_details) {
+      console.warn('[PostCall] Relationship summary has no expected fields, skipping.');
+      return;
+    }
+
+    // Build markdown text summary
+    const markdownParts = [];
+    if (summaryJson.discovered_facts && summaryJson.discovered_facts.length > 0) {
+      markdownParts.push('**Discovered Facts:**');
+      summaryJson.discovered_facts.forEach(f => markdownParts.push(`- ${f}`));
+    }
+    if (summaryJson.operational_pain_points && summaryJson.operational_pain_points.length > 0) {
+      markdownParts.push('**Operational Pain Points:**');
+      summaryJson.operational_pain_points.forEach(p => markdownParts.push(`- ${p}`));
+    }
+    if (summaryJson.merchant_confirmed_details && summaryJson.merchant_confirmed_details.length > 0) {
+      markdownParts.push('**Merchant Confirmed Details:**');
+      summaryJson.merchant_confirmed_details.forEach(d => markdownParts.push(`- ${d}`));
+    }
+    const markdownSummary = markdownParts.join('\n');
+
+    // Persist to session
+    await db.query(
+      `UPDATE simulation_sessions
+       SET relationship_summary = $1,
+           relationship_summary_json = $2,
+           completed_at = NOW()
+       WHERE id = $3`,
+      [markdownSummary, JSON.stringify(summaryJson), sessionId]
+    );
+
+    // Log metadata only - no PII or summary text
+    console.log(`[PostCall] Relationship summary persisted for session ${sessionId} (summary_present: true, summary_length: ${markdownSummary.length})`);
+  } catch (err) {
+    console.error(`[PostCall] Relationship summary generation failed for session ${sessionId}:`, err.message);
+    // Non-blocking: do not throw
+  }
 }
 
 /**
  * Update session status with validation.
  */
 async function updateStatus(sessionId, status) {
+  const setClauses = ['status = $2'];
+  const params = [sessionId, status];
+
+  // Set completed_at when moving to completed status
+  if (status === 'completed') {
+    setClauses.push('completed_at = COALESCE(completed_at, NOW())');
+  }
+
   await db.query(
-    'UPDATE simulation_sessions SET status = $2 WHERE id = $1',
-    [sessionId, status]
+    `UPDATE simulation_sessions SET ${setClauses.join(', ')} WHERE id = $1`,
+    params
   );
   console.log(`[PostCall] Session ${sessionId} -> ${status}`);
 }
@@ -482,10 +823,12 @@ function loadCurriculum(scenarioId) {
  * Strict language constraints: no em dashes, no emojis, no exclamation marks.
  */
 function buildCoachingPrompt({ transcript, curriculum, scorecard, scenarioId }) {
-  const scoreSummary = `Overall Score: ${scorecard.overall_score}/100 (${scorecard.overall_verdict})
+  const scoreSummary = `Overall Score: ${scorecard.final_score || scorecard.overall_score}/100 (${scorecard.overall_verdict})
+Raw Score: ${scorecard.raw_score || scorecard.overall_score}/100
 Top Strengths: ${(scorecard.top_strengths || []).join('; ')}
 Critical Improvements: ${(scorecard.critical_improvements || []).join('; ')}
-Coaching Tip: ${scorecard.coaching_tip || 'N/A'}`;
+Coaching Tip: ${scorecard.coaching_tip || 'N/A'}
+Auto-Fail Triggers: ${(scorecard.automatic_fails_triggered || []).length > 0 ? scorecard.automatic_fails_triggered.map(af => af.description).join('; ') : 'None'}`;
 
   // Build stats from checklist if available
   let statsContext = '';

@@ -1,15 +1,17 @@
 /**
  * Session Management Routes
  * Tracks simulation sessions with explicit lifecycle statuses.
+ * Updated for 2-module course redesign with per-persona progress tracking.
  */
 
 const express = require('express');
 
 const db = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAnyRole } = require('../middleware/auth');
 const { tavusFetch } = require('../services/tavusClient');
 const { extractTranscript } = require('../services/tavusNormalizer');
 const { processSession, generateCoachingAnalysis, scoreTranscript } = require('../services/postCallProcessor');
+const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
 
 const router = express.Router();
 
@@ -104,7 +106,7 @@ router.get('/', async (req, res) => {
 
     // Fetch paginated sessions (only scored)
     const result = await db.query(
-      `SELECT s.id, s.scenario_id, s.status, s.duration_seconds,
+      `SELECT s.id, s.scenario_id, s.module_id, s.persona_id, s.status, s.duration_seconds,
               s.created_at, s.updated_at,
               sc.overall_score, sc.overall_verdict
        FROM simulation_sessions s
@@ -135,7 +137,8 @@ router.get('/', async (req, res) => {
 
 /**
  * POST /api/sessions - Create a new simulation session.
- * Body: { scenarioId }
+ * Body: { scenarioId, moduleId?, personaId? }
+ * For Module 2 sessions, validates Module 1 mastery and retrieves relationship summary.
  * Returns the created session record.
  */
 router.post('/', async (req, res) => {
@@ -144,7 +147,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const { scenarioId } = req.body;
+    const { scenarioId, moduleId, personaId } = req.body;
 
     if (!scenarioId) {
       return res.status(400).json({ error: 'scenarioId is required' });
@@ -153,15 +156,68 @@ router.post('/', async (req, res) => {
     // Use external user ID from JWT if available
     const externalUserId = req.user ? req.user.userId : null;
 
+    let relationshipSummary = null;
+    let relationshipSummaryJson = null;
+
+    // Module 2 prerequisite checks
+    if (moduleId === 'module2' && personaId) {
+      // Check mastery of Module 1 for this persona
+      const masteryResult = await db.query(
+        `SELECT mastery_score FROM module_masteries
+         WHERE external_user_id = $1 AND module_id = 'module1' AND persona_id = $2`,
+        [externalUserId, personaId]
+      );
+
+      if (masteryResult.rows.length === 0) {
+        return res.status(403).json({
+          error: 'Module 1 mastery required before starting Module 2 for this persona.',
+          details: { moduleId: 'module1', personaId },
+        });
+      }
+
+      // Retrieve the most recent passing Module 1 session's relationship summary
+      const summaryResult = await db.query(
+        `SELECT relationship_summary, relationship_summary_json
+         FROM simulation_sessions
+         WHERE external_user_id = $1
+           AND module_id = 'module1'
+           AND persona_id = $2
+           AND status = 'completed'
+           AND relationship_summary IS NOT NULL
+         ORDER BY completed_at DESC
+         LIMIT 1`,
+        [externalUserId, personaId]
+      );
+
+      if (summaryResult.rows.length === 0) {
+        return res.status(422).json({
+          error: 'No relationship summary found from a passing Module 1 session for this persona.',
+          details: { moduleId: 'module1', personaId },
+        });
+      }
+
+      relationshipSummary = summaryResult.rows[0].relationship_summary;
+      relationshipSummaryJson = summaryResult.rows[0].relationship_summary_json;
+    }
+
     const result = await db.query(
-      `INSERT INTO simulation_sessions (scenario_id, external_user_id, status)
-       VALUES ($1, $2, 'created')
-       RETURNING id, scenario_id, external_user_id, status, created_at, updated_at`,
-      [scenarioId, externalUserId]
+      `INSERT INTO simulation_sessions (scenario_id, external_user_id, status, module_id, persona_id)
+       VALUES ($1, $2, 'created', $3, $4)
+       RETURNING id, scenario_id, external_user_id, module_id, persona_id, status, created_at, updated_at`,
+      [scenarioId, externalUserId, moduleId || null, personaId || null]
     );
 
     const session = result.rows[0];
-    console.log(`[Sessions] Created session ${session.id} for scenario ${scenarioId}`);
+
+    // Attach relationship context for Module 2 sessions (used by frontend to inject into Tavus config)
+    if (relationshipSummary) {
+      session.relationship_context = {
+        summary: relationshipSummary,
+        summary_json: relationshipSummaryJson,
+      };
+    }
+
+    console.log(`[Sessions] Created session ${session.id} for scenario ${scenarioId} (module: ${moduleId || 'none'}, persona: ${personaId || 'none'})`);
 
     res.status(201).json(session);
   } catch (err) {
@@ -171,9 +227,9 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * GET /api/sessions/progress - Aggregate progress data for the current user.
- * Computes score trends, category progression, streaks, and per-scenario stats.
- * Returns sensible defaults when no sessions exist.
+ * GET /api/sessions/progress - Per-module, per-persona progress for the current user.
+ * Computes attempts, scores, mastery status, and rolling averages.
+ * Excludes legacy sessions from calculations.
  * Must be defined before /:id to prevent 'progress' matching as a session ID.
  */
 router.get('/progress', async (req, res) => {
@@ -182,192 +238,107 @@ router.get('/progress', async (req, res) => {
   }
 
   try {
-    // Fetch all completed, scored sessions ordered by date (oldest first for trend)
     const userId = req.query.userId || (req.user && req.user.userId) || null;
-    const conditions = ["s.status = 'completed'"];
-    const params = [];
-    let paramIndex = 1;
 
-    if (userId) {
-      conditions.push(`s.external_user_id = $${paramIndex}`);
-      params.push(userId);
-      paramIndex++;
-    } else {
-      conditions.push(`s.external_user_id IS NULL`);
-    }
-
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
-
-    const result = await db.query(
-      `SELECT s.id, s.scenario_id, s.duration_seconds, s.created_at,
-              sc.overall_score, sc.overall_verdict, sc.categories
-       FROM simulation_sessions s
-       INNER JOIN session_scores sc ON sc.session_id = s.id
-       ${whereClause}
-       ORDER BY s.created_at ASC`,
-      params
-    );
-
-    const sessions = result.rows;
-
-    // Empty state
-    if (sessions.length === 0) {
+    if (!userId) {
       return res.json({
-        overall: {
-          totalAttempts: 0, scoredAttempts: 0, bestScore: 0, averageScore: 0,
-          latestScore: 0, previousScore: 0, passRate: 0, currentStage: 1,
-          trend: [],
-        },
-        categories: {},
-        streaks: { currentStreak: 0, bestStreak: 0, consecutivePasses: 0, lastImproved: false },
-        perScenario: {},
+        modules: {},
+        certificate: { unlocked: false },
       });
     }
 
-    // Overall stats
-    const scores = sessions.map(s => s.overall_score);
-    const latestScore = scores[scores.length - 1];
-    const previousScore = scores.length >= 2 ? scores[scores.length - 2] : 0;
-    const bestScore = Math.max(...scores);
-    const averageScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-    const passes = sessions.filter(s => s.overall_score >= 80);
-    const passRate = Math.round((passes.length / sessions.length) * 100);
+    // Fetch all completed, scored sessions excluding legacy
+    const sessionsResult = await db.query(
+      `SELECT s.id, s.module_id, s.persona_id, s.created_at,
+              sc.overall_score, sc.overall_verdict,
+              COALESCE(sc.final_score, sc.overall_score) AS effective_score
+       FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       WHERE s.external_user_id = $1
+         AND s.status = 'completed'
+         AND s.module_id IS NOT NULL
+         AND s.module_id != 'legacy'
+       ORDER BY s.created_at ASC`,
+      [userId]
+    );
 
-    // Trend (chronological)
-    const trend = sessions.map(s => ({
-      date: s.created_at,
-      score: s.overall_score,
-      sessionId: s.id,
-    }));
+    const sessions = sessionsResult.rows;
 
-    // Category aggregation
-    const categories = {};
-    for (const session of sessions) {
-      const cats = session.categories || {};
-      for (const [catName, catData] of Object.entries(cats)) {
-        if (!categories[catName]) {
-          categories[catName] = { scores: [], latest: 0, best: 0, average: 0 };
-        }
-        
-        let catScore = 0;
-        if (typeof catData === 'object' && catData !== null) {
-          catScore = catData.score || 0;
-        } else {
-          catScore = Number(catData) || 0;
-        }
-        
-        // Exclude completely abandoned zero scores so they don't skew historical metrics
-        if (catScore > 0) {
-          categories[catName].scores.push(catScore);
-        }
-      }
-    }
-    for (const [catName, catAgg] of Object.entries(categories)) {
-      catAgg.latest = catAgg.scores[catAgg.scores.length - 1] || 0;
-      catAgg.best = Math.max(...catAgg.scores);
-      catAgg.average = Math.round(catAgg.scores.reduce((a, b) => a + b, 0) / catAgg.scores.length);
-      catAgg.trend = catAgg.scores;
+    // Fetch all masteries for this user
+    const masteriesResult = await db.query(
+      `SELECT module_id, persona_id, mastery_score
+       FROM module_masteries
+       WHERE external_user_id = $1`,
+      [userId]
+    );
+
+    // Build mastery lookup: { "module1:sam_patel": { mastery_score: 85 } }
+    const masteryLookup = {};
+    for (const m of masteriesResult.rows) {
+      masteryLookup[`${m.module_id}:${m.persona_id}`] = {
+        mastery_score: parseFloat(m.mastery_score),
+      };
     }
 
-    // Streaks
-    let currentStreak = 0;
-    let bestStreak = 0;
-    let tempStreak = 0;
-    let consecutivePasses = 0;
-    let tempPasses = 0;
+    // Build per-module, per-persona stats
+    const modules = {};
+    for (const mod of COURSE_MODULES) {
+      const personas = {};
 
-    for (let i = 0; i < sessions.length; i++) {
-      // Session streak (consecutive sessions)
-      tempStreak++;
-      if (tempStreak > bestStreak) bestStreak = tempStreak;
+      for (const personaId of mod.personas) {
+        const personaSessions = sessions.filter(
+          s => s.module_id === mod.id && s.persona_id === personaId
+        );
 
-      // Pass streak
-      if (sessions[i].overall_score >= 80) {
-        tempPasses++;
-        if (tempPasses > consecutivePasses) consecutivePasses = tempPasses;
-      } else {
-        tempPasses = 0;
+        const attempts = personaSessions.length;
+        const scores = personaSessions.map(s => parseFloat(s.effective_score));
+        const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+        const latestScore = scores.length > 0 ? scores[scores.length - 1] : 0;
+
+        // Rolling average of latest 3 scored attempts
+        const latest3 = scores.slice(-3);
+        const rollingAvg = latest3.length > 0
+          ? Math.round(latest3.reduce((a, b) => a + b, 0) / latest3.length)
+          : 0;
+
+        const masteryKey = `${mod.id}:${personaId}`;
+        const mastery = masteryLookup[masteryKey] || null;
+
+        personas[personaId] = {
+          displayName: PERSONA_DISPLAY_NAMES[personaId] || personaId,
+          attempts,
+          bestScore,
+          latestScore,
+          rolling_avg: rollingAvg,
+          mastered: mastery !== null,
+          mastery_score: mastery ? mastery.mastery_score : null,
+        };
       }
+
+      modules[mod.id] = {
+        name: mod.name,
+        shortName: mod.shortName,
+        order: mod.order,
+        personas,
+      };
     }
-    currentStreak = tempStreak;
 
-    const lastImproved = scores.length >= 2 && scores[scores.length - 1] > scores[scores.length - 2];
-
-    // Per-scenario stats
-    const perScenario = {};
-    for (const session of sessions) {
-      const sid = session.scenario_id;
-      if (!perScenario[sid]) {
-        perScenario[sid] = { attempts: 0, bestScore: 0, latestScore: 0 };
-      }
-      perScenario[sid].attempts++;
-      perScenario[sid].latestScore = session.overall_score;
-      if (session.overall_score > perScenario[sid].bestScore) {
-        perScenario[sid].bestScore = session.overall_score;
-      }
-    }
-
-    // Determine current stage: advance past any stage whose scenario has a passing session
-    const { SALES_STAGES } = require('../stages');
-    let currentStage = 1;
-    let attemptedStagesCount = 0;
-    let masteryScoreSum = 0;
-    let lowestBestScore = 101;
-    let weakestStage = null;
-
-    for (const stage of SALES_STAGES) {
-      if (!stage.scenarioId) break; // No scenario = can't progress further
-      
-      const sBest = perScenario[stage.scenarioId] ? perScenario[stage.scenarioId].bestScore : null;
-      if (sBest !== null) {
-        attemptedStagesCount++;
-        masteryScoreSum += sBest;
-        
-        if (sBest <= lowestBestScore) {
-          lowestBestScore = sBest;
-          weakestStage = stage.shortName;
+    // Certificate unlocked when ALL personas in ALL modules are mastered
+    let allMastered = true;
+    for (const mod of COURSE_MODULES) {
+      for (const personaId of mod.personas) {
+        const key = `${mod.id}:${personaId}`;
+        if (!masteryLookup[key]) {
+          allMastered = false;
+          break;
         }
       }
-
-      const hasPassed = sessions.some(
-        s => s.scenario_id === stage.scenarioId && s.overall_verdict === 'pass'
-      );
-      if (hasPassed) {
-        currentStage = stage.id + 1; // Advance past this stage
-      } else {
-        break; // Can't skip stages
-      }
+      if (!allMastered) break;
     }
-
-    const masteryScore = attemptedStagesCount > 0 ? Math.round(masteryScoreSum / attemptedStagesCount) : 0;
-    
-    // We calculate a simulated 'previous mastery score' using only the `previousScore` variable from the latest session logic to give a general delta idea, but to be strictly accurate we will use previousScore for the entire dashboard shift, or simply compare mastery to a simulated previous block. Since `latestScore` and `previousScore` were single-session oriented, we will map them conceptually to mastery here for the progress ring delta.
-    // For simplicity, we'll keep `latestScore` and `previousScore` in the response but provide `masteryScore`.
-    const completedStages = currentStage > 1 ? currentStage - 1 : 0;
 
     res.json({
-      overall: {
-        totalAttempts: sessions.length,
-        scoredAttempts: sessions.length,
-        masteryScore,
-        completedStages,
-        weakestStage,
-        bestScore,
-        averageScore,
-        latestScore,
-        previousScore,
-        passRate,
-        currentStage,
-        trend,
-      },
-      categories,
-      streaks: {
-        currentStreak,
-        bestStreak,
-        consecutivePasses,
-        lastImproved,
-      },
-      perScenario,
+      modules,
+      certificate: { unlocked: allMastered },
     });
   } catch (err) {
     console.error('[Sessions] Progress error:', err.message);
@@ -619,7 +590,8 @@ router.get('/:id/score', async (req, res) => {
   try {
     const result = await db.query(
       `SELECT overall_score, overall_verdict, categories, top_strengths,
-              critical_improvements, coaching_tip, created_at
+              critical_improvements, coaching_tip, raw_score, final_score,
+              automatic_fails_triggered, created_at
        FROM session_scores WHERE session_id = $1`,
       [req.params.id]
     );
@@ -638,6 +610,9 @@ router.get('/:id/score', async (req, res) => {
       top_strengths: row.top_strengths || [],
       critical_improvements: row.critical_improvements || [],
       coaching_tip: row.coaching_tip || '',
+      raw_score: row.raw_score != null ? parseFloat(row.raw_score) : null,
+      final_score: row.final_score != null ? parseFloat(row.final_score) : null,
+      automatic_fails_triggered: row.automatic_fails_triggered || [],
     };
 
     res.json(scorecard);
@@ -846,6 +821,7 @@ router.post('/:id/generate-coaching', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Unable to generate coaching analysis.' });
   }
 });
+
 /**
  * POST /api/sessions/:id/rescore - Re-score an existing session with the current rubric.
  * Used to backfill mechanical scoring for sessions scored with the old subjective rubric.
@@ -912,6 +888,110 @@ router.post('/:id/rescore', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('[Sessions] Rescore error:', err.message);
     res.status(500).json({ error: 'Unable to rescore session.' });
+  }
+});
+
+/**
+ * GET /api/sessions/admin/dashboard - Admin/Manager dashboard.
+ * Protected by requireAuth + requireAnyRole('manager', 'admin').
+ * Managers see only their cohort. Admins see all users.
+ */
+router.get('/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'), async (req, res) => {
+  if (!db.isAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+
+  try {
+    const isAdmin = req.user.role === 'admin';
+    const cohortId = req.user.cohortId || null;
+
+    // Managers must have a cohort. Fail closed if missing.
+    if (!isAdmin && !cohortId) {
+      return res.json({ users: [], summary: { totalUsers: 0, totalSessions: 0 } });
+    }
+
+    // Build user filter based on role
+    let userFilter = '';
+    const params = [];
+    let paramIndex = 1;
+
+    if (!isAdmin) {
+      userFilter = `WHERE u.cohort_id = $${paramIndex}`;
+      params.push(cohortId);
+      paramIndex++;
+    }
+
+    // Aggregate per-user progress
+    const result = await db.query(
+      `SELECT
+         s.external_user_id,
+         s.module_id,
+         s.persona_id,
+         COUNT(*) AS attempts,
+         MAX(COALESCE(sc.final_score, sc.overall_score)) AS best_score,
+         ROUND(AVG(COALESCE(sc.final_score, sc.overall_score))) AS avg_score,
+         COUNT(*) FILTER (WHERE sc.overall_verdict = 'pass') AS pass_count
+       FROM simulation_sessions s
+       INNER JOIN session_scores sc ON sc.session_id = s.id
+       ${!isAdmin ? `WHERE s.external_user_id IN (SELECT u.external_id FROM users u WHERE u.cohort_id = $1)` : ''}
+       AND s.module_id IS NOT NULL
+       AND s.module_id != 'legacy'
+       GROUP BY s.external_user_id, s.module_id, s.persona_id
+       ORDER BY s.external_user_id`,
+      !isAdmin ? [cohortId] : []
+    );
+
+    // Fetch masteries
+    const masteriesResult = await db.query(
+      `SELECT external_user_id, module_id, persona_id, mastery_score
+       FROM module_masteries
+       ${!isAdmin ? `WHERE external_user_id IN (SELECT u.external_id FROM users u WHERE u.cohort_id = $1)` : ''}`,
+      !isAdmin ? [cohortId] : []
+    );
+
+    // Group by user
+    const userMap = {};
+    for (const row of result.rows) {
+      if (!userMap[row.external_user_id]) {
+        userMap[row.external_user_id] = { modules: {}, masteries: [] };
+      }
+      const key = `${row.module_id}:${row.persona_id}`;
+      userMap[row.external_user_id].modules[key] = {
+        module_id: row.module_id,
+        persona_id: row.persona_id,
+        attempts: parseInt(row.attempts, 10),
+        best_score: parseFloat(row.best_score) || 0,
+        avg_score: parseFloat(row.avg_score) || 0,
+        pass_count: parseInt(row.pass_count, 10),
+      };
+    }
+
+    for (const m of masteriesResult.rows) {
+      if (!userMap[m.external_user_id]) {
+        userMap[m.external_user_id] = { modules: {}, masteries: [] };
+      }
+      userMap[m.external_user_id].masteries.push({
+        module_id: m.module_id,
+        persona_id: m.persona_id,
+        mastery_score: parseFloat(m.mastery_score),
+      });
+    }
+
+    const users = Object.entries(userMap).map(([userId, data]) => ({
+      userId,
+      ...data,
+    }));
+
+    res.json({
+      users,
+      summary: {
+        totalUsers: users.length,
+        totalSessions: result.rows.reduce((sum, r) => sum + parseInt(r.attempts, 10), 0),
+      },
+    });
+  } catch (err) {
+    console.error('[Sessions] Admin dashboard error:', err.message);
+    res.status(500).json({ error: 'Unable to load dashboard.' });
   }
 });
 

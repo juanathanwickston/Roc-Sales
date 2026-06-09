@@ -1,13 +1,14 @@
 /**
  * Scenario Management Routes
  * Serves predefined sales training scenarios from JSON files.
+ * Updated to use module-based course structure instead of legacy stages.
  */
 
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
-const { SALES_STAGES } = require('../stages');
+const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ let cachedScenarios = [];
 
 /**
  * Load all scenario files from the scenarios directory.
+ * Skips files in the archive/ subdirectory.
  * Called once at module init.
  */
 function loadScenarios() {
@@ -38,34 +40,44 @@ function loadScenarios() {
 cachedScenarios = loadScenarios();
 
 /**
- * GET /api/scenarios/stages - Return all 6 Payroc sales stages with scenario availability.
- * Must be defined before /:id to prevent 'stages' matching as a scenario ID.
+ * GET /api/scenarios/modules - Return the 2-module course structure with persona and scenario availability.
+ * Must be defined before /:id to prevent 'modules' matching as a scenario ID.
  */
-router.get('/stages', (req, res) => {
-  const stages = SALES_STAGES.map(stage => {
-    const scenario = stage.scenarioId
-      ? cachedScenarios.find(s => s.id === stage.scenarioId)
-      : null;
+router.get('/modules', (req, res) => {
+  const modules = COURSE_MODULES.map(mod => {
+    const personas = {};
+    for (const personaId of mod.personas) {
+      const scenario = cachedScenarios.find(
+        s => s.module_id === mod.id && s.persona_id === personaId
+      );
+
+      personas[personaId] = {
+        displayName: PERSONA_DISPLAY_NAMES[personaId] || personaId,
+        available: scenario !== null && scenario !== undefined,
+        scenarioId: scenario ? scenario.id : null,
+        scenario: scenario ? {
+          id: scenario.id,
+          name: scenario.name,
+          difficulty: scenario.difficulty,
+          module: scenario.module,
+          product: scenario.product || null,
+          durationMinutes: scenario.duration_minutes,
+        } : null,
+      };
+    }
 
     return {
-      id: stage.id,
-      key: stage.key,
-      name: stage.name,
-      shortName: stage.shortName,
-      description: stage.description,
-      available: scenario !== null && scenario !== undefined,
-      scenarioId: stage.scenarioId,
-      scenario: scenario ? {
-        id: scenario.id,
-        name: scenario.name,
-        difficulty: scenario.difficulty,
-        module: scenario.module,
-        durationMinutes: scenario.duration_minutes,
-      } : null,
+      id: mod.id,
+      name: mod.name,
+      shortName: mod.shortName,
+      description: mod.description,
+      order: mod.order,
+      prerequisiteModuleId: mod.prerequisiteModuleId || null,
+      personas,
     };
   });
 
-  res.json({ stages });
+  res.json({ modules });
 });
 
 /**
@@ -78,6 +90,9 @@ router.get('/', (req, res) => {
     difficulty: s.difficulty,
     description: s.description,
     module: s.module,
+    module_id: s.module_id || null,
+    persona_id: s.persona_id || null,
+    product: s.product || null,
     durationMinutes: s.duration_minutes,
   }));
   res.json({ scenarios: summaries });
