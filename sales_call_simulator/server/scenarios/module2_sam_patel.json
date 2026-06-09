@@ -1,0 +1,112 @@
+{
+  "id": "module2_sam_patel",
+  "module_id": "module2",
+  "persona_id": "sam_patel",
+  "continuity_source_module_id": "module1",
+  "name": "Module 2: Close the Sale - Sam Patel (QuickStop Market)",
+  "description": "Return to Sam Patel at QuickStop Market for a follow-up closing call. Using relationship context from your Module 1 discovery session, handle objections, reinforce value, and close with confidence. Sam is a Controller-style buyer who expects you to remember what you discussed and deliver on the next step you earned.",
+  "module": "Module 2 - Close the Sale",
+  "difficulty": "advanced",
+  "duration_minutes": 15,
+  "product": "Bodega AI",
+  "persona_id_tavus": "TAVUS_PERSONA_SAM_PATEL",
+  "conversation_config": {
+    "conversation_name": "Module 2: Close the Sale - Sam Patel",
+    "conversational_context": "You are Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. This is a FOLLOW-UP call. The rep called you previously and conducted a discovery conversation about your business challenges. You agreed to this follow-up because the rep earned it during the first call.\n\nYou are a Controller behavioral style: analytical, efficient, and skeptical. You expect the rep to reference what was discussed previously and come prepared with specific solutions. You do not want to repeat yourself.\n\nYour known challenges from the first call: tight margins, rising credit card fees, older POS system, high employee turnover, long working hours. Depending on how well the first call went, you may have also shared: loose inventory tracking, manual pricing, missed tobacco rebates, stockout problems, compliance concerns.\n\nObjection logic for the closing call: 'What exactly will this cost me?' (if rep has not discussed ROI), 'How long will the transition take?' (if rep has not addressed implementation), 'I need to see this work in a store like mine first' (if rep has not provided proof or case studies), 'Let me think about it' (if rep has not created urgency).\n\nYou will close if the rep: references your specific challenges, provides clear financial justification, addresses implementation concerns, demonstrates preparation, and asks confidently for your business.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation.",
+    "custom_greeting": "Alright, you are back. I hope you have something specific for me this time. What have you got?",
+    "properties": {
+      "max_call_duration": 900,
+      "participant_left_timeout": 30,
+      "participant_absent_timeout": 120,
+      "enable_closed_captions": true
+    }
+  },
+  "rubric": {
+    "discovery_and_questioning": {
+      "weight": 20,
+      "behaviors": [
+        { "id": "DQ1", "description": "Referenced specific details from the previous discovery conversation", "points": 5 },
+        { "id": "DQ2", "description": "Asked targeted follow-up questions to deepen understanding from Module 1", "points": 4 },
+        { "id": "DQ3", "description": "Confirmed or updated understanding of the merchant's priorities since last call", "points": 4 },
+        { "id": "DQ4", "description": "Used reflective listening to validate previously discovered pain points", "points": 4 },
+        { "id": "DQ5", "description": "Did not re-ask questions that were already covered in the first call", "points": 3 }
+      ]
+    },
+    "problem_identification_and_gap_analysis": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "PI1", "description": "Reinforced the gap between current state and desired state from discovery", "points": 4 },
+        { "id": "PI2", "description": "Connected ongoing problems to financial or operational consequences", "points": 4 },
+        { "id": "PI3", "description": "Created urgency by highlighting cost of inaction or delay", "points": 4 },
+        { "id": "PI4", "description": "Positioned the solution as the bridge between current and desired state", "points": 3 }
+      ]
+    },
+    "product_alignment": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "PA1", "description": "Presented Bodega AI with specific alignment to previously discovered needs", "points": 5 },
+        { "id": "PA2", "description": "Customized the solution presentation to this merchant's unique situation", "points": 5 },
+        { "id": "PA3", "description": "Provided compelling ROI or financial justification for the investment", "points": 5 }
+      ]
+    },
+    "feature_to_benefit_translation": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "FB1", "description": "Translated product features into specific business outcomes tied to discovered pain points", "points": 5 },
+        { "id": "FB2", "description": "Used customer-centered language grounded in the merchant's own words from discovery", "points": 5 },
+        { "id": "FB3", "description": "Quantified benefits where possible (time saved, revenue impact, risk reduction)", "points": 5 }
+      ]
+    },
+    "objection_handling": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "OH1", "description": "Responded to closing objections confidently without becoming defensive", "points": 5 },
+        { "id": "OH2", "description": "Probed for the real concern behind objections before responding", "points": 5 },
+        { "id": "OH3", "description": "Used previously discovered information to reinforce value when handling objections", "points": 5 }
+      ]
+    },
+    "behavioral_style_adaptation": {
+      "weight": 10,
+      "behaviors": [
+        { "id": "BS1", "description": "Maintained Controller-appropriate communication (concise, data-driven, efficient)", "points": 4 },
+        { "id": "BS2", "description": "Demonstrated preparation and competence that Controllers respect", "points": 3 },
+        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (excessive small talk, vague claims, wasted time)", "points": 3 }
+      ]
+    },
+    "closing_and_next_step": {
+      "weight": 10,
+      "behaviors": [
+        { "id": "CN1", "description": "Asked for the business or a definitive commitment with confidence", "points": 4 },
+        { "id": "CN2", "description": "Close felt natural and earned based on value demonstrated throughout the call", "points": 3 },
+        { "id": "CN3", "description": "Used trial closes throughout and addressed hesitation before the final ask", "points": 3 }
+      ]
+    }
+  },
+  "auto_fail_triggers": [
+    { "id": "AF1", "description": "Recommended the wrong product entirely (not Bodega AI)", "check": "wrong_product" },
+    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
+    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
+    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
+    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "This is a follow-up closing call, not a cold discovery call",
+      "The rep must demonstrate continuity by referencing Module 1 discoveries",
+      "Controllers expect preparation, specifics, and financial justification",
+      "Closing requires earned trust, the rep should not force a close without demonstrating value",
+      "Objections at this stage are buying signals, they indicate interest but need resolution",
+      "ROI and implementation clarity are the two biggest closing levers for Sam",
+      "The rep should use Sam's own words and pain points from discovery as closing ammunition"
+    ],
+    "common_mistakes": [
+      "Starting the call as if it were a brand new cold call instead of a follow-up",
+      "Failing to reference any specific details from the Module 1 discovery",
+      "Not having a clear financial justification or ROI argument prepared",
+      "Avoiding the close or using weak, indirect language",
+      "Not addressing implementation timeline concerns proactively",
+      "Wasting Sam's time with small talk or re-discovery of already-known information",
+      "Treating objections as rejection instead of buying signals to resolve"
+    ]
+  }
+}

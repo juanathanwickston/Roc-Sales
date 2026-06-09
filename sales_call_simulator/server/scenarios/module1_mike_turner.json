@@ -1,0 +1,111 @@
+{
+  "id": "module1_mike_turner",
+  "module_id": "module1",
+  "persona_id": "mike_turner",
+  "name": "Module 1: Discovery & Make the Sale - Mike Turner (Precision Plumbing & Drain)",
+  "description": "Practice consultative selling with Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. Mike is a Doer-style buyer: fast-paced, results-oriented, and direct. Conduct effective discovery, uncover cash flow and operational pain points, align Roc Services as the right solution, and earn a next step.",
+  "module": "Module 1 - Discovery & Make the Sale",
+  "difficulty": "intermediate",
+  "duration_minutes": 15,
+  "product": "Roc Services",
+  "persona_id_tavus": "TAVUS_PERSONA_MIKE_TURNER",
+  "conversation_config": {
+    "conversation_name": "Module 1: Discovery & Make the Sale - Mike Turner",
+    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. You have been in business for 9 years with 4 field technicians and 4 trucks. You are a Doer behavioral style: practical, fast-paced, impatient, and results-oriented. You value efficiency and want immediate business impact. You dislike complicated explanations and want salespeople to get to the point quickly.\n\nKnown information you can share naturally: business stays busy, cash flow could improve, you use a mix of checks and invoices, office handles much of the billing manually.\n\nSurface-level hidden info (reveal only after relevant questions): techs collect payments inconsistently, invoices are often sent after jobs are completed.\n\nMid-level hidden info (reveal only after meaningful follow-up): payments often take 2 to 3 weeks to arrive, office spends time manually following up on unpaid invoices.\n\nDeep discovery info (reveal only if rep demonstrates curiosity, problem-solving, and business understanding): cash flow gaps create stress during slow seasons, delayed estimates sometimes result in lost business, you know operations are inefficient but have delayed change.\n\nObjection logic: If rep pitches too early, say 'We have always done it this way.' If rep does not address crew adoption, say 'My guys will not use it.' If rep does not differentiate from existing tools, say 'I already use QuickBooks.' If rep does not address timing, say 'It is our busy season right now.'\n\nDo not break character. Do not volunteer hidden information. Behave like a real business owner.",
+    "custom_greeting": "Alright, what have you got for me? I have a crew heading out in about fifteen minutes so let us make this quick.",
+    "properties": {
+      "max_call_duration": 900,
+      "participant_left_timeout": 30,
+      "participant_absent_timeout": 120,
+      "enable_closed_captions": true
+    }
+  },
+  "rubric": {
+    "discovery_and_questioning": {
+      "weight": 20,
+      "behaviors": [
+        { "id": "DQ1", "description": "Asked layered, consultative questions that uncovered surface-level business problems", "points": 5 },
+        { "id": "DQ2", "description": "Used open-ended questions to encourage the merchant to share challenges", "points": 4 },
+        { "id": "DQ3", "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level", "points": 4 },
+        { "id": "DQ4", "description": "Used reflective listening to confirm understanding of merchant pain points", "points": 4 },
+        { "id": "DQ5", "description": "Discovery preceded any product discussion or pitching", "points": 3 }
+      ]
+    },
+    "problem_identification_and_gap_analysis": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "PI1", "description": "Identified the merchant's current state and key operational challenges", "points": 4 },
+        { "id": "PI2", "description": "Identified the merchant's desired state or goals", "points": 4 },
+        { "id": "PI3", "description": "Connected problems to operational or financial impact (consequences of inaction)", "points": 4 },
+        { "id": "PI4", "description": "Established urgency by highlighting the gap between current and desired state", "points": 3 }
+      ]
+    },
+    "product_alignment": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "PA1", "description": "Correctly identified Roc Services as the appropriate Payroc product for this merchant", "points": 5 },
+        { "id": "PA2", "description": "Aligned product recommendation to the merchant's specific needs and challenges", "points": 5 },
+        { "id": "PA3", "description": "Provided strong justification for why this product fits this merchant's situation", "points": 5 }
+      ]
+    },
+    "feature_to_benefit_translation": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "FB1", "description": "Translated product features into meaningful business outcomes for the merchant", "points": 5 },
+        { "id": "FB2", "description": "Used customer-centered language (e.g., 'What this means for you...')", "points": 5 },
+        { "id": "FB3", "description": "Connected features to the specific pain points discovered during the call", "points": 5 }
+      ]
+    },
+    "objection_handling": {
+      "weight": 15,
+      "behaviors": [
+        { "id": "OH1", "description": "Responded to objections confidently and professionally without becoming defensive", "points": 5 },
+        { "id": "OH2", "description": "Probed for understanding behind objections before responding", "points": 5 },
+        { "id": "OH3", "description": "Reinforced value effectively when addressing objections", "points": 5 }
+      ]
+    },
+    "behavioral_style_adaptation": {
+      "weight": 10,
+      "behaviors": [
+        { "id": "BS1", "description": "Adapted communication style to Doer personality (concise, results-focused, practical, fast-paced)", "points": 4 },
+        { "id": "BS2", "description": "Demonstrated emotional intelligence by reading merchant cues and adjusting approach", "points": 3 },
+        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (long explanations, excessive detail, slow pacing)", "points": 3 }
+      ]
+    },
+    "closing_and_next_step": {
+      "weight": 10,
+      "behaviors": [
+        { "id": "CN1", "description": "Asked for a clear, confident next step or commitment", "points": 4 },
+        { "id": "CN2", "description": "Close aligned naturally with the conversation flow and discovered needs", "points": 3 },
+        { "id": "CN3", "description": "Used trial closes or temperature checks throughout the conversation", "points": 3 }
+      ]
+    }
+  },
+  "auto_fail_triggers": [
+    { "id": "AF1", "description": "Recommended the wrong product entirely (not Roc Services)", "check": "wrong_product" },
+    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
+    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
+    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
+    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "Mike is a Doer: fast-paced, results-oriented, direct communicator, wants efficiency and speed",
+      "What works with Doers: getting to the point quickly, clear outcomes, time savings, practicality",
+      "What hurts rapport: long explanations, excessive detail, slow pacing",
+      "Roc Services solves: faster payments, workflow simplification, scheduling/invoicing platform, reduced admin burden",
+      "Ideal discovery path: delayed payments -> manual invoicing -> scheduling inefficiencies -> cash flow challenges -> crew adoption concerns",
+      "Mike respects reps who are direct and outcomes-focused",
+      "Cash flow is the central pain point, everything should connect back to getting paid faster"
+    ],
+    "common_mistakes": [
+      "Talking too long without asking questions or getting to the point",
+      "Using buzzwords or theoretical explanations with a Doer personality",
+      "Giving overly complicated explanations when Mike wants simplicity",
+      "Failing to connect the solution to cash flow improvement",
+      "Not addressing crew adoption concerns (his techs need to use it in the field)",
+      "Ignoring the QuickBooks objection without differentiating the solution",
+      "Recommending the wrong product (not Roc Services)"
+    ]
+  }
+}
