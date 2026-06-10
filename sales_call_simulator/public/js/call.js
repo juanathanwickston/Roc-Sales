@@ -105,7 +105,8 @@ const callManager = {
       console.error('[Call] Start error:', err);
       this.cleanup();
       this.updateLobbyStatus(`Error: ${err.message}`);
-      setTimeout(() => app.showScreen('scenarios'), 3000);
+      // Keep error visible for 15s so user can read it
+      setTimeout(() => app.showScreen('scenarios'), 15000);
     }
   },
 
