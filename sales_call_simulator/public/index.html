@@ -74,7 +74,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font);
-      background: #F5F6F8;
+      background: var(--bg-page);
       color: var(--text-body);
       font-size: var(--fs-base);
       line-height: var(--lh-normal);
@@ -104,6 +104,19 @@
     }
     .header-brand h1 { font-size: var(--fs-md); font-weight: var(--fw-semibold); margin: 0; color: var(--text-primary); letter-spacing: -0.3px; }
     .header-subtitle { color: var(--text-muted); font-size: var(--fs-xs); }
+
+    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .header-greeting { font-size: var(--fs-sm); color: var(--text-muted); }
+    .header-action-link {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+      color: var(--text-primary); padding: 4px 0;
+      transition: color .15s;
+    }
+    .header-action-link:hover { color: var(--payroc-blue); }
+    .header-action-link:focus-visible { outline: 2px solid var(--payroc-blue); outline-offset: 2px; border-radius: 4px; }
+    .header-action-muted { color: var(--text-muted); }
+    .header-divider { width: 1px; height: 16px; background: var(--border-light); }
 
     /* ─── Scenario Selection ─── */
     .scenarios-main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
@@ -1194,18 +1207,17 @@
     /* ─── Progress Dashboard (2-Module LMS) ─── */
 
     /* Course header */
-    .course-header { text-align: center; margin-bottom: 24px; }
-    .course-header h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); color: var(--text-primary); margin-bottom: 6px; }
-    .course-header p { color: var(--text-muted); font-size: var(--fs-sm); max-width: 520px; margin: 0 auto; }
+    .course-header { text-align: center; margin-bottom: 32px; padding-top: 32px; }
+    .course-header p { color: var(--text-muted); font-size: var(--fs-base); max-width: 560px; margin: 0 auto; line-height: var(--lh-relaxed); }
 
     /* Home two-column layout */
-    .home-content { display: flex; gap: 28px; padding: 16px 24px; max-width: 1160px; margin: 0 auto; width: 100%; align-items: flex-start; }
+    .home-content { display: flex; gap: 32px; padding: 0 32px 32px; max-width: 1160px; margin: 0 auto; width: 100%; align-items: flex-start; }
     .home-journey { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .home-performance { width: 340px; flex-shrink: 0; }
     .home-section-title {
-      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
-      color: var(--text-muted); margin-bottom: 14px;
-      text-transform: uppercase; letter-spacing: 0.8px;
+      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+      color: var(--text-primary); margin-bottom: 16px;
+      letter-spacing: -0.1px;
     }
 
     /* ─── Module Cards ─── */
@@ -1213,6 +1225,7 @@
     .module-card {
       background: var(--bg-card);
       border: 1px solid var(--border-light);
+      border-left: 3px solid var(--payroc-blue);
       border-radius: var(--r);
       padding: 24px 28px;
       box-shadow: var(--shadow-card);
@@ -1226,9 +1239,9 @@
       margin-bottom: 8px;
     }
     .module-card-number {
-      font-size: var(--fs-sm); font-weight: var(--fw-bold);
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
       color: var(--payroc-blue); text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
     }
     .module-card-name {
       font-size: var(--fs-lg); font-weight: var(--fw-semibold);
@@ -1237,14 +1250,14 @@
     }
     .module-card-status-badge {
       padding: 3px 10px; border-radius: 50px;
-      font-size: 10px; font-weight: var(--fw-semibold);
+      font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
       text-transform: uppercase; letter-spacing: .5px;
       display: inline-flex; align-items: center; gap: 4px;
       flex-shrink: 0;
     }
-    .module-status-available { background: rgba(0,81,194,0.06); color: var(--payroc-blue); }
-    .module-status-mastered { background: rgba(0,224,184,0.12); color: #059669; }
-    .module-status-locked { background: transparent; color: #B0B8C4; }
+    .module-status-available { background: rgba(0,81,194,0.06); color: var(--payroc-blue); border: 1px solid rgba(0,81,194,0.12); }
+    .module-status-mastered { background: rgba(0,224,184,0.08); color: #059669; border: 1px solid rgba(0,224,184,0.2); }
+    .module-status-locked { background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); }
     .module-card-desc {
       font-size: var(--fs-sm); color: var(--text-muted);
       line-height: var(--lh-relaxed); margin-bottom: 16px;
@@ -1253,11 +1266,14 @@
       padding: 10px 24px; border-radius: var(--rs);
       font-size: var(--fs-sm); font-weight: var(--fw-semibold);
     }
+    .module-card-cta:focus-visible {
+      outline: 2px solid var(--payroc-blue); outline-offset: 2px;
+    }
     .module-card-progress {
       display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
     }
     .module-card-progress-bar {
-      flex: 1; height: 6px; background: #EBEDF0; border-radius: 3px; overflow: hidden;
+      flex: 1; height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden;
     }
     .module-card-progress-fill {
       height: 100%; border-radius: 3px;
@@ -1268,24 +1284,24 @@
       font-size: var(--fs-xs); color: var(--text-muted); white-space: nowrap;
     }
     .module-card-lock-msg {
-      font-size: var(--fs-sm); color: #9CA3AF;
-      display: flex; align-items: center; gap: 4px;
+      font-size: var(--fs-sm); color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px;
       margin: 0;
     }
 
     /* Locked module card */
     .module-card-locked {
-      background: #FBFBFC;
-      border-color: #EBEDF0;
-      opacity: 0.75;
+      background: var(--bg-card);
+      border-color: var(--border-light);
+      border-left-color: var(--color-locked);
     }
-    .module-card-locked .module-card-name { color: #9CA3AF; }
-    .module-card-locked .module-card-desc { color: #C0C5CC; }
+    .module-card-locked .module-card-name { color: var(--text-muted); }
+    .module-card-locked .module-card-desc { color: #9CA3AF; }
 
     /* Mastered module card */
     .module-card-mastered {
-      border-color: rgba(0,224,184,0.3);
-      box-shadow: var(--shadow-card), inset 0 0 0 1px rgba(0,224,184,0.12);
+      border-left-color: var(--payroc-teal);
+      border-color: rgba(0,224,184,0.25);
     }
 
     /* ─── Scenario Selector Modal ─── */
@@ -1363,7 +1379,11 @@
       transform: translateY(0);
     }
     .persona-card-icon {
-      font-size: 28px; line-height: 1;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--payroc-navy); color: #FFFFFF;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+      letter-spacing: 0.5px; flex-shrink: 0;
     }
     .persona-card-info { flex: 1; }
     .persona-card-name {
@@ -1392,10 +1412,11 @@
 
     /* Locked persona card */
     .persona-card-locked {
-      background: #FBFBFC;
-      border-color: #EBEDF0;
-      cursor: not-allowed; opacity: 0.6;
+      background: var(--bg-card);
+      border-color: var(--border-light);
+      cursor: not-allowed;
     }
+    .persona-card-locked .persona-card-name { color: var(--text-muted); }
 
     /* Mastered persona card */
     .persona-card-mastered {
@@ -1480,43 +1501,43 @@
 
     /* Performance sidebar */
     .perf-sidebar-card {
-      background: #FFFFFF;
-      border-radius: var(--r); padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      position: sticky; top: 24px;
+      background: var(--bg-card);
+      border-radius: var(--r); padding: 24px;
+      box-shadow: var(--shadow-card);
+      position: sticky; top: 72px;
     }
-    .perf-score-ring { display: flex; justify-content: center; position: relative; margin-bottom: 8px; }
+    .perf-score-ring { display: flex; justify-content: center; position: relative; margin-bottom: 16px; }
     .perf-score-text {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       display: flex; flex-direction: column; align-items: center;
     }
-    .perf-score-number { font-size: 26px; font-weight: var(--fw-bold); color: var(--text-primary); line-height: 1; letter-spacing: -1px; }
-    .perf-score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .perf-score-number { font-size: 28px; font-weight: var(--fw-bold); color: var(--text-primary); line-height: 1; letter-spacing: -1px; }
+    .perf-score-label { font-size: var(--fs-2xs); color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
     .perf-delta { text-align: center; font-size: var(--fs-xs); font-weight: var(--fw-semibold); margin-bottom: 16px; }
     .delta-up { color: var(--color-pass); }
     .delta-down { color: var(--color-fail); }
     .delta-same { color: var(--text-muted); }
 
-    .perf-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .perf-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
     .perf-stat {
-      background: #F7F8FA; border-radius: var(--rs);
-      padding: 10px 8px; text-align: center;
+      background: var(--bg-page); border-radius: var(--rs);
+      padding: 12px 8px; text-align: center;
     }
     .perf-stat-value { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-primary); letter-spacing: -0.5px; }
-    .perf-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .perf-stat-label { font-size: var(--fs-2xs); color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
 
     .perf-chart-card { margin-bottom: 16px; }
     .perf-chart-title, .perf-skills-title {
-      font-size: 10px; font-weight: var(--fw-semibold);
+      font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
       color: var(--text-muted); text-transform: uppercase;
-      letter-spacing: 0.8px; margin-bottom: 12px;
+      letter-spacing: 0.8px; margin-bottom: 16px;
     }
-    .perf-chart-container { width: 100%; overflow: hidden; border-radius: var(--rs); background: #F7F8FA; padding: 8px 0; }
+    .perf-chart-container { width: 100%; overflow: hidden; border-radius: var(--rs); background: var(--bg-page); padding: 8px 0; }
 
-    .perf-skill-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .perf-skill-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .perf-skill-row:last-child { margin-bottom: 0; }
     .perf-skill-name { width: 140px; min-width: 140px; font-size: var(--fs-xs); color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .perf-skill-bar-wrap { flex: 1; height: 6px; background: #EBEDF0; border-radius: 3px; overflow: hidden; }
+    .perf-skill-bar-wrap { flex: 1; height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; }
     .perf-skill-bar { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .perf-skill-score { width: 52px; text-align: right; font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-primary); display: flex; align-items: center; gap: 3px; justify-content: flex-end; }
     .skill-trend { font-size: 9px; }
@@ -1524,17 +1545,17 @@
     .skill-trend-down { color: var(--color-fail); }
     .skill-trend-same { color: var(--text-muted); }
 
-    .perf-empty { text-align: center; padding: 40px 16px; }
-    .perf-empty-icon { margin-bottom: 16px; opacity: 0.4; }
-    .perf-empty-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 6px; }
+    .perf-empty { text-align: center; padding: 48px 16px; }
+    .perf-empty-icon { margin-bottom: 16px; opacity: 0.3; }
+    .perf-empty-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: 8px; }
     .perf-empty-desc { font-size: var(--fs-xs); color: var(--text-muted); line-height: var(--lh-relaxed); }
 
     /* Responsive: stack on mobile */
     @media (max-width: 767px) {
-      .home-content { flex-direction: column; gap: 20px; padding: 16px; }
+      .home-content { flex-direction: column; gap: 24px; padding: 16px; }
       .home-performance { width: 100%; }
       .perf-sidebar-card { position: static; }
-      .module-card { padding: 20px 16px; }
+      .module-card { padding: 20px 16px; border-left-width: 3px; }
       .scenario-modal-grid { grid-template-columns: 1fr; }
       .scenario-modal { max-width: 95%; }
       .certificate-inner { padding: 28px 16px; }
@@ -1577,17 +1598,18 @@
         </div>
         <h1>Sales Call Certification</h1>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span id="user-greeting" style="font-size:13px;color:var(--text-muted);font-family:var(--font);"></span>
-        <button id="btn-view-history" class="btn btn-ghost" aria-label="View session history">History</button>
-        <button id="btn-logout" class="btn btn-ghost" aria-label="Sign out" style="color:var(--text-muted);">Sign Out</button>
+      <div class="header-actions">
+        <span id="user-greeting" class="header-greeting"></span>
+        <button id="btn-view-history" class="header-action-link" aria-label="View session history">History</button>
+        <span class="header-divider"></span>
+        <button id="btn-logout" class="header-action-link header-action-muted" aria-label="Sign out">Sign Out</button>
       </div>
     </header>
 
+    <main>
     <!-- Course header -->
-    <div class="course-header" style="padding-top: 24px;">
-      <h2>Sales Call Certification</h2>
-      <p>Master two modules with four unique buyer personas each. Pass all scenarios to earn your certification.</p>
+    <div class="course-header">
+      <p>Complete both modules to earn your Sales Call Certification.</p>
     </div>
 
     <!-- Two-column layout: Modules + Performance -->
@@ -1616,6 +1638,7 @@
         </div>
       </aside>
     </div>
+    </main>
 
     <!-- Scenario Selector Modal -->
     <div id="scenario-modal" class="scenario-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="scenario-modal-title">
@@ -1637,7 +1660,7 @@
   <div id="screen-lobby" class="screen">
     <div class="lobby-container">
       <div class="lobby-card" role="status" aria-live="polite">
-        <div class="lobby-icon" aria-hidden="true">📞</div>
+        <div class="lobby-icon" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--payroc-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
         <h2 id="lobby-scenario-name">Preparing your call...</h2>
         <p id="lobby-status" class="lobby-status">Setting up the conversation...</p>
         <div class="lobby-spinner" aria-hidden="true">
