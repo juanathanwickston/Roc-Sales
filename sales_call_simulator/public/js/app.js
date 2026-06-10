@@ -59,16 +59,89 @@ const toast = function(msg, type, duration) {
 // --- App Controller ---
 
 const app = {
-  currentScreen: 'scenarios',
+  currentScreen: 'login',
   currentScenario: null,
+  currentUser: null,
   scenarios: [],
 
   /**
-   * Initialize - load scenarios, bind events, load progress, check for launch context.
+   * Initialize - check auth, then load scenarios and progress.
    */
   async init() {
-    await this.loadScenarios();
     this.bindEvents();
+
+    // Check for existing valid token
+    const token = localStorage.getItem('roc_token');
+    if (token) {
+      try {
+        const res = await fetchWithAuth('/api/auth/me');
+        if (res.ok) {
+          const envelope = await res.json();
+          this.currentUser = envelope.data;
+          await this.initAfterAuth();
+          return;
+        }
+      } catch (err) {
+        console.warn('[App] Token validation failed:', err);
+      }
+      // Token invalid — clear it
+      localStorage.removeItem('roc_token');
+    }
+
+    // No valid token — show login screen
+    this.showScreen('login');
+  },
+
+  /**
+   * Handle login form submission.
+   */
+  async login(name) {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(function() { return {}; });
+        throw new Error(err.detail || err.error || 'Login failed');
+      }
+
+      const envelope = await res.json();
+      const data = envelope.data;
+
+      localStorage.setItem('roc_token', data.token);
+      this.currentUser = data.user;
+
+      await this.initAfterAuth();
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  /**
+   * Sign out — clear token and return to login.
+   */
+  logout() {
+    localStorage.removeItem('roc_token');
+    this.currentUser = null;
+    this.scenarios = [];
+    this.showScreen('login');
+  },
+
+  /**
+   * Load app data after successful authentication.
+   */
+  async initAfterAuth() {
+    // Update greeting
+    var greeting = document.getElementById('user-greeting');
+    if (greeting && this.currentUser) {
+      greeting.textContent = 'Hi, ' + (this.currentUser.displayName || this.currentUser.userId);
+    }
+
+    this.showScreen('scenarios');
+    await this.loadScenarios();
 
     // Load progress dashboard (non-blocking)
     if (typeof loadProgress === 'function') {
@@ -98,6 +171,41 @@ const app = {
    * Bind all static event listeners (CSP-safe - no inline onclick).
    */
   bindEvents() {
+    // Login form
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('login-name');
+        const errorEl = document.getElementById('login-error');
+        const submitBtn = document.getElementById('login-submit');
+        const name = nameInput ? nameInput.value.trim() : '';
+
+        if (!name) {
+          if (errorEl) errorEl.textContent = 'Please enter your name.';
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Signing in...';
+        }
+        if (errorEl) errorEl.textContent = '';
+
+        app.login(name).catch(function(err) {
+          if (errorEl) errorEl.textContent = err.message || 'Login failed. Please try again.';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Start Training';
+          }
+        });
+      });
+    }
+
+    // Logout
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) btnLogout.addEventListener('click', function() { app.logout(); });
+
     // Lobby cancel
     const lobbyCancel = document.getElementById('lobby-cancel');
     if (lobbyCancel) lobbyCancel.addEventListener('click', function() { app.cancelLobby(); });

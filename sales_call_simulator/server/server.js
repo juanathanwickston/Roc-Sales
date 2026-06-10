@@ -4,6 +4,7 @@
  */
 
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const express = require('express');
 const helmet = require('helmet');
@@ -92,9 +93,70 @@ const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
 const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessionRoutes');
 
-// optionalAuth: populates req.user when JWT is present (integrated mode),
-// but never blocks requests (standalone/staging mode).
-// Hard auth enforcement happens at the ROC Academy gateway level.
+// --- Standalone Auth ---
+// Lightweight token endpoint for standalone mode.
+// Accepts a display name, returns a signed JWT. No database required.
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/api/auth/login', authLimiter, (req, res) => {
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(400).json({
+      type: 'https://payroc.example/errors/validation',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Name is required.',
+    });
+  }
+
+  const displayName = name.trim().substring(0, 100);
+  const userId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+  if (!config.JWT_SECRET) {
+    // Dev mode — return a mock token
+    return res.json({
+      data: {
+        token: 'dev-token',
+        user: { userId, displayName, role: 'user' },
+      },
+    });
+  }
+
+  const token = jwt.sign(
+    { userId, displayName, role: 'user' },
+    config.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  logger.info('User logged in', { userId, displayName });
+
+  return res.json({
+    data: {
+      token,
+      user: { userId, displayName, role: 'user' },
+    },
+  });
+});
+
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  return res.json({
+    data: {
+      userId: req.user.userId,
+      displayName: req.user.displayName || req.user.userId,
+      role: req.user.role || 'user',
+    },
+  });
+});
+
+// --- Feature Routes ---
 
 app.use('/api/tavus', requireAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
