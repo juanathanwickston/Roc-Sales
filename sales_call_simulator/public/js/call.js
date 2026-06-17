@@ -242,7 +242,7 @@ const callManager = {
     // When we've joined successfully - attach local video to PiP
     call.on('joined-meeting', () => {
       console.log('[Call] Local user joined meeting');
-      this.updateLobbyStatus('Waiting for AI buyer to join...');
+      this.updateLobbyStatus('Waiting for the buyer to join...');
 
       // Attach local video to PiP self-view
       const localParticipant = call.participants().local;
@@ -384,12 +384,12 @@ const callManager = {
 
     if (muteBtn) {
       muteBtn.classList.toggle('muted', this.isMuted);
-      muteBtn.querySelector('.control-icon').textContent = this.isMuted ? '🔇' : '🎤';
+      muteBtn.querySelector('.control-icon').innerHTML = this.isMuted ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.12 1.49-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
       muteBtn.querySelector('.control-label').textContent = this.isMuted ? 'Unmute' : 'Mute';
     }
     if (cameraBtn) {
       cameraBtn.classList.toggle('muted', this.isCameraOff);
-      cameraBtn.querySelector('.control-icon').textContent = this.isCameraOff ? '📷' : '📹';
+      cameraBtn.querySelector('.control-icon').innerHTML = this.isCameraOff ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
       cameraBtn.querySelector('.control-label').textContent = this.isCameraOff ? 'Camera On' : 'Camera';
     }
   },
@@ -423,12 +423,12 @@ const callManager = {
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
 
       overlay.innerHTML = `
-        <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" style="background:var(--n3,#152240);border:1px solid var(--gb,rgba(59,130,246,.12));border-radius:12px;padding:24px;max-width:400px;width:90%;color:var(--white,#EDF2FF);font-family:var(--font,'Geist',sans-serif);">
+        <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" style="background:var(--bg-card,#fff);border:1px solid var(--border-light,#E5E5E5);border-radius:var(--r-lg,12px);padding:24px;max-width:400px;width:90%;color:var(--text-primary,#001D4E);font-family:var(--font,'Open Sans',sans-serif);">
           <h3 id="confirm-title" style="margin:0 0 8px;font-size:18px;"></h3>
-          <p id="confirm-message" style="margin:0 0 24px;color:var(--gray,#7B8BA8);font-size:14px;"></p>
+          <p id="confirm-message" style="margin:0 0 24px;color:var(--text-muted,#636363);font-size:14px;"></p>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button id="confirm-cancel" style="padding:8px 16px;border-radius:8px;border:1px solid var(--gb,rgba(59,130,246,.12));background:var(--n4,#1C2D4E);color:var(--white,#EDF2FF);cursor:pointer;font-size:13px;">Cancel</button>
-            <button id="confirm-ok" style="padding:8px 16px;border-radius:8px;border:none;background:var(--red,#FF4466);color:#fff;cursor:pointer;font-size:13px;font-weight:600;">End Call</button>
+            <button id="confirm-cancel" style="padding:8px 16px;border-radius:var(--r,8px);border:1px solid var(--border-light,#E5E5E5);background:var(--bg-card,#fff);color:var(--text-primary,#001D4E);cursor:pointer;font-size:13px;font-family:var(--font);">Cancel</button>
+            <button id="confirm-ok" style="padding:8px 16px;border-radius:var(--r,8px);border:none;background:var(--color-fail,#D93737);color:#fff;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font);">End Call</button>
           </div>
         </div>`;
 

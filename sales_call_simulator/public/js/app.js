@@ -42,10 +42,10 @@ const toast = function(msg, type, duration) {
     container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
     document.body.appendChild(container);
   }
-  const colors = { success: 'var(--green,#00E0B8)', error: 'var(--red,#FF4466)', info: 'var(--blue,#3B82F6)' };
+  const colors = { success: 'var(--green,#19A070)', error: 'var(--red,#D93737)', info: 'var(--blue,#0051C2)' };
   const icons = { success: '\u2713', error: '!', info: 'i' };
   const el = document.createElement('div');
-  el.style.cssText = 'pointer-events:auto;padding:8px 16px;border-radius:var(--rs,8px);background:var(--bg-card,#fff);border:1px solid ' + (colors[type] || colors.success) + ';color:var(--text-primary,#001D4E);font-size:var(--fs-sm,13px);font-family:var(--font,Geist,sans-serif);box-shadow:var(--shadow-card-hover);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;';
+  el.style.cssText = 'pointer-events:auto;padding:8px 16px;border-radius:var(--rs,6px);background:var(--bg-card,#fff);border:1px solid ' + (colors[type] || colors.success) + ';color:var(--text-primary,#001D4E);font-size:var(--fs-sm,13px);font-family:var(--font,"Open Sans",sans-serif);box-shadow:var(--shadow-card-hover);transform:translateX(120%);transition:transform .3s ease,opacity .3s ease;max-width:340px;';
   el.innerHTML = '<span style="margin-right:8px">' + (icons[type] || icons.success) + '</span>' + esc(msg);
   container.appendChild(el);
   requestAnimationFrame(function() { el.style.transform = 'translateX(0)'; });
@@ -495,12 +495,12 @@ const app = {
         setTimeout(() => this.showScreen('scenarios'), 4000);
       } else {
         console.warn(`[App] Session ended with status: ${finalStatus}`);
-        toast('AI scoring unavailable - showing self-assessment', 'info');
+        toast('Automated scoring unavailable — showing self-assessment', 'info');
         scoring.renderManualDebrief(callData, this.currentScenario);
       }
     } catch (err) {
       console.error('[App] Post-call processing error:', err);
-      toast('AI scoring unavailable - showing self-assessment', 'info');
+      toast('Automated scoring unavailable — showing self-assessment', 'info');
       scoring.renderManualDebrief(callData, this.currentScenario);
     }
   },

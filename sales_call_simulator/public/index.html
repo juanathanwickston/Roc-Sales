@@ -43,7 +43,7 @@
       --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08);
 
       /* Status Colors */
-      --color-pass: #00E0B8;
+      --color-pass: #19A070;
       --color-fail: #D93737;
       --color-warning: #FF924B;
       --color-locked: #D1D5DB;
@@ -54,7 +54,7 @@
       --n3: #FFFFFF;
       --n4: #F0F4FF;
       --blue: #0051C2;
-      --green: #00E0B8;
+      --green: #19A070;
       --red: #D93737;
       --orange: #FF924B;
       --purple: #8B5CF6;
@@ -164,7 +164,7 @@
       text-transform: uppercase;
       letter-spacing: .3px;
     }
-    .difficulty-beginner { background: rgba(0,224,184,.12); color: var(--green); }
+    .difficulty-beginner { background: rgba(25,160,112,.12); color: var(--green); }
     .difficulty-intermediate { background: rgba(59,130,246,.12); color: var(--blue); }
     .difficulty-advanced { background: rgba(255,68,102,.12); color: var(--red); }
 
@@ -521,7 +521,7 @@
       font-size: var(--fs-2xs);
       font-weight: var(--fw-semibold);
     }
-    .guide-badge-green { background: rgba(0,224,184,.12); color: var(--green); }
+    .guide-badge-green { background: rgba(25,160,112,.12); color: var(--green); }
     .guide-badge-blue { background: rgba(59,130,246,.12); color: var(--blue); }
     .guide-badge-orange { background: rgba(255,184,0,.12); color: var(--orange); }
 
@@ -1188,7 +1188,7 @@
       text-transform: uppercase; letter-spacing: .5px;
       flex-shrink: 0;
     }
-    .verdict-pass { background: rgba(0,224,184,.1); color: var(--color-pass); }
+    .verdict-pass { background: rgba(25,160,112,.1); color: var(--color-pass); }
     .verdict-needs-work { background: rgba(245,158,11,.1); color: var(--color-warning); }
     .verdict-fail { background: rgba(239,68,68,.1); color: var(--color-fail); }
     .verdict-pending { background: rgba(123,139,168,.1); color: var(--text-muted); }
@@ -1255,7 +1255,7 @@
       flex-shrink: 0;
     }
     .module-status-available { background: rgba(0,81,194,0.06); color: var(--payroc-blue); border: 1px solid rgba(0,81,194,0.12); }
-    .module-status-mastered { background: rgba(0,224,184,0.08); color: #059669; border: 1px solid rgba(0,224,184,0.2); }
+    .module-status-mastered { background: rgba(25,160,112,0.08); color: var(--color-pass); border: 1px solid rgba(25,160,112,0.15); }
     .module-status-locked { background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); }
     .module-card-desc {
       font-size: var(--fs-sm); color: var(--text-muted);
@@ -1424,7 +1424,7 @@
     .persona-mastery-badge {
       display: inline-flex; align-items: center; gap: 3px;
       padding: 1px 8px; border-radius: 50px;
-      background: rgba(0,81,194,0.08); color: var(--payroc-blue); border: 1px solid rgba(0,81,194,0.15);
+      background: rgba(25,160,112,0.08); color: var(--color-pass); border: 1px solid rgba(25,160,112,0.15);
       font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
       text-transform: uppercase; letter-spacing: 0.3px;
     }
@@ -1450,7 +1450,7 @@
     }
     .certificate-course-name {
       font-size: var(--fs-xl); font-weight: var(--fw-semibold);
-      color: var(--payroc-teal); margin-bottom: 12px;
+      color: var(--payroc-blue); margin-bottom: 12px;
     }
     .certificate-detail {
       font-size: var(--fs-sm); opacity: 0.7; margin-bottom: 4px;
@@ -1581,7 +1581,7 @@
       position: absolute;
       bottom: -30%; left: -10%;
       width: 60%; height: 80%;
-      background: radial-gradient(ellipse, rgba(0,224,184,0.1) 0%, transparent 70%);
+      background: radial-gradient(ellipse, rgba(25,160,112,0.06) 0%, transparent 70%);
       pointer-events: none;
     }
     .login-card {
@@ -1674,7 +1674,7 @@
       transform: scale(0.985);
     }
     .login-btn:focus-visible {
-      outline: 2px solid var(--payroc-teal);
+      outline: 2px solid var(--payroc-blue);
       outline-offset: 2px;
     }
     .login-btn:disabled {
@@ -1816,7 +1816,7 @@
       <!-- Top bar -->
       <div class="call-topbar">
         <div class="call-topbar-left">
-          <span class="call-indicator" aria-hidden="true">🔴</span>
+          <span class="call-indicator" aria-hidden="true"></span>
           <span id="call-scenario-label" class="call-scenario-label">Sales Call</span>
         </div>
         <div class="call-topbar-center">
@@ -1833,7 +1833,7 @@
         <div class="call-video-panel">
           <div class="call-video-area">
             <div id="remote-video-container" class="video-container">
-              <video id="remote-video" autoplay playsinline aria-label="AI buyer video"></video>
+              <video id="remote-video" autoplay playsinline aria-label="Buyer video"></video>
               <audio id="remote-audio" autoplay playsinline></audio>
               <div id="remote-name-tag" class="video-name-tag">Celine Marciano</div>
             </div>
@@ -1848,11 +1848,11 @@
           <!-- Control bar -->
           <nav class="call-controls" aria-label="Call controls">
             <button id="btn-mute" class="control-btn" aria-label="Toggle microphone" aria-pressed="false">
-              <span class="control-icon" aria-hidden="true">🎤</span>
+              <span class="control-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
               <span class="control-label">Mute</span>
             </button>
             <button id="btn-camera" class="control-btn" aria-label="Toggle camera" aria-pressed="false">
-              <span class="control-icon" aria-hidden="true">📹</span>
+              <span class="control-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
               <span class="control-label">Camera</span>
             </button>
             <button id="btn-guide" class="control-btn control-btn-guide" aria-label="Toggle call guide">
@@ -1860,7 +1860,7 @@
               <span class="control-label">Guide</span>
             </button>
             <button id="btn-end" class="control-btn control-btn-end" aria-label="End call">
-              <span class="control-icon" aria-hidden="true">📞</span>
+              <span class="control-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
               <span class="control-label">End</span>
             </button>
           </nav>
@@ -1882,7 +1882,7 @@
             <!-- Mission -->
             <div class="guide-section open">
               <button class="guide-section-btn" aria-expanded="true" aria-controls="guide-mission">
-                <span class="guide-section-title">🎯 Your Mission</span>
+                <span class="guide-section-title">Call Objectives</span>
                 <span class="guide-chevron" aria-hidden="true">▶</span>
               </button>
               <div class="guide-section-content" id="guide-mission">
@@ -1977,7 +1977,7 @@
             <!-- Common Mistakes -->
             <div class="guide-section">
               <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-mistakes">
-                <span class="guide-section-title">⚠️ Common Mistakes</span>
+                <span class="guide-section-title">Areas to Avoid</span>
                 <span class="guide-chevron" aria-hidden="true">▶</span>
               </button>
               <div class="guide-section-content" id="guide-mistakes">
@@ -2093,7 +2093,7 @@
 
         <!-- Coaching notes -->
         <div id="coaching-notes" class="coaching-notes" style="display:none;">
-          <h3>📚 Module Review</h3>
+          <h3>Module Review</h3>
           <div class="coaching-grid">
             <div class="coaching-card">
               <h4>Key Concepts</h4>
@@ -2205,7 +2205,7 @@
 
       <!-- Empty state -->
       <div id="history-empty" class="empty-state" style="display:none;">
-        <div class="empty-icon" aria-hidden="true">🎯</div>
+        <div class="empty-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
         <h3 class="empty-title">No sessions yet</h3>
         <p class="empty-desc">Complete a practice call to see your history and track your improvement.</p>
         <button id="btn-history-start" class="btn btn-primary">Start a Practice Call</button>

@@ -10,7 +10,7 @@ const SCORE_RING_CIRCUMFERENCE = 339.29;
 const scoring = {
 
   /**
-   * Render the full AI-generated scorecard.
+   * Render the full scorecard.
    */
   renderScorecard(scorecard, scenario) {
     const loadingEl = document.getElementById('debrief-loading');
@@ -206,11 +206,11 @@ const scoring = {
     const loadingEl = document.getElementById('debrief-loading');
     const contentEl = document.getElementById('debrief-content');
 
-    // Show a simplified debrief without AI scoring
+    // Show a simplified debrief without automated scoring
     document.getElementById('score-number').textContent = '\u2014';
     document.getElementById('score-verdict').textContent = 'Self-Assessment Required';
     document.getElementById('score-coaching-tip').textContent =
-      'AI scoring is unavailable for this call. Review the coaching notes below and rate your own performance.';
+      'Automated scoring is unavailable for this call. Review the coaching notes below and rate your own performance.';
 
     // Clear categories with empty state
     document.getElementById('score-categories').innerHTML = `
@@ -218,7 +218,7 @@ const scoring = {
         <div class="empty-icon"></div>
         <div class="empty-title">Automated scoring unavailable</div>
         <div class="empty-desc">
-          Complete a full call session for AI-powered feedback.
+          Complete a full call session for detailed feedback.
           Call duration: ${this.formatDuration(callData.duration || 0)}
         </div>
       </div>`;
