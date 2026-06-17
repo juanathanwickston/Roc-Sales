@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sales Call Simulator – ROC Academy</title>
-  <meta name="description" content="Practice sales calls with a realistic AI buyer. Powered by Tavus CVI.">
+  <meta name="description" content="Practice and master consultative sales conversations. Powered by Payroc.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     /* ─── Payroc Brand Design System Tokens ─── */
     :root {
       /* Typography */
-      --font: 'Geist', sans-serif;
+      --font: 'Open Sans', sans-serif;
       --fs-2xs: 11px; --fs-xs: 12px; --fs-sm: 13px; --fs-base: 14px;
       --fs-md: 16px; --fs-lg: 18px; --fs-xl: 24px; --fs-2xl: 28px; --fs-3xl: 36px;
       --fw-normal: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
@@ -24,7 +24,7 @@
       --payroc-teal: #00E0B8;
 
       /* Surfaces (Light Mode) */
-      --bg-page: #F8F9FA;
+      --bg-page: #F4F7FE;
       --bg-card: #FFFFFF;
       --bg-card-hover: #F0F4FF;
       --bg-section: #FFFFFF;
@@ -33,19 +33,19 @@
       /* Text */
       --text-primary: #001D4E;
       --text-body: #424242;
-      --text-muted: #6B7280;
+      --text-muted: #636363;
       --text-on-blue: #FFFFFF;
 
       /* Borders & Shadows */
-      --border-light: #E5E7EB;
+      --border-light: #E5E5E5;
       --border-blue: rgba(0,81,194,0.12);
       --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
       --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08);
 
       /* Status Colors */
       --color-pass: #00E0B8;
-      --color-fail: #EF4444;
-      --color-warning: #F59E0B;
+      --color-fail: #D93737;
+      --color-warning: #FF924B;
       --color-locked: #D1D5DB;
 
       /* Legacy aliases (backward compat for call screen, scoring.js, history.js) */
@@ -55,16 +55,16 @@
       --n4: #F0F4FF;
       --blue: #0051C2;
       --green: #00E0B8;
-      --red: #EF4444;
-      --orange: #F59E0B;
+      --red: #D93737;
+      --orange: #FF924B;
       --purple: #8B5CF6;
       --white: #001D4E;
-      --gray: #6B7280;
+      --gray: #636363;
       --gb: rgba(0,0,0,0.08);
 
       /* Spacing: 4, 8, 16, 24, 32, 48 only */
       /* Border Radius */
-      --r-xs: 4px; --r-sm: 6px; --rs: 10px; --r: 14px; --r-lg: 20px;
+      --r-xs: 4px; --r-sm: 6px; --rs: 6px; --r: 8px; --r-lg: 12px;
 
       /* Z-Index */
       --z-base: 1; --z-sticky: 10; --z-popup: 150; --z-modal: 999; --z-toast: 9999;
@@ -1670,7 +1670,7 @@
       transition: background .2s, transform .1s, box-shadow .2s;
     }
     .login-btn:hover {
-      background: #003d99;
+      background: #00419C;
       box-shadow: 0 4px 12px rgba(0,81,194,0.3);
     }
     .login-btn:active {
@@ -1717,7 +1717,6 @@
             Start Training
           </button>
         </form>
-        <p class="login-footer">Payroc &middot; ROC Academy</p>
       </div>
     </div>
   </div>
