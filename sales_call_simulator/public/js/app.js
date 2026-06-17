@@ -320,6 +320,11 @@ const app = {
       btnHistoryBack.addEventListener('click', function() { app.showScreen('scenarios'); });
     }
 
+    const btnHistoryLogout = document.getElementById('btn-history-logout');
+    if (btnHistoryLogout) {
+      btnHistoryLogout.addEventListener('click', function() { app.logout(); });
+    }
+
     const btnHistoryStart = document.getElementById('btn-history-start');
     if (btnHistoryStart) {
       btnHistoryStart.addEventListener('click', function() { app.showScreen('scenarios'); });
