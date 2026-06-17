@@ -85,7 +85,7 @@ const app = {
           return;
         }
       } catch (err) {
-        console.warn('[App] Token validation failed:', err);
+        // silently ignore
       }
       // Token invalid — clear it
       localStorage.removeItem('roc_token');
@@ -99,7 +99,7 @@ const app = {
    * Handle login form submission.
    */
   async login(name) {
-    try {
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,9 +122,7 @@ const app = {
       this.updateFacilitatorNav();
 
       await this.initAfterAuth();
-    } catch (err) {
-      throw err;
-    }
+
   },
 
   /**
@@ -135,7 +133,7 @@ const app = {
     this.currentUser = null;
     this.scenarios = [];
     // Hide facilitator nav
-    var facBtn = document.getElementById('btn-facilitator');
+    const facBtn = document.getElementById('btn-facilitator');
     if (facBtn) facBtn.style.display = 'none';
     this.showScreen('login');
   },
@@ -144,7 +142,7 @@ const app = {
    * Show/hide the facilitator dashboard nav link based on role.
    */
   updateFacilitatorNav() {
-    var btn = document.getElementById('btn-facilitator');
+    const btn = document.getElementById('btn-facilitator');
     if (btn && this.currentUser) {
       btn.style.display = this.currentUser.role === 'admin' ? '' : 'none';
     }
@@ -160,7 +158,7 @@ const app = {
 
     // Load progress dashboard (non-blocking)
     if (typeof loadProgress === 'function') {
-      loadProgress().catch(function(err) { console.warn('[App] Progress load failed:', err); });
+      loadProgress().catch(function() {});
     }
 
     // Check for launch context from ROC Academy (set by GET /launch redirect)
@@ -177,7 +175,7 @@ const app = {
       // Clear URL params so refresh does not re-trigger launch
       window.history.replaceState({}, '', window.location.pathname);
 
-      console.log(`[App] Launch context: scenario ${launchScenarioId}`);
+
       this.selectScenario(launchScenarioId);
     }
   },
@@ -379,7 +377,7 @@ const app = {
     if (btnPageNext) {
       btnPageNext.addEventListener('click', function() {
         if (typeof historyCurrentPage !== 'undefined' && typeof HISTORY_PAGE_SIZE !== 'undefined' && typeof historyTotalSessions !== 'undefined') {
-          var totalPages = Math.ceil(historyTotalSessions / HISTORY_PAGE_SIZE);
+          const totalPages = Math.ceil(historyTotalSessions / HISTORY_PAGE_SIZE);
           if (historyCurrentPage < totalPages - 1) {
             loadHistory(historyCurrentPage + 1);
           }
@@ -426,33 +424,12 @@ const app = {
       }
       const envelope = await res.json();
       this.scenarios = envelope.data.scenarios || [];
-      console.log('[App] Loaded ' + this.scenarios.length + ' scenario(s)');
+
     } catch (err) {
-      console.error('[App] Failed to load scenarios:', err);
     }
   },
 
-  /**
-   * Render a scenario card - uses data-scenario-id for event delegation.
-   * NO inline onclick.
-   */
-  renderScenarioCard(scenario) {
-    const diff = scenario.difficulty || 'beginner';
-    const duration = scenario.durationMinutes || scenario.duration_minutes;
-    return '' +
-      '<button class="scenario-card" data-scenario-id="' + esc(scenario.id) + '" role="listitem"' +
-        ' aria-label="' + esc(scenario.name) + ' - ' + diff + ' difficulty" type="button">' +
-        '<div class="scenario-card-title">' +
-          '<span>' + esc(scenario.name) + '</span>' +
-          '<span class="difficulty-badge difficulty-' + diff + '">' + diff + '</span>' +
-        '</div>' +
-        '<div class="scenario-card-desc">' + esc(scenario.description || '') + '</div>' +
-        '<div class="scenario-card-meta">' +
-          (scenario.module ? '<span>' + esc(scenario.module) + '</span>' : '') +
-          (duration ? '<span>' + duration + ' min</span>' : '') +
-        '</div>' +
-      '</button>';
-  },
+
 
   /**
    * User selected a scenario - fetch full details and start lobby.
@@ -477,7 +454,7 @@ const app = {
 
       await callManager.startCall(this.currentScenario);
     } catch (err) {
-      console.error('[App] Error selecting scenario:', err);
+
       toast(err.message || 'Failed to start scenario. Please try again.', 'error');
       this.showScreen('scenarios');
     } finally {
@@ -525,7 +502,7 @@ const app = {
       });
 
       if (!triggerRes.ok) {
-        console.warn('[App] Backend processing trigger failed:', triggerRes.status);
+
         scoring.renderManualDebrief(callData, this.currentScenario);
         return;
       }
@@ -555,12 +532,12 @@ const app = {
         toast('Evaluation is taking longer than expected. Check back later for results.', 'info');
         setTimeout(() => this.showScreen('scenarios'), 4000);
       } else {
-        console.warn(`[App] Session ended with status: ${finalStatus}`);
+
         toast('Automated scoring unavailable — showing self-assessment', 'info');
         scoring.renderManualDebrief(callData, this.currentScenario);
       }
     } catch (err) {
-      console.error('[App] Post-call processing error:', err);
+
       toast('Automated scoring unavailable — showing self-assessment', 'info');
       scoring.renderManualDebrief(callData, this.currentScenario);
     }
@@ -606,13 +583,12 @@ const app = {
           return session.status;
         }
 
-        console.log(`[App] Polling session ${sessionId}: ${session.status} (${poll}/${MAX_POLLS})`);
+
       } catch (err) {
-        console.warn('[App] Poll error:', err.message);
       }
     }
 
-    console.warn(`[App] Polling timed out after ${MAX_POLLS} attempts`);
+
     return 'timeout';
   },
 
@@ -625,14 +601,13 @@ const app = {
       const res = await fetchWithAuth(`/api/sessions/${sessionId}/score`);
 
       if (!res.ok) {
-        console.warn('[App] Scorecard fetch failed:', res.status);
+
         return null;
       }
 
       const envelope = await res.json();
       return envelope.data;
     } catch (err) {
-      console.warn('[App] Scorecard fetch error:', err.message);
       return null;
     }
   },

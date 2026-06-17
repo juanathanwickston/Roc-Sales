@@ -11,35 +11,11 @@ const path = require('path');
 const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
+const { getAllScenarios, SCENARIOS_DIR } = require('../services/scenarioLoader');
 
 const router = express.Router();
 
-const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
-
-// Cache scenarios at startup (H5 - no disk reads per request)
-let cachedScenarios = [];
-
-/**
- * Load all scenario files from the scenarios directory.
- * Skips files in the archive/ subdirectory.
- * Called once at module init.
- */
-function loadScenarios() {
-  const scenarios = [];
-  try {
-    const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
-    for (const file of files) {
-      const raw = fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf-8');
-      scenarios.push(JSON.parse(raw));
-    }
-    logger.info(`Loaded scenario(s) from disk.`, { count: scenarios.length });
-  } catch (err) {
-    logger.error('Error loading scenarios', { error: err.message });
-  }
-  return scenarios;
-}
-
-cachedScenarios = loadScenarios();
+const cachedScenarios = getAllScenarios();
 
 /**
  * GET /api/scenarios/modules - Return the 2-module course structure with persona and scenario availability.

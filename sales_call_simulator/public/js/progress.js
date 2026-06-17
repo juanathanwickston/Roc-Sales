@@ -11,7 +11,7 @@
  * Persona metadata — static lookup for display info.
  * Each persona maps to a name, business, product, and icon.
  */
-var PERSONA_META = {
+const PERSONA_META = {
   sam_patel: {
     name: 'Sam Patel',
     business: 'QuickStop Market',
@@ -41,7 +41,7 @@ var PERSONA_META = {
 /**
  * Module metadata — static descriptions for each module.
  */
-var MODULE_META = {
+const MODULE_META = {
   module1: {
     number: 1,
     name: 'Discovery & Qualification',
@@ -57,8 +57,8 @@ var MODULE_META = {
 /**
  * Cached data from the last loadProgress() call.
  */
-var _cachedModules = null;
-var _cachedProgress = null;
+let _cachedModules = null;
+let _cachedProgress = null;
 
 /**
  * Load progress data from the server and render the dashboard.
@@ -69,8 +69,8 @@ function loadProgress() {
     fetchWithAuth('/api/scenarios/modules'),
     fetchWithAuth('/api/sessions/progress')
   ]).then(function(results) {
-    var modulesRes = results[0];
-    var progressRes = results[1];
+    const modulesRes = results[0];
+    const progressRes = results[1];
 
     if (!modulesRes.ok) {
       return modulesRes.json().then(function(err) {
@@ -92,8 +92,8 @@ function loadProgress() {
       progressRes.json()
     ]);
   }).then(function(data) {
-    var modulesData = data[0].data;
-    var progressData = data[1].data;
+    const modulesData = data[0].data;
+    const progressData = data[1].data;
 
     _cachedModules = modulesData;
     _cachedProgress = progressData;
@@ -111,16 +111,16 @@ function loadProgress() {
  * Render fallback module cards when API fails (show static module info).
  */
 function renderModuleCardsFallback() {
-  var container = document.getElementById('module-cards');
+  const container = document.getElementById('module-cards');
   if (!container) return;
 
-  var html = '';
-  var moduleIds = ['module1', 'module2'];
+  let html = '';
+  const moduleIds = ['module1', 'module2'];
 
-  for (var i = 0; i < moduleIds.length; i++) {
-    var moduleId = moduleIds[i];
-    var meta = MODULE_META[moduleId] || {};
-    var isLocked = moduleId === 'module2';
+  for (let i = 0; i < moduleIds.length; i++) {
+    const moduleId = moduleIds[i];
+    const meta = MODULE_META[moduleId] || {};
+    const isLocked = moduleId === 'module2';
 
     html += '<div class="module-card' + (isLocked ? ' module-card-locked' : '') + '" data-module-id="' + moduleId + '">' +
       '<div class="module-card-header">' +
@@ -145,16 +145,16 @@ function renderModuleCardsFallback() {
  * Returns: 'mastered', 'available', or 'locked'.
  */
 function getModuleStatus(moduleId, progressData) {
-  var modules = (progressData && progressData.modules) ? progressData.modules : {};
-  var mod = modules[moduleId];
+  const modules = progressData?.modules ?? {};
+  const mod = modules[moduleId];
 
   if (moduleId === 'module2') {
     // Module 2 is locked unless at least one persona is mastered in Module 1
-    var mod1 = modules['module1'];
+    const mod1 = modules['module1'];
     if (!mod1 || !mod1.personas) return 'locked';
-    var anyMastered = false;
-    var personas = mod1.personas;
-    for (var key in personas) {
+    let anyMastered = false;
+    const personas = mod1.personas;
+    for (const key in personas) {
       if (personas.hasOwnProperty(key) && personas[key].mastered) {
         anyMastered = true;
         break;
@@ -165,8 +165,8 @@ function getModuleStatus(moduleId, progressData) {
 
   // Check if any persona is mastered (single-assignment model: 1 mastered = module mastered)
   if (mod && mod.personas) {
-    var personas2 = mod.personas;
-    for (var k in personas2) {
+    const personas2 = mod.personas;
+    for (const k in personas2) {
       if (personas2.hasOwnProperty(k) && personas2[k].mastered) {
         return 'mastered';
       }
@@ -180,13 +180,13 @@ function getModuleStatus(moduleId, progressData) {
  * Count mastered personas for a module.
  */
 function countMasteredPersonas(moduleId, progressData) {
-  var modules = (progressData && progressData.modules) ? progressData.modules : {};
-  var mod = modules[moduleId];
+  const modules = progressData?.modules ?? {};
+  const mod = modules[moduleId];
   if (!mod || !mod.personas) return 0;
 
-  var count = 0;
-  var personas = mod.personas;
-  for (var key in personas) {
+  let count = 0;
+  const personas = mod.personas;
+  for (const key in personas) {
     if (personas.hasOwnProperty(key) && personas[key].mastered) {
       count++;
     }
@@ -198,25 +198,25 @@ function countMasteredPersonas(moduleId, progressData) {
  * Render the 2 module cards in the journey column.
  */
 function renderModuleCards(modulesData, progressData) {
-  var container = document.getElementById('module-cards');
+  const container = document.getElementById('module-cards');
   if (!container) return;
 
-  var moduleIds = ['module1', 'module2'];
-  var html = '';
+  const moduleIds = ['module1', 'module2'];
+  let html = '';
 
-  for (var i = 0; i < moduleIds.length; i++) {
-    var moduleId = moduleIds[i];
-    var meta = MODULE_META[moduleId] || {};
-    var status = getModuleStatus(moduleId, progressData);
-    var mastered = countMasteredPersonas(moduleId, progressData);
-    var totalPersonas = 1;
+  for (let i = 0; i < moduleIds.length; i++) {
+    const moduleId = moduleIds[i];
+    const meta = MODULE_META[moduleId] || {};
+    const status = getModuleStatus(moduleId, progressData);
+    const mastered = countMasteredPersonas(moduleId, progressData);
+    const totalPersonas = 1;
 
-    var cardClass = 'module-card';
+    let cardClass = 'module-card';
     if (status === 'locked') cardClass += ' module-card-locked';
     if (status === 'mastered') cardClass += ' module-card-mastered';
 
-    var statusBadgeClass = 'module-card-status-badge ';
-    var statusBadgeText = '';
+    let statusBadgeClass = 'module-card-status-badge ';
+    let statusBadgeText = '';
     if (status === 'mastered') {
       statusBadgeClass += 'module-status-mastered';
       statusBadgeText = 'Mastered';
@@ -229,9 +229,9 @@ function renderModuleCards(modulesData, progressData) {
     }
 
     // Progress bar for assigned scenario
-    var progressBarHtml = '';
+    let progressBarHtml = '';
     if (status !== 'locked') {
-      var masteredCount = mastered > 0 ? 1 : 0;
+      const masteredCount = mastered > 0 ? 1 : 0;
       progressBarHtml = '<div class="module-card-progress">' +
         '<div class="module-card-progress-bar">' +
           '<div class="module-card-progress-fill" style="width:' + (masteredCount * 100) + '%"></div>' +
@@ -261,11 +261,11 @@ function renderModuleCards(modulesData, progressData) {
  * Open the scenario selector modal for a given module.
  */
 function openScenarioModal(moduleId) {
-  var overlay = document.getElementById('scenario-modal');
+  const overlay = document.getElementById('scenario-modal');
   if (!overlay) return;
 
-  var progressData = _cachedProgress || {};
-  var modulesData = _cachedModules || {};
+  const progressData = _cachedProgress || {};
+  const modulesData = _cachedModules || {};
 
   renderScenarioModal(moduleId, progressData, modulesData);
 
@@ -286,16 +286,16 @@ function openScenarioModal(moduleId) {
  * Close the scenario selector modal.
  */
 function closeScenarioModal() {
-  var overlay = document.getElementById('scenario-modal');
+  const overlay = document.getElementById('scenario-modal');
   if (!overlay) return;
 
   overlay.style.display = 'none';
   document.body.style.overflow = '';
 
   // Return focus to the module card button that opened it
-  var moduleId = overlay.getAttribute('data-current-module');
+  const moduleId = overlay.getAttribute('data-current-module');
   if (moduleId) {
-    var btn = document.querySelector('.module-card-cta[data-module-id="' + moduleId + '"]');
+    const btn = document.querySelector('.module-card-cta[data-module-id="' + moduleId + '"]');
     if (btn) btn.focus();
   }
 }
@@ -304,49 +304,49 @@ function closeScenarioModal() {
  * Build and populate the scenario modal content.
  */
 function renderScenarioModal(moduleId, progressData, modulesData) {
-  var titleEl = document.getElementById('scenario-modal-title');
-  var gridEl = document.getElementById('scenario-modal-grid');
+  const titleEl = document.getElementById('scenario-modal-title');
+  const gridEl = document.getElementById('scenario-modal-grid');
 
   if (!titleEl || !gridEl) return;
 
-  var meta = MODULE_META[moduleId] || {};
+  const meta = MODULE_META[moduleId] || {};
   titleEl.textContent = 'Module ' + (meta.number || '') + ': ' + (meta.name || 'Select Your Assigned Scenario');
 
-  var modules = (progressData && progressData.modules) ? progressData.modules : {};
-  var modProgress = modules[moduleId] || {};
-  var modPersonas = modProgress.personas || {};
+  const modules = progressData?.modules ?? {};
+  const modProgress = modules[moduleId] || {};
+  const modPersonas = modProgress.personas || {};
 
   // For Module 2, check Module 1 mastery
-  var mod1Personas = {};
+  let mod1Personas = {};
   if (moduleId === 'module2' && modules['module1']) {
     mod1Personas = modules['module1'].personas || {};
   }
 
   // Get scenario IDs from modules data if available
-  var moduleScenarios = {};
+  let moduleScenarios = {};
   if (modulesData && modulesData.modules) {
-    var modData = modulesData.modules[moduleId];
+    const modData = modulesData.modules[moduleId];
     if (modData && modData.personas) {
       moduleScenarios = modData.personas;
     }
   }
 
-  var personaIds = ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'];
-  var html = '';
+  const personaIds = Object.keys(PERSONA_META);
+  let html = '';
 
-  for (var i = 0; i < personaIds.length; i++) {
-    var pid = personaIds[i];
-    var pmeta = PERSONA_META[pid] || {};
-    var pProgress = modPersonas[pid] || {};
-    var attempts = pProgress.attempts || 0;
-    var bestScore = pProgress.bestScore || 0;
-    var isMastered = pProgress.mastered || false;
+  for (let i = 0; i < personaIds.length; i++) {
+    const pid = personaIds[i];
+    const pmeta = PERSONA_META[pid] || {};
+    const pProgress = modPersonas[pid] || {};
+    const attempts = pProgress.attempts || 0;
+    const bestScore = pProgress.bestScore || 0;
+    const isMastered = pProgress.mastered || false;
 
     // Check lock for Module 2
-    var isLocked = false;
-    var lockReason = '';
+    let isLocked = false;
+    let lockReason = '';
     if (moduleId === 'module2') {
-      var mod1PersonaProgress = mod1Personas[pid] || {};
+      const mod1PersonaProgress = mod1Personas[pid] || {};
       if (!mod1PersonaProgress.mastered) {
         isLocked = true;
         lockReason = 'Master this persona in Module 1 first';
@@ -354,7 +354,7 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
     }
 
     // Find scenario ID for this persona + module
-    var scenarioId = '';
+    let scenarioId = '';
     if (moduleScenarios[pid] && moduleScenarios[pid].scenarioId) {
       scenarioId = moduleScenarios[pid].scenarioId;
     } else {
@@ -362,7 +362,7 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
       scenarioId = moduleId + '_' + pid;
     }
 
-    var cardClass = 'persona-card';
+    let cardClass = 'persona-card';
     if (isLocked) cardClass += ' persona-card-locked';
     if (isMastered) cardClass += ' persona-card-mastered';
 
@@ -400,29 +400,29 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
  * Render the performance sidebar: score ring, module completion stats, focus areas.
  */
 function renderPerformanceSidebar(progressData) {
-  var sidebar = document.getElementById('performance-sidebar');
+  const sidebar = document.getElementById('performance-sidebar');
   if (!sidebar) return;
 
-  var modules = (progressData && progressData.modules) ? progressData.modules : {};
-  var categories = (progressData && progressData.categories) ? progressData.categories : {};
+  const modules = progressData?.modules ?? {};
+  const categories = progressData?.categories ?? {};
 
   // Check if user has any session data
-  var hasSessions = false;
-  var totalMastered = 0;
-  var totalPersonas = 0;
-  var totalAttempts = 0;
-  var bestScoreSum = 0;
-  var bestScoreCount = 0;
+  let hasSessions = false;
+  let totalMastered = 0;
+  let totalPersonas = 0;
+  let totalAttempts = 0;
+  let bestScoreSum = 0;
+  let bestScoreCount = 0;
 
-  var moduleIds = ['module1', 'module2'];
-  for (var m = 0; m < moduleIds.length; m++) {
-    var mod = modules[moduleIds[m]];
+  const moduleIds = ['module1', 'module2'];
+  for (let m = 0; m < moduleIds.length; m++) {
+    const mod = modules[moduleIds[m]];
     if (!mod || !mod.personas) continue;
-    var personas = mod.personas;
-    for (var p in personas) {
+    const personas = mod.personas;
+    for (const p in personas) {
       if (!personas.hasOwnProperty(p)) continue;
       totalPersonas++;
-      var pd = personas[p];
+      const pd = personas[p];
       if (pd.attempts > 0) hasSessions = true;
       totalAttempts += (pd.attempts || 0);
       if (pd.mastered) totalMastered++;
@@ -442,18 +442,18 @@ function renderPerformanceSidebar(progressData) {
     return;
   }
 
-  var html = '';
+  let html = '';
 
   // Overall mastery score ring
-  var masteryScore = totalPersonas > 0 ? Math.round((totalMastered / totalPersonas) * 100) : 0;
+  let masteryScore = totalPersonas > 0 ? Math.round((totalMastered / totalPersonas) * 100) : 0;
   if (bestScoreCount > 0) {
     // Use average best score as mastery when available
     masteryScore = Math.round(bestScoreSum / bestScoreCount);
   }
 
-  var ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--payroc-blue)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
-  var circumference = 2 * Math.PI * 54;
-  var offset = circumference - (masteryScore / 100) * circumference;
+  const ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--payroc-blue)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
+  const circumference = 2 * Math.PI * 54;
+  const offset = circumference - (masteryScore / 100) * circumference;
 
   html += '<div class="perf-score-ring">' +
     '<svg viewBox="0 0 120 120" width="80" height="80">' +
@@ -469,10 +469,10 @@ function renderPerformanceSidebar(progressData) {
     '</div>' +
   '</div>';
 
-  var m1Status = getModuleStatus('module1', progressData);
-  var m2Status = getModuleStatus('module2', progressData);
-  var m1Complete = m1Status === 'mastered' ? 1 : 0;
-  var m2Complete = m2Status === 'mastered' ? 1 : 0;
+  const m1Status = getModuleStatus('module1', progressData);
+  const m2Status = getModuleStatus('module2', progressData);
+  const m1Complete = m1Status === 'mastered' ? 1 : 0;
+  const m2Complete = m2Status === 'mastered' ? 1 : 0;
 
   html += '<div class="perf-stats-grid">' +
     '<div class="perf-stat"><div class="perf-stat-value">' + m1Complete + '/1</div><div class="perf-stat-label">Module 1</div></div>' +
@@ -485,8 +485,8 @@ function renderPerformanceSidebar(progressData) {
   html += '<div class="perf-skills-card">' +
     '<div class="perf-skills-title">Focus Areas</div>';
 
-  var catEntries = [];
-  for (var catKey in categories) {
+  const catEntries = [];
+  for (const catKey in categories) {
     if (categories.hasOwnProperty(catKey)) {
       catEntries.push([catKey, categories[catKey]]);
     }
@@ -503,19 +503,19 @@ function renderPerformanceSidebar(progressData) {
     });
 
     // Show bottom 3 (weakest)
-    var focusSkills = catEntries.slice(0, 3);
+    const focusSkills = catEntries.slice(0, 3);
 
-    for (var f = 0; f < focusSkills.length; f++) {
-      var catName = focusSkills[f][0];
-      var catData = focusSkills[f][1];
-      var displayName = catName.replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
-      var latestScore = catData.latest || 0;
-      var barColor2 = latestScore >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (latestScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
+    for (let f = 0; f < focusSkills.length; f++) {
+      const catName = focusSkills[f][0];
+      const catData = focusSkills[f][1];
+      const displayName = catName.replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
+      const latestScore = catData.latest || 0;
+      const barColor2 = latestScore >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (latestScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
 
-      var trendArrow = '';
+      let trendArrow = '';
       if (catData.trend && catData.trend.length >= 2) {
-        var prev = catData.trend[catData.trend.length - 2];
-        var curr = catData.trend[catData.trend.length - 1];
+        const prev = catData.trend[catData.trend.length - 2];
+        const curr = catData.trend[catData.trend.length - 1];
         if (curr > prev) trendArrow = '<span class="skill-trend skill-trend-up">▲</span>';
         else if (curr < prev) trendArrow = '<span class="skill-trend skill-trend-down">▼</span>';
         else trendArrow = '<span class="skill-trend skill-trend-same">—</span>';
@@ -537,8 +537,8 @@ function renderPerformanceSidebar(progressData) {
 
   // Animate skill bars
   setTimeout(function() {
-    var bars = sidebar.querySelectorAll('.perf-skill-bar');
-    for (var b = 0; b < bars.length; b++) {
+    const bars = sidebar.querySelectorAll('.perf-skill-bar');
+    for (let b = 0; b < bars.length; b++) {
       bars[b].style.width = bars[b].getAttribute('data-target');
     }
   }, 200);
@@ -548,12 +548,12 @@ function renderPerformanceSidebar(progressData) {
  * Render the certificate section if both modules are fully mastered.
  */
 function renderCertificate(progressData) {
-  var container = document.getElementById('certificate-section');
+  const container = document.getElementById('certificate-section');
   if (!container) return;
 
-  var certs = (progressData && progressData.certificates) ? progressData.certificates : {};
-  var unlockedPersonas = [];
-  for (var pid in certs) {
+  const certs = progressData?.certificates ?? {};
+  const unlockedPersonas = [];
+  for (const pid in certs) {
     if (certs.hasOwnProperty(pid) && certs[pid].unlocked) {
       unlockedPersonas.push(pid);
     }
@@ -565,17 +565,17 @@ function renderCertificate(progressData) {
   }
 
   container.style.display = '';
-  var completionDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const completionDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  var html = '<div class="certificate-inner">' +
+  let html = '<div class="certificate-inner">' +
     '<div class="certificate-badge" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15l-3 3v-4.5M12 15l3 3v-4.5"/><circle cx="12" cy="9" r="6"/><path d="M9.5 9l1.5 1.5 3-3"/></svg></div>' +
     '<h2 class="certificate-title">Congratulations!</h2>' +
     '<p class="certificate-subtitle">You have earned certifications for:</p>' +
     '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0;">';
 
-  for (var j = 0; j < unlockedPersonas.length; j++) {
-    var upid = unlockedPersonas[j];
-    var meta = PERSONA_META[upid] || { name: upid };
+  for (let j = 0; j < unlockedPersonas.length; j++) {
+    const upid = unlockedPersonas[j];
+    const meta = PERSONA_META[upid] || { name: upid };
     html += '<button class="btn btn-primary btn-print-persona-cert" data-persona-id="' + upid + '" type="button">Print ' + esc(meta.name) + ' Cert</button>';
   }
 
@@ -599,12 +599,12 @@ function renderCertificate(progressData) {
   container.innerHTML = html;
 
   // Bind print buttons
-  var buttons = container.querySelectorAll('.btn-print-persona-cert');
-  for (var k = 0; k < buttons.length; k++) {
+  const buttons = container.querySelectorAll('.btn-print-persona-cert');
+  for (let k = 0; k < buttons.length; k++) {
     buttons[k].addEventListener('click', function(e) {
-      var personaId = e.currentTarget.getAttribute('data-persona-id');
-      var meta = PERSONA_META[personaId] || { name: personaId, business: '' };
-      var nameEl = document.getElementById('cert-printable-persona-name');
+      const personaId = e.currentTarget.getAttribute('data-persona-id');
+      const meta = PERSONA_META[personaId] || { name: personaId, business: '' };
+      const nameEl = document.getElementById('cert-printable-persona-name');
       if (nameEl) {
         nameEl.innerHTML = esc(meta.name) + '<br><span style="font-size:12px;color:var(--text-muted);font-weight:normal;">' + esc(meta.business) + '</span>';
       }
@@ -621,12 +621,12 @@ function renderCertificate(progressData) {
  */
 function initProgressEvents() {
   // Module card CTA clicks — event delegation
-  var moduleCardsContainer = document.getElementById('module-cards');
+  const moduleCardsContainer = document.getElementById('module-cards');
   if (moduleCardsContainer) {
     moduleCardsContainer.addEventListener('click', function(e) {
-      var cta = e.target.closest('.module-card-cta');
+      const cta = e.target.closest('.module-card-cta');
       if (cta) {
-        var moduleId = cta.getAttribute('data-module-id');
+        const moduleId = cta.getAttribute('data-module-id');
         if (moduleId) {
           openScenarioModal(moduleId);
         }
@@ -635,7 +635,7 @@ function initProgressEvents() {
   }
 
   // Modal close button and overlay click
-  var modalOverlay = document.getElementById('scenario-modal');
+  const modalOverlay = document.getElementById('scenario-modal');
   if (modalOverlay) {
     // Close on overlay click (not modal content click)
     modalOverlay.addEventListener('click', function(e) {
@@ -645,7 +645,7 @@ function initProgressEvents() {
     });
 
     // Close button
-    var closeBtn = modalOverlay.querySelector('.scenario-modal-close');
+    const closeBtn = modalOverlay.querySelector('.scenario-modal-close');
     if (closeBtn) {
       closeBtn.addEventListener('click', function() {
         closeScenarioModal();
@@ -661,13 +661,13 @@ function initProgressEvents() {
 
       // Focus trap
       if (e.key === 'Tab') {
-        var focusableEls = modalOverlay.querySelectorAll(
+        const focusableEls = modalOverlay.querySelectorAll(
           'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
         );
         if (focusableEls.length === 0) return;
 
-        var firstEl = focusableEls[0];
-        var lastEl = focusableEls[focusableEls.length - 1];
+        const firstEl = focusableEls[0];
+        const lastEl = focusableEls[focusableEls.length - 1];
 
         if (e.shiftKey) {
           if (document.activeElement === firstEl) {
@@ -684,12 +684,12 @@ function initProgressEvents() {
     });
 
     // Persona card clicks — event delegation on modal grid
-    var modalGrid = document.getElementById('scenario-modal-grid');
+    const modalGrid = document.getElementById('scenario-modal-grid');
     if (modalGrid) {
       modalGrid.addEventListener('click', function(e) {
-        var card = e.target.closest('.persona-card');
+        const card = e.target.closest('.persona-card');
         if (card && !card.classList.contains('persona-card-locked') && !card.disabled) {
-          var scenarioId = card.getAttribute('data-scenario-id');
+          const scenarioId = card.getAttribute('data-scenario-id');
           if (scenarioId) {
             closeScenarioModal();
             app.selectScenario(scenarioId);

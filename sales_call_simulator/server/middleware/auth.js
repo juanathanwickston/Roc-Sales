@@ -6,6 +6,7 @@
 
 const jwt = require('jsonwebtoken');
 const { config } = require('../config');
+const logger = require('../utils/logger');
 
 /**
  * Verify JWT token from Authorization header.
@@ -72,7 +73,7 @@ function verifyLaunchToken(token) {
 
     // Ensure required fields are present
     if (!payload.userId || !payload.scenarioId) {
-      console.warn('[Auth] Launch token missing required fields (userId, scenarioId)');
+      logger.warn('[Auth] Launch token missing required fields (userId, scenarioId)');
       return null;
     }
 
@@ -84,7 +85,7 @@ function verifyLaunchToken(token) {
       returnUrl: payload.returnUrl || null,
     };
   } catch (err) {
-    console.warn('[Auth] Launch token verification failed:', err.message);
+    logger.warn('[Auth] Launch token verification failed:', err.message);
     return null;
   }
 }

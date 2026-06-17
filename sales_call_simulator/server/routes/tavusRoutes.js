@@ -5,8 +5,6 @@
  */
 
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const db = require('../db');
 const { config } = require('../config');
 
@@ -15,25 +13,11 @@ const { extractConversationMeta } = require('../services/tavusNormalizer');
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
 const { requireAuth } = require('../middleware/auth');
+const { getScenario } = require('../services/scenarioLoader');
 
 const router = express.Router();
 
-const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
 
-function loadScenarioConfig(scenarioId) {
-  try {
-    const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
-    for (const file of files) {
-      const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
-      if (scenario.id === scenarioId) {
-        return scenario;
-      }
-    }
-  } catch (err) {
-    logger.warn('Could not load scenario config in Tavus router', { scenarioId, error: err.message });
-  }
-  return null;
-}
 
 // --- Personas ---
 
@@ -106,7 +90,7 @@ router.post('/conversations', requireAuth, async (req, res) => {
     }
 
     // Load scenario config
-    const scenario = loadScenarioConfig(session.scenario_id);
+    const scenario = getScenario(session.scenario_id);
     if (!scenario) {
       return sendError(res, req, 404, 'Scenario configuration not found.');
     }

@@ -58,7 +58,7 @@
       --red: #D93737;
       --orange: #FF924B;
       --purple: #8B5CF6;
-      --white: #001D4E;
+      --text-dark: #001D4E;
       --gray: #636363;
       --gb: rgba(0,0,0,0.08);
 
@@ -337,7 +337,7 @@
       background: rgba(10,22,40,.85);
       border-radius: var(--r-xs);
       font-size: var(--fs-2xs);
-      color: var(--gray);
+      color: rgba(255,255,255,0.85);
     }
 
     /* Caption overlay */
@@ -353,7 +353,7 @@
       min-height: 40px;
       z-index: 3;
     }
-    .captions-text { font-size: var(--fs-sm); color: var(--white); line-height: var(--lh-normal); }
+    .captions-text { font-size: var(--fs-sm); color: #FFFFFF; line-height: var(--lh-normal); }
     .caption-placeholder { color: var(--gray); }
 
     /* Control bar (Glassmorphism Dock) */
@@ -382,7 +382,7 @@
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: 50%;
-      color: var(--white);
+      color: var(--text-dark);
       cursor: pointer;
       font-family: inherit;
       transition: all .2s;
@@ -558,7 +558,7 @@
     .scoring-weight {
       font-size: var(--fs-2xs);
       font-weight: var(--fw-semibold);
-      color: var(--white);
+      color: var(--text-dark);
     }
     .scoring-dot {
       width: 6px;
@@ -785,7 +785,7 @@
       background: transparent;
       transition: all .2s;
     }
-    .debrief-tab:hover { color: var(--white); }
+    .debrief-tab:hover { color: var(--text-dark); }
     .debrief-tab.active {
       background: var(--blue);
       color: #fff;
@@ -806,7 +806,7 @@
     .coaching-section-title {
       font-size: var(--fs-sm);
       font-weight: var(--fw-semibold);
-      color: var(--white);
+      color: var(--text-dark);
       margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -863,7 +863,7 @@
     .coaching-playbook-col-label.what-to-say { color: var(--green); }
     .coaching-playbook-col p {
       font-size: var(--fs-sm);
-      color: var(--white);
+      color: var(--text-dark);
       line-height: var(--lh-relaxed);
       font-style: italic;
     }
@@ -895,7 +895,7 @@
     .coaching-stats-count {
       font-size: var(--fs-sm);
       font-weight: var(--fw-semibold);
-      color: var(--white);
+      color: var(--text-dark);
       min-width: 36px;
       text-align: right;
     }
@@ -908,7 +908,7 @@
     }
     .coaching-focus-box p {
       font-size: var(--fs-base);
-      color: var(--white);
+      color: var(--text-dark);
       line-height: var(--lh-relaxed);
       font-weight: var(--fw-medium);
     }
@@ -978,7 +978,7 @@
     }
     .transcript-msg-rep .transcript-role { color: var(--blue); }
     .transcript-msg-buyer .transcript-role { color: var(--purple); }
-    .transcript-text { color: var(--white); }
+    .transcript-text { color: var(--text-dark); }
 
     .transcript-empty {
       text-align: center;
@@ -1019,7 +1019,7 @@
       transition: all .2s;
       min-height: 36px;
     }
-    .btn-back:hover { color: var(--white); border-color: rgba(59,130,246,.4); }
+    .btn-back:hover { color: var(--text-dark); border-color: rgba(59,130,246,.4); }
     .btn-back.visible { display: flex; }
 
     /* ─── Buttons ─── */
@@ -1455,7 +1455,7 @@
     }
     .certificate-course-name {
       font-size: var(--fs-xl); font-weight: var(--fw-semibold);
-      color: var(--payroc-blue); margin-bottom: 12px;
+      color: var(--payroc-teal); margin-bottom: 12px;
     }
     .certificate-detail {
       font-size: var(--fs-sm); opacity: 0.7; margin-bottom: 4px;

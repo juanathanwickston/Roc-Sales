@@ -46,7 +46,7 @@ async function loadHistory(page) {
     const envelope = await res.json();
     const data = envelope.data || {};
     const sessions = data.sessions || [];
-    historyTotalSessions = (envelope.meta && envelope.meta.totalItems) || 0;
+    historyTotalSessions = envelope.meta?.totalItems ?? 0;
 
     loadingEl.style.display = 'none';
 
@@ -66,7 +66,7 @@ async function loadHistory(page) {
 
     contentEl.style.display = '';
   } catch (err) {
-    console.error('[History] Load error:', err.message);
+
     loadingEl.style.display = 'none';
     emptyEl.style.display = '';
   }
@@ -77,12 +77,12 @@ async function loadHistory(page) {
  * Stats come from the API response, computed across ALL scored sessions.
  */
 function renderHistoryStats(stats) {
-  var summaryEl = document.getElementById('history-summary');
-  var total = historyTotalSessions;
-  var best = stats.best_score || 0;
-  var avg = stats.avg_score || 0;
-  var scoredTotal = stats.scored_total || 0;
-  var passRate = scoredTotal > 0 ? Math.round((stats.pass_count / scoredTotal) * 100) : 0;
+  const summaryEl = document.getElementById('history-summary');
+  const total = historyTotalSessions;
+  const best = stats.best_score || 0;
+  const avg = stats.avg_score || 0;
+  const scoredTotal = stats.scored_total || 0;
+  const passRate = scoredTotal > 0 ? Math.round((stats.pass_count / scoredTotal) * 100) : 0;
 
   if (scoredTotal === 0) {
     summaryEl.innerHTML =
@@ -116,10 +116,10 @@ function getVerdictInfo(verdict) {
  * radius=20, circumference=125.66
  */
 function buildScoreRing(score, verdictCls) {
-  var r = 20;
-  var circ = 2 * Math.PI * r; // ~125.66
-  var pct = Math.min(Math.max(score, 0), 100) / 100;
-  var offset = circ * (1 - pct);
+  const r = 20;
+  const circ = 2 * Math.PI * r; // ~125.66
+  const pct = Math.min(Math.max(score, 0), 100) / 100;
+  const offset = circ * (1 - pct);
 
   return '<div class="history-ring-wrap">' +
     '<svg viewBox="0 0 52 52">' +
@@ -139,19 +139,19 @@ function buildScoreRing(score, verdictCls) {
  * Sessions are ordered newest-first; delta compares to the next item in the array (chronologically prior).
  */
 function renderSessionList(sessions) {
-  var listEl = document.getElementById('history-list');
+  const listEl = document.getElementById('history-list');
   listEl.innerHTML = '';
 
-  for (var i = 0; i < sessions.length; i++) {
-    var session = sessions[i];
-    var score = session.overall_score;
-    var verdict = getVerdictInfo(session.overall_verdict);
+  for (let i = 0; i < sessions.length; i++) {
+    const session = sessions[i];
+    const score = session.overall_score;
+    const verdict = getVerdictInfo(session.overall_verdict);
 
     // Score delta: compare to the chronologically previous session (next index, since newest-first)
-    var deltaHtml = '';
+    let deltaHtml = '';
     if (i < sessions.length - 1 && sessions[i + 1].overall_score !== null) {
-      var prevScore = sessions[i + 1].overall_score;
-      var diff = score - prevScore;
+      const prevScore = sessions[i + 1].overall_score;
+      const diff = score - prevScore;
       if (diff > 0) {
         deltaHtml = '<span class="history-delta delta-up">+' + diff + '</span>';
       } else if (diff < 0) {
@@ -161,7 +161,7 @@ function renderSessionList(sessions) {
       }
     }
 
-    var card = document.createElement('button');
+    const card = document.createElement('button');
     card.className = 'history-card';
     card.setAttribute('role', 'listitem');
     card.setAttribute('aria-label', 'View session from ' + formatHistoryDate(session.created_at));
@@ -192,8 +192,8 @@ function renderSessionList(sessions) {
  * Render pagination controls.
  */
 function renderPagination() {
-  var paginationEl = document.getElementById('history-pagination');
-  var totalPages = Math.ceil(historyTotalSessions / HISTORY_PAGE_SIZE);
+  const paginationEl = document.getElementById('history-pagination');
+  const totalPages = Math.ceil(historyTotalSessions / HISTORY_PAGE_SIZE);
 
   if (totalPages <= 1) {
     paginationEl.style.display = 'none';
@@ -202,9 +202,9 @@ function renderPagination() {
 
   paginationEl.style.display = '';
 
-  var prevBtn = document.getElementById('btn-page-prev');
-  var nextBtn = document.getElementById('btn-page-next');
-  var infoEl = document.getElementById('pagination-info');
+  const prevBtn = document.getElementById('btn-page-prev');
+  const nextBtn = document.getElementById('btn-page-next');
+  const infoEl = document.getElementById('pagination-info');
 
   prevBtn.disabled = historyCurrentPage === 0;
   nextBtn.disabled = historyCurrentPage >= totalPages - 1;
@@ -226,9 +226,9 @@ async function viewSessionScore(sessionId) {
   }
 
   // Show back button, hide live-call actions, show tabs
-  var backBtn = document.getElementById('btn-back-history');
-  var liveActions = document.getElementById('debrief-live-actions');
-  var tabsEl = document.getElementById('debrief-tabs');
+  const backBtn = document.getElementById('btn-back-history');
+  const liveActions = document.getElementById('debrief-live-actions');
+  const tabsEl = document.getElementById('debrief-tabs');
 
   if (backBtn) backBtn.classList.add('visible');
   if (liveActions) liveActions.style.display = 'none';
@@ -237,33 +237,33 @@ async function viewSessionScore(sessionId) {
   // Reset to scorecard tab
   switchDebriefTab('scorecard');
 
-  var loadingEl = document.getElementById('debrief-loading');
-  var contentEl = document.getElementById('debrief-content');
+  const loadingEl = document.getElementById('debrief-loading');
+  const contentEl = document.getElementById('debrief-content');
 
   loadingEl.style.display = '';
   contentEl.style.display = 'none';
 
   try {
     // Fetch score and scenarios in parallel
-    var scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
-    var scenariosRes = fetch('/api/scenarios'); // Public endpoint
-    var results = await Promise.all([scoreRes, scenariosRes]);
+    const scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
+    const scenariosRes = fetch('/api/scenarios'); // Public endpoint
+    const results = await Promise.all([scoreRes, scenariosRes]);
 
     if (!results[0].ok) {
       const err = await results[0].json().catch(() => ({}));
       throw new Error(err.detail || err.error || 'Score not found');
     }
 
-    var scoreEnvelope = await results[0].json();
-    var scorecard = scoreEnvelope.data;
+    const scoreEnvelope = await results[0].json();
+    const scorecard = scoreEnvelope.data;
 
     // Match scenario by finding which rubric's category keys match scorecard categories
-    var scenario = null;
+    let scenario = null;
     if (results[1].ok) {
-      var scenariosEnvelope = await results[1].json();
-      var scenariosList = (scenariosEnvelope.data && scenariosEnvelope.data.scenarios) || [];
+      const scenariosEnvelope = await results[1].json();
+      const scenariosList = (scenariosEnvelope.data && scenariosEnvelope.data.scenarios) || [];
       if (Array.isArray(scenariosList)) {
-        var scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
+        const scoreCatKeys = Object.keys(scorecard.categories || {}).sort().join(',');
         scenario = scenariosList.find(function(s) {
           if (!s.rubric) return false;
           return Object.keys(s.rubric).sort().join(',') === scoreCatKeys;
@@ -276,7 +276,7 @@ async function viewSessionScore(sessionId) {
       scoring.renderScorecard(scorecard, scenario);
     }
   } catch (err) {
-    console.error('[History] Score fetch error:', err.message);
+
     loadingEl.style.display = 'none';
     contentEl.style.display = '';
     document.getElementById('score-number').textContent = '-';
@@ -289,8 +289,8 @@ async function viewSessionScore(sessionId) {
  */
 function switchDebriefTab(tabName) {
   // Update tab active state
-  var tabs = document.querySelectorAll('.debrief-tab');
-  for (var i = 0; i < tabs.length; i++) {
+  const tabs = document.querySelectorAll('.debrief-tab');
+  for (let i = 0; i < tabs.length; i++) {
     if (tabs[i].dataset.tab === tabName) {
       tabs[i].classList.add('active');
     } else {
@@ -299,9 +299,9 @@ function switchDebriefTab(tabName) {
   }
 
   // Get all panels
-  var evalPanel = document.getElementById('panel-evaluation');
-  var coachPanel = document.getElementById('panel-coaching');
-  var txPanel = document.getElementById('panel-transcript');
+  const evalPanel = document.getElementById('panel-evaluation');
+  const coachPanel = document.getElementById('panel-coaching');
+  const txPanel = document.getElementById('panel-transcript');
 
   // Hide all panels
   if (evalPanel) evalPanel.style.display = 'none';
@@ -330,9 +330,9 @@ function switchDebriefTab(tabName) {
  * Fetch and render coaching analysis for a session.
  */
 async function loadCoaching(sessionId) {
-  var loadingEl = document.getElementById('coaching-loading');
-  var contentEl = document.getElementById('coaching-content');
-  var emptyEl = document.getElementById('coaching-empty');
+  const loadingEl = document.getElementById('coaching-loading');
+  const contentEl = document.getElementById('coaching-content');
+  const emptyEl = document.getElementById('coaching-empty');
 
   // Show loading state
   if (loadingEl) loadingEl.style.display = '';
@@ -341,23 +341,23 @@ async function loadCoaching(sessionId) {
 
   try {
     // Fetch coaching and score data in parallel
-    var coachRes = fetchWithAuth('/api/sessions/' + sessionId + '/coaching');
-    var scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
-    var results = await Promise.all([coachRes, scoreRes]);
+    const coachRes = fetchWithAuth('/api/sessions/' + sessionId + '/coaching');
+    const scoreRes = fetchWithAuth('/api/sessions/' + sessionId + '/score');
+    const results = await Promise.all([coachRes, scoreRes]);
 
     if (!results[0].ok) {
       const err = await results[0].json().catch(() => ({}));
       throw new Error(err.detail || err.error || 'Coaching not found');
     }
 
-    var coachEnvelope = await results[0].json();
-    var coachData = coachEnvelope.data || {};
+    const coachEnvelope = await results[0].json();
+    const coachData = coachEnvelope.data || {};
     cachedCoaching = coachData.coaching_analysis || null;
 
     // Get score data for stats (non-blocking if unavailable)
-    var scoreData = null;
+    let scoreData = null;
     if (results[1].ok) {
-      var scoreEnvelope = await results[1].json();
+      const scoreEnvelope = await results[1].json();
       scoreData = scoreEnvelope.data;
     }
 
@@ -371,7 +371,7 @@ async function loadCoaching(sessionId) {
     if (loadingEl) loadingEl.style.display = 'none';
     if (contentEl) contentEl.style.display = '';
   } catch (err) {
-    console.error('[History] Coaching fetch error:', err.message);
+
     if (loadingEl) loadingEl.style.display = 'none';
     if (emptyEl) emptyEl.style.display = '';
   }
@@ -383,28 +383,28 @@ async function loadCoaching(sessionId) {
  */
 function renderCoaching(coaching, scoreData) {
   // Call Overview
-  var overviewEl = document.getElementById('coaching-call-overview');
+  const overviewEl = document.getElementById('coaching-call-overview');
   if (overviewEl) overviewEl.textContent = coaching.call_overview || '';
 
   // Coach's Analysis
-  var analysisEl = document.getElementById('coaching-coaches-analysis');
+  const analysisEl = document.getElementById('coaching-coaches-analysis');
   if (analysisEl) analysisEl.textContent = coaching.coaches_analysis || '';
 
   // Playbook (side-by-side: what you said / what to say)
-  var playbookEl = document.getElementById('coaching-playbook');
+  const playbookEl = document.getElementById('coaching-playbook');
   if (playbookEl) {
-    var plays = coaching.playbook || [];
+    const plays = coaching.playbook || [];
     playbookEl.innerHTML = plays.map(function(p) {
       return '<div class="coaching-playbook-item">' +
-        '<div class="coaching-playbook-situation">' + escHtml(p.situation || '') + '</div>' +
+        '<div class="coaching-playbook-situation">' + esc(p.situation || '') + '</div>' +
         '<div class="coaching-playbook-columns">' +
           '<div class="coaching-playbook-col">' +
             '<div class="coaching-playbook-col-label">What You Said</div>' +
-            '<p>"' + escHtml(p.what_you_said || '') + '"</p>' +
+            '<p>"' + esc(p.what_you_said || '') + '"</p>' +
           '</div>' +
           '<div class="coaching-playbook-col">' +
             '<div class="coaching-playbook-col-label what-to-say">What To Say</div>' +
-            '<p>"' + escHtml(p.what_to_say || '') + '"</p>' +
+            '<p>"' + esc(p.what_to_say || '') + '"</p>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -412,18 +412,18 @@ function renderCoaching(coaching, scoreData) {
   }
 
   // Your Stats (from scorecard categories)
-  var statsEl = document.getElementById('coaching-stats');
+  const statsEl = document.getElementById('coaching-stats');
   if (statsEl && scoreData && scoreData.categories) {
     statsEl.innerHTML = Object.entries(scoreData.categories).map(function(entry) {
       var name = entry[0];
       var data = entry[1];
-      var observed = data.observed_count || 0;
-      var total = data.total_count || 0;
-      var pct = total > 0 ? Math.round((observed / total) * 100) : 0;
-      var barColor = pct >= window.SCORE_PASS_THRESHOLD ? 'var(--green)' : (pct >= window.SCORE_WARNING_THRESHOLD ? 'var(--orange)' : 'var(--red)');
-      var displayName = name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      const observed = data.observed_count || 0;
+      const total = data.total_count || 0;
+      const pct = total > 0 ? Math.round((observed / total) * 100) : 0;
+      const barColor = pct >= window.SCORE_PASS_THRESHOLD ? 'var(--green)' : (pct >= window.SCORE_WARNING_THRESHOLD ? 'var(--orange)' : 'var(--red)');
+      const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
       return '<div class="coaching-stats-row">' +
-        '<span class="coaching-stats-label">' + escHtml(displayName) + '</span>' +
+        '<span class="coaching-stats-label">' + esc(displayName) + '</span>' +
         '<div class="coaching-stats-bar-wrap">' +
           '<div class="coaching-stats-bar" style="width:' + pct + '%;background:' + barColor + '"></div>' +
         '</div>' +
@@ -435,37 +435,29 @@ function renderCoaching(coaching, scoreData) {
   }
 
   // Next Call Focus
-  var focusEl = document.getElementById('coaching-next-focus');
+  const focusEl = document.getElementById('coaching-next-focus');
   if (focusEl) {
-    focusEl.innerHTML = '<p>' + escHtml(coaching.next_call_focus || '') + '</p>';
+    focusEl.innerHTML = '<p>' + esc(coaching.next_call_focus || '') + '</p>';
   }
 }
 
-/**
- * Escape HTML to prevent XSS in coaching content.
- */
-function escHtml(str) {
-  var div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
 
 /**
  * Fetch and render the transcript for a session.
  */
 async function loadTranscript(sessionId) {
-  var bodyEl = document.getElementById('transcript-body');
+  const bodyEl = document.getElementById('transcript-body');
   bodyEl.innerHTML = '<div class="transcript-empty"><div class="spinner"></div><p>Loading transcript...</p></div>';
 
   try {
-    var res = await fetchWithAuth('/api/sessions/' + sessionId + '/transcript');
+    const res = await fetchWithAuth('/api/sessions/' + sessionId + '/transcript');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.error || 'Transcript not found');
     }
 
-    var envelope = await res.json();
-    var data = envelope.data || {};
+    const envelope = await res.json();
+    const data = envelope.data || {};
     cachedTranscript = data.transcript || '';
 
     if (!cachedTranscript) {
@@ -475,7 +467,7 @@ async function loadTranscript(sessionId) {
 
     renderTranscript(cachedTranscript);
   } catch (err) {
-    console.error('[History] Transcript fetch error:', err.message);
+
     bodyEl.innerHTML = '<div class="transcript-empty"><p>Unable to load transcript.</p></div>';
   }
 }
@@ -485,19 +477,19 @@ async function loadTranscript(sessionId) {
  * Transcript format: [Role]: message text, one per line.
  */
 function renderTranscript(text) {
-  var bodyEl = document.getElementById('transcript-body');
-  var lines = text.split('\n').filter(function(l) { return l.trim(); });
-  var html = '';
+  const bodyEl = document.getElementById('transcript-body');
+  const lines = text.split('\n').filter(function(l) { return l.trim(); });
+  let html = '';
 
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    var match = line.match(/^\[(.+?)\]:\s*(.+)$/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^\[(.+?)\]:\s*(.+)$/);
 
     if (match) {
-      var role = match[1];
-      var content = match[2];
-      var isRep = role.toLowerCase() === 'rep';
-      var cssClass = isRep ? 'transcript-msg-rep' : 'transcript-msg-buyer';
+      const role = match[1];
+      const content = match[2];
+      const isRep = role.toLowerCase() === 'rep';
+      const cssClass = isRep ? 'transcript-msg-rep' : 'transcript-msg-buyer';
 
       html +=
         '<div class="transcript-msg ' + cssClass + '">' +
@@ -533,12 +525,12 @@ function copyTranscript() {
  */
 function downloadTranscript() {
   if (!cachedTranscript) return;
-  var now = new Date();
-  var dateStr = now.toISOString().split('T')[0];
-  var filename = 'transcript_' + dateStr + '.txt';
-  var blob = new Blob([cachedTranscript], { type: 'text/plain' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const filename = 'transcript_' + dateStr + '.txt';
+  const blob = new Blob([cachedTranscript], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
@@ -550,18 +542,18 @@ function downloadTranscript() {
  * Hides back button, shows live-call actions, hides tabs.
  */
 function resetDebriefForLiveCall() {
-  var backBtn = document.getElementById('btn-back-history');
-  var liveActions = document.getElementById('debrief-live-actions');
-  var tabsEl = document.getElementById('debrief-tabs');
+  const backBtn = document.getElementById('btn-back-history');
+  const liveActions = document.getElementById('debrief-live-actions');
+  const tabsEl = document.getElementById('debrief-tabs');
 
   if (backBtn) backBtn.classList.remove('visible');
   if (liveActions) liveActions.style.display = '';
   if (tabsEl) tabsEl.style.display = 'none';
 
   // Reset coaching panel to loading state
-  var coachLoading = document.getElementById('coaching-loading');
-  var coachContent = document.getElementById('coaching-content');
-  var coachEmpty = document.getElementById('coaching-empty');
+  const coachLoading = document.getElementById('coaching-loading');
+  const coachContent = document.getElementById('coaching-content');
+  const coachEmpty = document.getElementById('coaching-empty');
   if (coachLoading) coachLoading.style.display = '';
   if (coachContent) coachContent.style.display = 'none';
   if (coachEmpty) coachEmpty.style.display = 'none';
@@ -579,7 +571,7 @@ function resetDebriefForLiveCall() {
  */
 function formatHistoryDate(isoDate) {
   if (!isoDate) return '';
-  var d = new Date(isoDate);
+  const d = new Date(isoDate);
   return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -595,19 +587,12 @@ function formatHistoryDate(isoDate) {
  */
 function formatHistoryDuration(seconds) {
   if (!seconds || seconds <= 0) return '';
-  var mins = Math.floor(seconds / 60);
-  var secs = Math.floor(seconds % 60);
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
   return mins + ':' + secs.toString().padStart(2, '0');
 }
 
-/**
- * Scenario display name lookup.
- * Maps scenario_id to the human-readable name from the scenario JSON.
- * Avoids the raw "Module1 Identifying Customer" formatting.
- */
-var SCENARIO_NAMES = {
-  'module1_identifying_customer': 'Identify the Customer — Discovery Call',
-};
+
 
 /**
  * Convert scenario_id to a readable name.
@@ -615,7 +600,7 @@ var SCENARIO_NAMES = {
  */
 function formatScenarioName(scenarioId) {
   if (!scenarioId) return 'Unknown Scenario';
-  if (SCENARIO_NAMES[scenarioId]) return SCENARIO_NAMES[scenarioId];
+
   // Fallback: strip module prefix, replace underscores, title-case
   return scenarioId
     .replace(/^module\d+_/, '')

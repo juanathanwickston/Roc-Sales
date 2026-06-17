@@ -14,12 +14,13 @@ const { processSession, generateCoachingAnalysis, scoreTranscript } = require('.
 const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
+const { getScenario, SCENARIOS_DIR } = require('../services/scenarioLoader');
 
 const router = express.Router();
 
 const fs = require('fs');
 const path = require('path');
-const SCENARIOS_DIR = path.join(__dirname, '..', 'scenarios');
+
 
 async function checkSessionOwnership(req, res, sessionId) {
   if (!req.user || !req.user.userId) {
@@ -51,20 +52,7 @@ async function checkSessionOwnership(req, res, sessionId) {
   return { ok: true };
 }
 
-function loadScenarioConfig(scenarioId) {
-  try {
-    const files = fs.readdirSync(SCENARIOS_DIR).filter(f => f.endsWith('.json'));
-    for (const file of files) {
-      const scenario = JSON.parse(fs.readFileSync(path.join(SCENARIOS_DIR, file), 'utf8'));
-      if (scenario.id === scenarioId) {
-        return scenario;
-      }
-    }
-  } catch (err) {
-    console.warn(`[Sessions] Could not load scenario config for ${scenarioId}:`, err.message);
-  }
-  return null;
-}
+
 
 // Fetch retry constants shared with postCallProcessor.js
 // Both files have independent transcript fetch paths that need these values.
@@ -220,7 +208,7 @@ router.post('/', requireAuth, async (req, res) => {
       return sendError(res, req, 400, 'scenarioId is required');
     }
 
-    let scenario = loadScenarioConfig(scenarioId);
+    let scenario = getScenario(scenarioId);
     let isArchived = false;
 
     if (!scenario) {
@@ -331,7 +319,7 @@ router.get('/continuity', requireAuth, async (req, res) => {
     }
 
     // Allowlist validation
-    const allowedPersonas = ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'];
+    const allowedPersonas = Object.keys(PERSONA_DISPLAY_NAMES);
     if (!allowedPersonas.includes(personaId)) {
       return sendError(res, req, 400, 'Invalid personaId');
     }
@@ -471,7 +459,8 @@ router.get('/progress', requireAuth, async (req, res) => {
 
     // Certificates map (Option A: per persona)
     const certificates = {};
-    for (const personaId of ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller']) {
+    const allPersonas = [...new Set(COURSE_MODULES.flatMap(m => m.personas))];
+    for (const personaId of allPersonas) {
       const m1Key = `module1:${personaId}`;
       const m2Key = `module2:${personaId}`;
       certificates[personaId] = {

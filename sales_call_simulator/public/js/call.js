@@ -7,8 +7,6 @@
 // Minimum call duration (seconds) before allowing end without confirmation
 const MIN_CALL_DURATION_SECONDS = 120;
 
-// Delay (ms) before Tavus conversation cleanup to give backend time to fetch transcript
-
 
 const callManager = {
   callObject: null,
@@ -30,7 +28,7 @@ const callManager = {
     this.cleanup();
 
     // Clear any previous continuity notes
-    var notesEl = document.getElementById('lobby-continuity-notes');
+    const notesEl = document.getElementById('lobby-continuity-notes');
     if (notesEl) {
       notesEl.style.display = 'none';
       notesEl.innerHTML = '';
@@ -48,17 +46,17 @@ const callManager = {
       // Fetch relationship continuity summary for Module 2 scenarios
       if (scenario.module_id === 'module2' && scenario.persona_id) {
         try {
-          var notesRes = await fetchWithAuth('/api/sessions/continuity?personaId=' + scenario.persona_id);
+          const notesRes = await fetchWithAuth('/api/sessions/continuity?personaId=' + scenario.persona_id);
           if (notesRes.ok) {
             const notesEnvelope = await notesRes.json();
-            var notesData = notesEnvelope.data;
+            const notesData = notesEnvelope.data;
             if (notesData && notesData.relationship_summary && notesEl) {
               this.renderFormattedNotes(notesEl, notesData.relationship_summary);
               notesEl.style.display = 'block';
             }
           }
         } catch (e) {
-          console.warn('[Call] Failed to fetch continuity notes:', e.message);
+          // silently ignore
         }
       }
 
@@ -91,8 +89,7 @@ const callManager = {
         throw new Error('No conversationUrl returned from server');
       }
 
-      console.log(`[Call] Conversation created: ${this.conversationId}`);
-      console.log(`[Call] URL: ${this.conversationUrl}`);
+
 
       // Link the Tavus conversation ID to the session and mark as active
       await this.updateSessionStatus('active', {
@@ -103,7 +100,6 @@ const callManager = {
       this.updateLobbyStatus('Connecting to call...');
       await this.joinDaily();
     } catch (err) {
-      console.error('[Call] Start error:', err);
       this.cleanup();
       this.updateLobbyStatus(`Error: ${err.message}`);
       // Keep error visible for 15s so user can read it
@@ -117,19 +113,19 @@ const callManager = {
   renderFormattedNotes(container, text) {
     container.innerHTML = ''; // Clear container
 
-    var header = document.createElement('h4');
+    const header = document.createElement('h4');
     header.style.cssText = 'margin:0 0 8px;font-size:13px;color:var(--payroc-blue);';
     header.textContent = 'Previous Call Notes';
     container.appendChild(header);
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.5;';
 
-    var lines = text.split('\n');
-    var ul = null;
+    const lines = text.split('\n');
+    let ul = null;
 
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim();
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
       if (!line) continue;
 
       if (line.startsWith('- ') || line.startsWith('* ')) {
@@ -138,12 +134,12 @@ const callManager = {
           ul.style.cssText = 'margin:4px 0;padding-left:16px;';
           div.appendChild(ul);
         }
-        var li = document.createElement('li');
+        const li = document.createElement('li');
         this.parseAndAppendFormattedText(li, line.substring(2));
         ul.appendChild(li);
       } else {
         ul = null; // Reset list context
-        var p = document.createElement('p');
+        const p = document.createElement('p');
         p.style.margin = '4px 0';
         this.parseAndAppendFormattedText(p, line);
         div.appendChild(p);
@@ -154,10 +150,10 @@ const callManager = {
   },
 
   parseAndAppendFormattedText(element, text) {
-    var parts = text.split(/\*\*(.*?)\*\*/g);
-    for (var i = 0; i < parts.length; i++) {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    for (let i = 0; i < parts.length; i++) {
       if (i % 2 === 1) {
-        var strong = document.createElement('strong');
+        const strong = document.createElement('strong');
         strong.textContent = parts[i];
         element.appendChild(strong);
       } else {
@@ -186,7 +182,7 @@ const callManager = {
           audio: { processor: { type: 'noise-cancellation' } },
         });
       } catch (e) {
-        console.warn('[Call] Noise cancellation not available:', e.message);
+        // silently ignore
       }
 
       // Join the meeting
@@ -197,9 +193,7 @@ const callManager = {
       this.callObject.setLocalAudio(true);
       this.callObject.setLocalVideo(true);
 
-      console.log('[Call] Joined successfully');
     } catch (err) {
-      console.error('[Call] Daily join error:', err);
       throw err;
     }
   },
@@ -213,7 +207,6 @@ const callManager = {
     // When a remote participant (Tavus avatar) joins
     call.on('participant-joined', (event) => {
       if (event.participant.local) return;
-      console.log('[Call] Remote participant joined:', event.participant.user_name || 'AI Buyer');
       this.attachRemoteTracks(event.participant);
       this.transitionToCallScreen(event.participant);
     });
@@ -231,18 +224,16 @@ const callManager = {
     // When remote participant leaves - call ended
     call.on('participant-left', (event) => {
       if (event.participant.local) return;
-      console.log('[Call] Remote participant left - call ending');
       this.handleCallEnd();
     });
 
     // Handle errors
     call.on('error', (event) => {
-      console.error('[Call] Daily error:', event);
+
     });
 
     // When we've joined successfully - attach local video to PiP
     call.on('joined-meeting', () => {
-      console.log('[Call] Local user joined meeting');
       this.updateLobbyStatus('Waiting for the buyer to join...');
 
       // Attach local video to PiP self-view
@@ -254,7 +245,7 @@ const callManager = {
 
     // When call is left
     call.on('left-meeting', () => {
-      console.log('[Call] Left meeting');
+
     });
   },
 
@@ -479,8 +470,8 @@ const callManager = {
 
     // Leave the Daily room first (stops media)
     if (this.callObject) {
-      this.callObject.leave().catch(console.error);
-      this.callObject.destroy().catch(console.error);
+      this.callObject.leave().catch(function() {});
+      this.callObject.destroy().catch(function() {});
       this.callObject = null;
     }
 
@@ -520,16 +511,13 @@ const callManager = {
       });
 
       if (!res.ok) {
-        console.warn('[Call] Session creation failed:', res.status);
         return null;
       }
 
       const envelope = await res.json();
       const session = envelope.data;
-      console.log(`[Call] Session created: ${session.id}`);
       return session.id;
     } catch (err) {
-      console.warn('[Call] Session creation error:', err.message);
       return null;
     }
   },
@@ -558,13 +546,11 @@ const callManager = {
       });
 
       if (!res.ok) {
-        console.warn(`[Call] Session status update failed: ${res.status}`);
         return;
       }
 
-      console.log(`[Call] Session ${this.sessionId} -> ${status}`);
     } catch (err) {
-      console.warn('[Call] Session status update error:', err.message);
+
     }
   },
 

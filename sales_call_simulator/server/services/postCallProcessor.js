@@ -8,6 +8,8 @@
  */
 
 const db = require('../db');
+const fs = require('fs');
+const path = require('path');
 const { tavusFetch } = require('./tavusClient');
 const {
   extractTranscript,
@@ -19,46 +21,9 @@ const {
 const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
 const logger = require('../utils/logger');
+const { getScenario } = require('./scenarioLoader');
 
-// Shadow global console to redirect all logs through structured JSON logger
-const console = {
-  log: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.info(formattedMessage, context);
-  },
-  warn: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.warn(formattedMessage, context);
-  },
-  error: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.error(formattedMessage, context);
-  }
-};
+
 
 /**
  * Process a completed call session.
@@ -66,7 +31,7 @@ const console = {
  * This is the main entry point called by the route handler.
  */
 async function processSession(sessionId) {
-  console.log(`[PostCall] Processing session ${sessionId}`);
+  logger.info(`[PostCall] Processing session ${sessionId}`);
 
   // Idempotency: check if already scored
   const existingScore = await db.query(
@@ -74,7 +39,7 @@ async function processSession(sessionId) {
     [sessionId]
   );
   if (existingScore.rows.length > 0) {
-    console.log(`[PostCall] Session ${sessionId} already scored, skipping.`);
+    logger.info(`[PostCall] Session ${sessionId} already scored, skipping.`);
     return { status: 'completed', scored: true, skipped: true };
   }
 
@@ -86,7 +51,7 @@ async function processSession(sessionId) {
     const { transcript, rawConversationData } = await fetchAndStoreTranscript(sessionId);
 
     if (!transcript) {
-      console.warn(`[PostCall] No transcript available for session ${sessionId}`);
+      logger.warn(`[PostCall] No transcript available for session ${sessionId}`);
       await updateStatus(sessionId, 'completed');
       return { status: 'completed', scored: false };
     }
@@ -105,13 +70,13 @@ async function processSession(sessionId) {
     const userId = session.rows[0]?.external_user_id || null;
 
     // 4. Load scenario config (for auto-fail triggers)
-    const scenarioConfig = loadScenarioConfig(scenarioId);
+    const scenarioConfig = getScenario(scenarioId) || {};
 
     // 5. Score the transcript
     const scorecard = await scoreTranscript(transcript, scenarioId);
 
     if (!scorecard) {
-      console.warn(`[PostCall] Scoring unavailable for session ${sessionId}`);
+      logger.warn(`[PostCall] Scoring unavailable for session ${sessionId}`);
       await updateStatus(sessionId, 'completed');
       return { status: 'completed', scored: false };
     }
@@ -138,10 +103,10 @@ async function processSession(sessionId) {
     await updateStatus(sessionId, 'completed');
 
     // Log metadata only - no PII, no transcripts, no summary text
-    console.log(`[PostCall] Session ${sessionId} fully processed (module: ${moduleId}, persona: ${personaId}, raw: ${scorecard.raw_score}, final: ${scorecard.final_score})`);
+    logger.info(`[PostCall] Session ${sessionId} fully processed (module: ${moduleId}, persona: ${personaId}, raw: ${scorecard.raw_score}, final: ${scorecard.final_score})`);
     return { status: 'completed', scored: true, overallScore: scorecard.final_score };
   } catch (err) {
-    console.error(`[PostCall] Processing failed for session ${sessionId}:`, err.message);
+    logger.error(`[PostCall] Processing failed for session ${sessionId}:`, err.message);
     await updateStatus(sessionId, 'failed').catch(() => {});
     return { status: 'failed', error: err.message };
   }
@@ -159,7 +124,7 @@ async function fetchAndStoreTranscript(sessionId) {
   );
 
   if (existing.rows.length > 0 && existing.rows[0].normalized_transcript) {
-    console.log(`[PostCall] Transcript already stored for session ${sessionId}`);
+    logger.info(`[PostCall] Transcript already stored for session ${sessionId}`);
     return { transcript: existing.rows[0].normalized_transcript, rawConversationData: null };
   }
 
@@ -171,7 +136,7 @@ async function fetchAndStoreTranscript(sessionId) {
 
   const conversationId = session.rows[0]?.tavus_conversation_id;
   if (!conversationId) {
-    console.warn(`[PostCall] No Tavus conversation ID for session ${sessionId}`);
+    logger.warn(`[PostCall] No Tavus conversation ID for session ${sessionId}`);
     return { transcript: null, rawConversationData: null };
   }
 
@@ -182,7 +147,7 @@ async function fetchAndStoreTranscript(sessionId) {
   let rawConversationData = null;
 
   // Initial delay: give Tavus a moment to finalize after call ends
-  console.log(`[PostCall] Waiting ${TRANSCRIPT_INITIAL_DELAY_MS / 1000}s before first transcript fetch...`);
+  logger.info(`[PostCall] Waiting ${TRANSCRIPT_INITIAL_DELAY_MS / 1000}s before first transcript fetch...`);
   await new Promise((resolve) => setTimeout(resolve, TRANSCRIPT_INITIAL_DELAY_MS));
 
   const startTime = Date.now();
@@ -196,7 +161,7 @@ async function fetchAndStoreTranscript(sessionId) {
     }
 
     const elapsed = Math.round((Date.now() - startTime) / 1000);
-    console.log(`[PostCall] Fetching transcript, attempt ${attempt} (${elapsed}s elapsed)`);
+    logger.info(`[PostCall] Fetching transcript, attempt ${attempt} (${elapsed}s elapsed)`);
 
     try {
       const data = await tavusFetch(`/conversations/${conversationId}?verbose=true`);
@@ -208,19 +173,19 @@ async function fetchAndStoreTranscript(sessionId) {
 
       if (text) {
         transcript = text;
-        console.log(`[PostCall] Transcript retrieved (${text.length} chars)`);
+        logger.info(`[PostCall] Transcript retrieved (${text.length} chars)`);
         break;
       }
 
-      console.log(`[PostCall] Transcript not ready yet, attempt ${attempt}`);
+      logger.info(`[PostCall] Transcript not ready yet, attempt ${attempt}`);
     } catch (fetchErr) {
-      console.warn(`[PostCall] Transcript fetch error on attempt ${attempt}:`, fetchErr.message);
+      logger.warn(`[PostCall] Transcript fetch error on attempt ${attempt}:`, fetchErr.message);
     }
   }
 
   if (!transcript) {
     const totalElapsed = Math.round((Date.now() - startTime) / 1000);
-    console.warn(`[PostCall] Transcript unavailable after ${totalElapsed}s (${attempt} attempts)`);
+    logger.warn(`[PostCall] Transcript unavailable after ${totalElapsed}s (${attempt} attempts)`);
     return { transcript: null, rawConversationData };
   }
 
@@ -233,7 +198,7 @@ async function fetchAndStoreTranscript(sessionId) {
     [sessionId, rawResponse, transcript]
   );
 
-  console.log(`[PostCall] Transcript stored for session ${sessionId}`);
+  logger.info(`[PostCall] Transcript stored for session ${sessionId}`);
   return { transcript, rawConversationData };
 }
 
@@ -252,7 +217,7 @@ async function persistPerceptionAnalysis(sessionId, rawConversationData) {
     const perception = extractPerceptionAnalysis(rawConversationData);
 
     if (!perception) {
-      console.log(`[PostCall] No perception analysis data for session ${sessionId}`);
+      logger.info(`[PostCall] No perception analysis data for session ${sessionId}`);
       await updatePerceptionStatus(sessionId, 'skipped');
       return;
     }
@@ -266,9 +231,9 @@ async function persistPerceptionAnalysis(sessionId, rawConversationData) {
     );
 
     await updatePerceptionStatus(sessionId, 'ready');
-    console.log(`[PostCall] Perception analysis stored for session ${sessionId}`);
+    logger.info(`[PostCall] Perception analysis stored for session ${sessionId}`);
   } catch (err) {
-    console.warn(`[PostCall] Perception analysis failed for session ${sessionId}:`, err.message);
+    logger.warn(`[PostCall] Perception analysis failed for session ${sessionId}:`, err.message);
     await updatePerceptionStatus(sessionId, 'skipped').catch(() => {});
   }
 }
@@ -283,38 +248,7 @@ async function updatePerceptionStatus(sessionId, status) {
   );
 }
 
-/**
- * Load full scenario config from the scenarios directory.
- * Returns the scenario object, or an empty object if not found.
- */
-function loadScenarioConfig(scenarioId) {
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    const scenariosDir = path.join(__dirname, '..', 'scenarios');
-    const files = fs.readdirSync(scenariosDir).filter((f) => f.endsWith('.json'));
 
-    for (const file of files) {
-      const scenario = JSON.parse(fs.readFileSync(path.join(scenariosDir, file), 'utf8'));
-      if (scenario.id === scenarioId) {
-        return scenario;
-      }
-    }
-  } catch (err) {
-    console.warn(`[PostCall] Could not load scenario config for ${scenarioId}:`, err.message);
-  }
-
-  return {};
-}
-
-/**
- * Load scenario rubric from the scenarios directory.
- * Returns the rubric object, or an empty object if not found.
- */
-function loadScenarioRubric(scenarioId) {
-  const scenario = loadScenarioConfig(scenarioId);
-  return scenario.rubric || {};
-}
 
 /**
  * Score a transcript using the OpenAI scoring endpoint.
@@ -323,12 +257,12 @@ function loadScenarioRubric(scenarioId) {
  */
 async function scoreTranscript(transcript, scenarioId) {
   if (!config.OPENAI_API_KEY) {
-    console.warn('[PostCall] OPENAI_API_KEY not configured - skipping scoring');
+    logger.warn('[PostCall] OPENAI_API_KEY not configured - skipping scoring');
     return null;
   }
 
   // Load scenario rubric and auto-fail triggers from file system
-  const scenarioConfig = loadScenarioConfig(scenarioId);
+  const scenarioConfig = getScenario(scenarioId) || {};
   const rubric = scenarioConfig.rubric || {};
   const autoFailTriggers = scenarioConfig.auto_fail_triggers || [];
 
@@ -341,14 +275,14 @@ async function scoreTranscript(transcript, scenarioId) {
 
   // Validate response structure
   if (extraction && !validateScoringResponse(extraction, rubric)) {
-    console.warn('[PostCall] Malformed GPT response on first attempt, retrying with correction...');
+    logger.warn('[PostCall] Malformed GPT response on first attempt, retrying with correction...');
 
     // Retry with correction prompt
     const correctionPrompt = buildCorrectionPrompt(extraction, rubric);
     extraction = await callOpenAIForScoring(correctionPrompt);
 
     if (extraction && !validateScoringResponse(extraction, rubric)) {
-      console.error('[PostCall] Malformed GPT response on retry. Scoring failed.');
+      logger.error('[PostCall] Malformed GPT response on retry. Scoring failed.');
       return null;
     }
   }
@@ -358,7 +292,7 @@ async function scoreTranscript(transcript, scenarioId) {
   }
 
   const scorecard = calculateMechanicalScore(extraction, rubric, autoFailTriggers);
-  console.log(`[PostCall] Scored scenario ${scenarioId}: raw ${scorecard.raw_score}, final ${scorecard.final_score}`);
+  logger.info(`[PostCall] Scored scenario ${scenarioId}: raw ${scorecard.raw_score}, final ${scorecard.final_score}`);
   return scorecard;
 }
 
@@ -393,7 +327,7 @@ async function callOpenAIForScoring(prompt) {
     const data = await response.json();
     return JSON.parse(data.choices[0].message.content);
   } catch (err) {
-    console.error('[PostCall] OpenAI scoring call failed:', err.message);
+    logger.error('[PostCall] OpenAI scoring call failed:', err.message);
     return null;
   }
 }
@@ -682,16 +616,16 @@ async function persistScoreAndMastery(sessionId, scorecard, { moduleId, personaI
             [userId, moduleId, personaId, Math.round(rollingAvg * 100) / 100, allSessionIds]
           );
 
-          console.log(`[PostCall] Mastery updated for ${userId}/${moduleId}/${personaId}: ${Math.round(rollingAvg * 100) / 100}`);
+          logger.info(`[PostCall] Mastery updated for ${userId}/${moduleId}/${personaId}: ${Math.round(rollingAvg * 100) / 100}`);
         }
       }
     }
 
     await client.query('COMMIT');
-    console.log(`[PostCall] Score persisted for session ${sessionId}`);
+    logger.info(`[PostCall] Score persisted for session ${sessionId}`);
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(`[PostCall] Score/mastery persist failed for session ${sessionId}:`, err.message);
+    logger.error(`[PostCall] Score/mastery persist failed for session ${sessionId}:`, err.message);
     throw err;
   } finally {
     client.release();
@@ -705,7 +639,7 @@ async function persistScoreAndMastery(sessionId, scorecard, { moduleId, personaI
  */
 async function generateAndPersistRelationshipSummary(sessionId, transcript, scenarioId, scenarioConfig) {
   if (!config.OPENAI_API_KEY) {
-    console.warn('[PostCall] Relationship summary skipped: no OpenAI API key');
+    logger.warn('[PostCall] Relationship summary skipped: no OpenAI API key');
     return;
   }
 
@@ -766,13 +700,13 @@ Extract the relationship summary. Return JSON only.`,
     try {
       summaryJson = JSON.parse(data.choices[0].message.content);
     } catch (parseErr) {
-      console.error('[PostCall] Failed to parse relationship summary response:', parseErr.message);
+      logger.error('[PostCall] Failed to parse relationship summary response:', parseErr.message);
       return;
     }
 
     // Validate structure
     if (!summaryJson.discovered_facts && !summaryJson.operational_pain_points && !summaryJson.merchant_confirmed_details) {
-      console.warn('[PostCall] Relationship summary has no expected fields, skipping.');
+      logger.warn('[PostCall] Relationship summary has no expected fields, skipping.');
       return;
     }
 
@@ -803,9 +737,9 @@ Extract the relationship summary. Return JSON only.`,
     );
 
     // Log metadata only - no PII or summary text
-    console.log(`[PostCall] Relationship summary persisted for session ${sessionId} (summary_present: true, summary_length: ${markdownSummary.length})`);
+    logger.info(`[PostCall] Relationship summary persisted for session ${sessionId} (summary_present: true, summary_length: ${markdownSummary.length})`);
   } catch (err) {
-    console.error(`[PostCall] Relationship summary generation failed for session ${sessionId}:`, err.message);
+    logger.error(`[PostCall] Relationship summary generation failed for session ${sessionId}:`, err.message);
     // Non-blocking: do not throw
   }
 }
@@ -826,7 +760,7 @@ async function updateStatus(sessionId, status) {
     `UPDATE simulation_sessions SET ${setClauses.join(', ')} WHERE id = $1`,
     params
   );
-  console.log(`[PostCall] Session ${sessionId} -> ${status}`);
+  logger.info(`[PostCall] Session ${sessionId} -> ${status}`);
 }
 
 /**
@@ -836,8 +770,7 @@ async function updateStatus(sessionId, status) {
  */
 function loadCurriculum(scenarioId) {
   try {
-    const fs = require('fs');
-    const path = require('path');
+
     const curriculumDir = path.join(__dirname, '..', 'curriculum');
 
     // Map scenarioId to curriculum filename: module1_identifying_customer -> module1_identifying_customer.md
@@ -848,9 +781,9 @@ function loadCurriculum(scenarioId) {
     }
 
     // Fallback: list available files
-    console.warn(`[PostCall] No curriculum found for scenario ${scenarioId}`);
+    logger.warn(`[PostCall] No curriculum found for scenario ${scenarioId}`);
   } catch (err) {
-    console.warn(`[PostCall] Could not load curriculum for scenario ${scenarioId}:`, err.message);
+    logger.warn(`[PostCall] Could not load curriculum for scenario ${scenarioId}:`, err.message);
   }
 
   return 'No specific curriculum available for this module. Evaluate based on general sales best practices.';
@@ -940,12 +873,12 @@ Generate the coaching analysis. Return JSON only.`,
  */
 async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
   if (!config.OPENAI_API_KEY) {
-    console.warn('[PostCall] Coaching skipped: no OpenAI API key');
+    logger.warn('[PostCall] Coaching skipped: no OpenAI API key');
     return null;
   }
 
   if (!transcript) {
-    console.warn('[PostCall] Coaching skipped: no transcript');
+    logger.warn('[PostCall] Coaching skipped: no transcript');
     return null;
   }
 
@@ -953,7 +886,7 @@ async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
     const curriculum = loadCurriculum(scenarioId);
     const prompt = buildCoachingPrompt({ transcript, curriculum, scorecard, scenarioId });
 
-    console.log(`[PostCall] Generating coaching analysis for scenario ${scenarioId}...`);
+    logger.info(`[PostCall] Generating coaching analysis for scenario ${scenarioId}...`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -981,14 +914,14 @@ async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
 
     try {
       const coaching = JSON.parse(data.choices[0].message.content);
-      console.log(`[PostCall] Coaching analysis generated for scenario ${scenarioId}`);
+      logger.info(`[PostCall] Coaching analysis generated for scenario ${scenarioId}`);
       return coaching;
     } catch (parseErr) {
-      console.error('[PostCall] Failed to parse coaching response:', parseErr.message);
+      logger.error('[PostCall] Failed to parse coaching response:', parseErr.message);
       return null;
     }
   } catch (err) {
-    console.error('[PostCall] Coaching generation failed:', err.message);
+    logger.error('[PostCall] Coaching generation failed:', err.message);
     return null;
   }
 }

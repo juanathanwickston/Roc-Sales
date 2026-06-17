@@ -11,45 +11,7 @@ const db = require('../db');
 const { config } = require('../config');
 const logger = require('../utils/logger');
 
-// Shadow global console to redirect all logs through structured JSON logger
-const console = {
-  log: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.info(formattedMessage, context);
-  },
-  warn: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.warn(formattedMessage, context);
-  },
-  error: (message, ...args) => {
-    let formattedMessage = message;
-    let context = {};
-    if (args.length > 0) {
-      if (args[0] && typeof args[0] === 'object') {
-        context = args[0];
-      } else {
-        formattedMessage += ' ' + args.join(' ');
-      }
-    }
-    logger.error(formattedMessage, context);
-  }
-};
+
 
 // Maximum time to wait for ROC Academy response
 const CALLBACK_TIMEOUT_MS = 10000;
@@ -77,7 +39,7 @@ async function sendCompletionCallback({ sessionId, scorecard, scenarioId, userId
   // only if stakeholders accept that completion callbacks will be skipped until
   // both systems are configured. Prefer a coordinated staging deployment first.
   if (!config.SIMULATOR_SYNC_SECRET) {
-    console.warn('[AcademySync] Skipping callback - SIMULATOR_SYNC_SECRET is not configured');
+    logger.warn('[AcademySync] Skipping callback - SIMULATOR_SYNC_SECRET is not configured');
     await updateSyncStatus(sessionId, 'skipped', null, 'SIMULATOR_SYNC_SECRET not configured');
     return;
   }
@@ -101,15 +63,15 @@ async function sendCompletionCallback({ sessionId, scorecard, scenarioId, userId
     clearTimeout(timeout);
 
     if (response.ok) {
-      console.log(`[AcademySync] Callback sent for session ${sessionId} (${response.status})`);
+      logger.info(`[AcademySync] Callback sent for session ${sessionId} (${response.status})`);
       await updateSyncStatus(sessionId, 'sent', response.status, null);
     } else {
       const errText = await response.text().catch(() => '');
-      console.warn(`[AcademySync] Callback failed for session ${sessionId}: ${response.status}`);
+      logger.warn(`[AcademySync] Callback failed for session ${sessionId}: ${response.status}`);
       await updateSyncStatus(sessionId, 'failed', response.status, errText.slice(0, 500));
     }
   } catch (err) {
-    console.warn(`[AcademySync] Callback error for session ${sessionId}:`, err.message);
+    logger.warn(`[AcademySync] Callback error for session ${sessionId}:`, err.message);
     await updateSyncStatus(sessionId, 'failed', null, err.message);
   }
 }
@@ -129,7 +91,7 @@ async function logSyncAttempt(sessionId, payload, status) {
     );
   } catch (err) {
     // Sync logging should not break the pipeline
-    console.warn('[AcademySync] Failed to log sync attempt:', err.message);
+    logger.warn('[AcademySync] Failed to log sync attempt:', err.message);
   }
 }
 
@@ -145,7 +107,7 @@ async function updateSyncStatus(sessionId, status, responseStatus, errorMessage)
       [sessionId, status, responseStatus, errorMessage]
     );
   } catch (err) {
-    console.warn('[AcademySync] Failed to update sync status:', err.message);
+    logger.warn('[AcademySync] Failed to update sync status:', err.message);
   }
 }
 

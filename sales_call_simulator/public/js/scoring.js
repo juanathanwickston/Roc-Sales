@@ -40,7 +40,7 @@ const scoring = {
       scorecard.coaching_tip || '';
 
     // Category breakdown (pass rubric for expandable details)
-    const rubric = (scenario && scenario.rubric) ? scenario.rubric : {};
+    const rubric = scenario?.rubric ?? {};
     const checklist = scorecard.checklist || {};
     this.renderCategories(scorecard.categories || {}, rubric, checklist);
 

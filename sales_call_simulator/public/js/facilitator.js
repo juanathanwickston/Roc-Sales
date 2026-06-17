@@ -1,7 +1,7 @@
 /* facilitator.js — Facilitator Dashboard */
 'use strict';
 
-var facilitator = {
+const facilitator = {
 
   refreshInterval: null,
 
@@ -28,7 +28,7 @@ var facilitator = {
    * Fetch and render the dashboard.
    */
   loadDashboard: function() {
-    var container = document.getElementById('facilitator-content');
+    const container = document.getElementById('facilitator-content');
     if (!container) return;
 
     fetchWithAuth('/api/admin/dashboard')
@@ -41,7 +41,6 @@ var facilitator = {
         facilitator.renderDashboard(container, data);
       })
       .catch(function(err) {
-        console.error('[Facilitator] Dashboard error:', err);
         container.innerHTML = '<div class="facilitator-error">Unable to load dashboard. Please try again.</div>';
       });
   },
@@ -50,20 +49,20 @@ var facilitator = {
    * Render the full dashboard.
    */
   renderDashboard: function(container, data) {
-    var users = data.users || [];
-    var summary = data.summary || {};
-    var masteries = data.masteries || [];
+    const users = data.users || [];
+    const summary = data.summary || {};
+    const masteries = data.masteries || [];
 
     // Build mastery lookup: userId -> { module1: bool, module2: bool }
-    var masteryMap = {};
-    for (var m = 0; m < masteries.length; m++) {
-      var entry = masteries[m];
+    const masteryMap = {};
+    for (let m = 0; m < masteries.length; m++) {
+      const entry = masteries[m];
       if (!masteryMap[entry.user_id]) masteryMap[entry.user_id] = {};
       masteryMap[entry.user_id][entry.module_id] = entry.mastered;
     }
 
     // Summary stats
-    var html = '<div class="facilitator-summary">' +
+    let html = '<div class="facilitator-summary">' +
       '<div class="facilitator-stat"><div class="facilitator-stat-value">' + (summary.totalUsers || 0) + '</div><div class="facilitator-stat-label">Active Reps</div></div>' +
       '<div class="facilitator-stat"><div class="facilitator-stat-value">' + (summary.totalSessions || 0) + '</div><div class="facilitator-stat-label">Total Sessions</div></div>' +
       '<div class="facilitator-stat"><div class="facilitator-stat-value">' + this.calcAvgScore(users) + '</div><div class="facilitator-stat-label">Avg Best Score</div></div>' +
@@ -86,9 +85,9 @@ var facilitator = {
       html += '<tr><td colspan="6" class="facilitator-empty">No rep activity yet</td></tr>';
     } else {
       // Group by user
-      var userMap = {};
-      for (var i = 0; i < users.length; i++) {
-        var u = users[i];
+      const userMap = {};
+      for (let i = 0; i < users.length; i++) {
+        const u = users[i];
         if (!userMap[u.user_id]) {
           userMap[u.user_id] = { attempts: 0, bestScore: 0, totalScore: 0, scoreCount: 0 };
         }
@@ -100,15 +99,15 @@ var facilitator = {
         }
       }
 
-      var userIds = Object.keys(userMap).sort();
-      for (var j = 0; j < userIds.length; j++) {
-        var uid = userIds[j];
-        var ud = userMap[uid];
-        var um = masteryMap[uid] || {};
-        var avgScore = ud.scoreCount > 0 ? Math.round(ud.totalScore / ud.scoreCount) : 0;
+      const userIds = Object.keys(userMap).sort();
+      for (let j = 0; j < userIds.length; j++) {
+        const uid = userIds[j];
+        const ud = userMap[uid];
+        const um = masteryMap[uid] || {};
+        const avgScore = ud.scoreCount > 0 ? Math.round(ud.totalScore / ud.scoreCount) : 0;
 
         html += '<tr>' +
-          '<td class="facilitator-rep-name">' + this.escHtml(this.formatName(uid)) + '</td>' +
+          '<td class="facilitator-rep-name">' + esc(this.formatName(uid)) + '</td>' +
           '<td>' + this.statusBadge(um.module1) + '</td>' +
           '<td>' + this.statusBadge(um.module2) + '</td>' +
           '<td>' + ud.attempts + '</td>' +
@@ -135,16 +134,12 @@ var facilitator = {
     return userId.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
   },
 
-  escHtml: function(str) {
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  },
+
 
   calcAvgScore: function(users) {
-    var total = 0;
-    var count = 0;
-    for (var i = 0; i < users.length; i++) {
+    let total = 0;
+    let count = 0;
+    for (let i = 0; i < users.length; i++) {
       if (users[i].best_score > 0) {
         total += users[i].best_score;
         count++;
@@ -154,8 +149,8 @@ var facilitator = {
   },
 
   countMastered: function(masteries) {
-    var count = 0;
-    for (var i = 0; i < masteries.length; i++) {
+    let count = 0;
+    for (let i = 0; i < masteries.length; i++) {
       if (masteries[i].mastered) count++;
     }
     return count;
