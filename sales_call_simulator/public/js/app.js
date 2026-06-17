@@ -152,11 +152,6 @@ const app = {
    * Load app data after successful authentication.
    */
   async initAfterAuth() {
-    // Update greeting
-    var greeting = document.getElementById('user-greeting');
-    if (greeting && this.currentUser) {
-      greeting.textContent = 'Hi, ' + (this.currentUser.displayName || this.currentUser.userId);
-    }
 
     this.showScreen('scenarios');
     await this.loadScenarios();
@@ -233,8 +228,6 @@ const app = {
     if (btnFacilitator) btnFacilitator.addEventListener('click', function() {
       facilitator.init();
       app.showScreen('facilitator');
-      var greetEl = document.getElementById('facilitator-greeting');
-      if (greetEl && app.currentUser) greetEl.textContent = 'Hi, ' + app.currentUser.displayName;
     });
     const btnFacBack = document.getElementById('btn-facilitator-back');
     if (btnFacBack) btnFacBack.addEventListener('click', function() {
