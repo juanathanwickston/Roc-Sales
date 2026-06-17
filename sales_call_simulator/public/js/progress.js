@@ -456,7 +456,7 @@ function renderPerformanceSidebar(progressData) {
     masteryScore = Math.round(bestScoreSum / bestScoreCount);
   }
 
-  var ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
+  var ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--payroc-blue)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
   var circumference = 2 * Math.PI * 54;
   var offset = circumference - (masteryScore / 100) * circumference;
 

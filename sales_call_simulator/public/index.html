@@ -1225,7 +1225,6 @@
     .module-card {
       background: var(--bg-card);
       border: 1px solid var(--border-light);
-      border-left: 3px solid var(--payroc-blue);
       border-radius: var(--r);
       padding: 24px 28px;
       box-shadow: var(--shadow-card);
@@ -1277,7 +1276,7 @@
     }
     .module-card-progress-fill {
       height: 100%; border-radius: 3px;
-      background: linear-gradient(90deg, var(--payroc-teal), #059669);
+      background: var(--payroc-blue);
       transition: width .8s ease;
     }
     .module-card-progress-text {
@@ -1293,15 +1292,13 @@
     .module-card-locked {
       background: var(--bg-card);
       border-color: var(--border-light);
-      border-left-color: var(--color-locked);
     }
     .module-card-locked .module-card-name { color: var(--text-muted); }
     .module-card-locked .module-card-desc { color: #9CA3AF; }
 
     /* Mastered module card */
     .module-card-mastered {
-      border-left-color: var(--payroc-teal);
-      border-color: rgba(0,224,184,0.25);
+      border-color: rgba(0,81,194,0.25);
     }
 
     /* ─── Scenario Selector Modal ─── */
@@ -1420,14 +1417,14 @@
 
     /* Mastered persona card */
     .persona-card-mastered {
-      border-color: rgba(0,224,184,0.3);
+      border-color: rgba(0,81,194,0.25);
     }
 
     /* ─── Persona Mastery Badge ─── */
     .persona-mastery-badge {
       display: inline-flex; align-items: center; gap: 3px;
       padding: 1px 8px; border-radius: 50px;
-      background: rgba(0,224,184,0.12); color: #059669;
+      background: rgba(0,81,194,0.08); color: var(--payroc-blue); border: 1px solid rgba(0,81,194,0.15);
       font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
       text-transform: uppercase; letter-spacing: 0.3px;
     }
@@ -1555,7 +1552,7 @@
       .home-content { flex-direction: column; gap: 24px; padding: 16px; }
       .home-performance { width: 100%; }
       .perf-sidebar-card { position: static; }
-      .module-card { padding: 20px 16px; border-left-width: 3px; }
+      .module-card { padding: 20px 16px; }
       .scenario-modal-grid { grid-template-columns: 1fr; }
       .scenario-modal { max-width: 95%; }
       .certificate-inner { padding: 28px 16px; }
