@@ -205,10 +205,6 @@ const app = {
           if (errorEl) errorEl.textContent = 'Please enter your name.';
           return;
         }
-        if (!code) {
-          if (errorEl) errorEl.textContent = 'Please enter the access code.';
-          return;
-        }
 
         app._pendingAccessCode = code;
 
