@@ -163,20 +163,14 @@ function getModuleStatus(moduleId, progressData) {
     if (!anyMastered) return 'locked';
   }
 
-  // Check if all personas are mastered
+  // Check if any persona is mastered (single-assignment model: 1 mastered = module mastered)
   if (mod && mod.personas) {
-    var allMastered = true;
-    var personaCount = 0;
     var personas2 = mod.personas;
     for (var k in personas2) {
-      if (personas2.hasOwnProperty(k)) {
-        personaCount++;
-        if (!personas2[k].mastered) {
-          allMastered = false;
-        }
+      if (personas2.hasOwnProperty(k) && personas2[k].mastered) {
+        return 'mastered';
       }
     }
-    if (personaCount > 0 && allMastered) return 'mastered';
   }
 
   return 'available';
@@ -215,7 +209,7 @@ function renderModuleCards(modulesData, progressData) {
     var meta = MODULE_META[moduleId] || {};
     var status = getModuleStatus(moduleId, progressData);
     var mastered = countMasteredPersonas(moduleId, progressData);
-    var totalPersonas = 4;
+    var totalPersonas = 1;
 
     var cardClass = 'module-card';
     if (status === 'locked') cardClass += ' module-card-locked';
@@ -234,14 +228,15 @@ function renderModuleCards(modulesData, progressData) {
       statusBadgeText = 'Available';
     }
 
-    // Progress bar for mastered personas
+    // Progress bar for assigned scenario
     var progressBarHtml = '';
     if (status !== 'locked') {
+      var masteredCount = mastered > 0 ? 1 : 0;
       progressBarHtml = '<div class="module-card-progress">' +
         '<div class="module-card-progress-bar">' +
-          '<div class="module-card-progress-fill" style="width:' + ((mastered / totalPersonas) * 100) + '%"></div>' +
+          '<div class="module-card-progress-fill" style="width:' + (masteredCount * 100) + '%"></div>' +
         '</div>' +
-        '<span class="module-card-progress-text">' + mastered + '/' + totalPersonas + ' personas mastered</span>' +
+        '<span class="module-card-progress-text">' + (mastered > 0 ? 'Assigned scenario mastered' : 'Complete your assigned scenario') + '</span>' +
       '</div>';
     }
 
@@ -474,15 +469,16 @@ function renderPerformanceSidebar(progressData) {
     '</div>' +
   '</div>';
 
-  // Module completion stats
-  var m1Mastered = countMasteredPersonas('module1', progressData);
-  var m2Mastered = countMasteredPersonas('module2', progressData);
+  var m1Status = getModuleStatus('module1', progressData);
+  var m2Status = getModuleStatus('module2', progressData);
+  var m1Complete = m1Status === 'mastered' ? 1 : 0;
+  var m2Complete = m2Status === 'mastered' ? 1 : 0;
 
   html += '<div class="perf-stats-grid">' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + m1Mastered + '/4</div><div class="perf-stat-label">Module 1</div></div>' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + m2Mastered + '/4</div><div class="perf-stat-label">Module 2</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + m1Complete + '/1</div><div class="perf-stat-label">Module 1</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + m2Complete + '/1</div><div class="perf-stat-label">Module 2</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + totalAttempts + '</div><div class="perf-stat-label">Attempts</div></div>' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + totalMastered + '/8</div><div class="perf-stat-label">Total</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + (m1Complete + m2Complete) + '/2</div><div class="perf-stat-label">Total</div></div>' +
   '</div>';
 
   // Focus Areas (skill bars from categories)
