@@ -171,15 +171,24 @@ app.get('/api/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'),
 
 // Health check
 app.get('/api/health', async (req, res) => {
-  const dbStatus = await db.healthCheck();
-  res.json({
-    status: 'ok',
-    service: 'sales-call-simulator',
-    timestamp: new Date().toISOString(),
-    tavusConfigured: !!config.TAVUS_API_KEY,
-    openaiConfigured: !!config.OPENAI_API_KEY,
-    db: dbStatus,
-  });
+  try {
+    const dbStatus = await db.healthCheck();
+    res.json({
+      status: 'ok',
+      service: 'sales-call-simulator',
+      timestamp: new Date().toISOString(),
+      tavusConfigured: !!config.TAVUS_API_KEY,
+      openaiConfigured: !!config.OPENAI_API_KEY,
+      db: dbStatus,
+    });
+  } catch (err) {
+    res.json({
+      status: 'degraded',
+      service: 'sales-call-simulator',
+      timestamp: new Date().toISOString(),
+      db: { status: 'error', error: err.message },
+    });
+  }
 });
 
 // --- Launch Route ---
@@ -218,16 +227,20 @@ app.get('/launch', (req, res) => {
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// 404 for unmatched API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-  }
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 // --- Error Handler ---
 
 app.use((err, req, res, _next) => {
+  if (res.headersSent) return;
   logger.error('Server error', { error: err.stack || err.message, path: req.path });
   res.status(err.status || 500).json({
     error: config.NODE_ENV === 'development' ? err.message : 'Internal server error',

@@ -107,7 +107,12 @@ router.get('/:id', (req, res) => {
   let scenario = cachedScenarios.find(s => s.id === req.params.id);
   if (!scenario) {
     try {
-      const archivePath = path.join(SCENARIOS_DIR, 'archive', `${req.params.id}.json`);
+      const sanitizedId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+      const archivePath = path.join(SCENARIOS_DIR, 'archive', `${sanitizedId}.json`);
+      const resolved = path.resolve(archivePath);
+      if (!resolved.startsWith(path.resolve(SCENARIOS_DIR))) {
+        return sendError(res, req, 400, 'Invalid scenario ID');
+      }
       if (fs.existsSync(archivePath)) {
         scenario = JSON.parse(fs.readFileSync(archivePath, 'utf-8'));
       }

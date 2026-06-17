@@ -125,8 +125,6 @@ router.get('/', requireAuth, async (req, res) => {
       conditions.push(`s.external_user_id = $${paramIndex}`);
       params.push(userId);
       paramIndex++;
-    } else {
-      conditions.push(`s.external_user_id IS NULL`);
     }
 
     if (req.query.scenarioId) {
@@ -226,7 +224,12 @@ router.post('/', requireAuth, async (req, res) => {
     let isArchived = false;
 
     if (!scenario) {
-      const archivePath = path.join(SCENARIOS_DIR, 'archive', `${scenarioId}.json`);
+      const sanitizedScenarioId = scenarioId.replace(/[^a-zA-Z0-9_-]/g, '');
+      const archivePath = path.join(SCENARIOS_DIR, 'archive', `${sanitizedScenarioId}.json`);
+      const resolved = path.resolve(archivePath);
+      if (!resolved.startsWith(path.resolve(SCENARIOS_DIR))) {
+        return sendError(res, req, 400, 'Invalid scenario ID');
+      }
       if (fs.existsSync(archivePath)) {
         isArchived = true;
       } else {
@@ -834,22 +837,19 @@ router.post('/:id/process', requireAuth, async (req, res) => {
       return sendError(res, req, ownership.status, ownership.error);
     }
 
-    // Verify session exists and is in the right state
-    const session = await db.query(
-      'SELECT id, status FROM simulation_sessions WHERE id = $1',
+    // Atomically claim the session for processing
+    const claimResult = await db.query(
+      `UPDATE simulation_sessions 
+       SET status = 'processing', updated_at = NOW() 
+       WHERE id = $1 AND status = 'ended' 
+       RETURNING *`,
       [req.params.id]
     );
-
-    if (session.rows.length === 0) {
-      return sendError(res, req, 404, 'Session not found');
+    if (claimResult.rows.length === 0) {
+      // Either doesn't exist, wrong owner, or already processing/completed
+      return sendSuccess(res, { status: 'skipped', message: 'Session is not in ended state or is already being processed.' });
     }
-
-    const currentStatus = session.rows[0].status;
-
-    // Only allow processing from 'ended' status
-    if (currentStatus !== 'ended') {
-      return sendError(res, req, 422, `Cannot process session in '${currentStatus}' status. Must be 'ended'.`);
-    }
+    const session = claimResult.rows[0];
 
     // Fire-and-forget: start processing, respond immediately
     processSession(req.params.id).catch((err) => {

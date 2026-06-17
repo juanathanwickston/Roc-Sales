@@ -7,6 +7,12 @@
 // SVG score ring circumference (2 * PI * 54)
 const SCORE_RING_CIRCUMFERENCE = 339.29;
 
+// C7 fix: Store click handler reference to avoid listener accumulation
+let _categoriesClickHandler = null;
+
+// H5 fix: Store rAF ID to cancel on navigation
+let _countUpRAF = null;
+
 const scoring = {
 
   /**
@@ -87,14 +93,24 @@ const scoring = {
    * Count up animation for score number.
    */
   countUp(element, start, end, duration) {
+    // H5 fix: Cancel any existing rAF loop before starting a new one
+    if (_countUpRAF) {
+      cancelAnimationFrame(_countUpRAF);
+      _countUpRAF = null;
+    }
+
     const startTime = performance.now();
     const update = (currentTime) => {
       const progress = Math.min((currentTime - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
       element.textContent = Math.round(start + (end - start) * eased);
-      if (progress < 1) requestAnimationFrame(update);
+      if (progress < 1) {
+        _countUpRAF = requestAnimationFrame(update);
+      } else {
+        _countUpRAF = null;
+      }
     };
-    requestAnimationFrame(update);
+    _countUpRAF = requestAnimationFrame(update);
   },
 
   /**
@@ -159,13 +175,17 @@ const scoring = {
       });
     }, 200);
 
-    // Event delegation for expandable category rows
-    container.addEventListener('click', function(e) {
+    // C7 fix: Remove previous listener before adding a new one to prevent accumulation
+    if (_categoriesClickHandler) {
+      container.removeEventListener('click', _categoriesClickHandler);
+    }
+    _categoriesClickHandler = function(e) {
       var header = e.target.closest('[data-expandable]');
       if (header) {
         header.parentElement.classList.toggle('expanded');
       }
-    });
+    };
+    container.addEventListener('click', _categoriesClickHandler);
   },
 
   /**

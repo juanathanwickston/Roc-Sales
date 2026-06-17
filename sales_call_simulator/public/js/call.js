@@ -20,6 +20,7 @@ const callManager = {
   isMuted: false,
   isCameraOff: false,
   captionsVisible: true,
+  _ending: false,
 
   /**
    * Start a call: create Tavus conversation via backend, then join via Daily.
@@ -460,6 +461,9 @@ const callManager = {
    * Handle call ending (triggered by user or remote participant leaving).
    */
   async handleCallEnd() {
+    if (this._ending) return;
+    this._ending = true;
+
     this.stopTimer();
 
     const callData = {
@@ -488,6 +492,7 @@ const callManager = {
    * Clean up resources on cancel.
    */
   cleanup() {
+    this._ending = false;
     this.stopTimer();
     if (this.callObject) {
       this.callObject.leave().catch(() => {});

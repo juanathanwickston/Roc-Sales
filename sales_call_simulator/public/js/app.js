@@ -63,6 +63,8 @@ const app = {
   currentScenario: null,
   currentUser: null,
   scenarios: [],
+  _selectingScenario: false,
+  _pollAborted: false,
 
   /**
    * Initialize - check auth, then load scenarios and progress.
@@ -267,6 +269,8 @@ const app = {
       scenarioList.addEventListener('click', function(e) {
         const card = e.target.closest('[data-scenario-id]');
         if (card) {
+          // H6 fix: Prevent double-click from creating duplicate conversations
+          if (app._selectingScenario) return;
           app.selectScenario(card.dataset.scenarioId);
         }
       });
@@ -388,11 +392,23 @@ const app = {
    * Switch between screens.
    */
   showScreen(name) {
+    // H7 fix: Cancel any active poll when changing screens
+    this._pollAborted = true;
+
     document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
     const screen = document.getElementById('screen-' + name);
     if (screen) {
       screen.classList.add('active');
       this.currentScreen = name;
+    }
+
+    // H8 fix: Re-enable login button when returning to login screen
+    if (name === 'login') {
+      const submitBtn = document.getElementById('login-submit');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Start Training';
+      }
     }
   },
 
@@ -442,6 +458,10 @@ const app = {
    * User selected a scenario - fetch full details and start lobby.
    */
   async selectScenario(scenarioId) {
+    // H6 fix: Guard against double-clicks / concurrent selections
+    if (this._selectingScenario) return;
+    this._selectingScenario = true;
+
     try {
       const res = await fetch('/api/scenarios/' + scenarioId);
       if (!res.ok) {
@@ -460,6 +480,8 @@ const app = {
       console.error('[App] Error selecting scenario:', err);
       toast(err.message || 'Failed to start scenario. Please try again.', 'error');
       this.showScreen('scenarios');
+    } finally {
+      this._selectingScenario = false;
     }
   },
 
@@ -553,8 +575,14 @@ const app = {
     const MAX_POLLS = 150; // 5 minutes max
     const loadingText = document.querySelector('#debrief-loading p');
 
+    // H7 fix: Reset abort flag when starting a new poll
+    this._pollAborted = false;
+
     for (let poll = 1; poll <= MAX_POLLS; poll++) {
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
+      // H7 fix: Check abort flag at each iteration
+      if (this._pollAborted) return 'aborted';
 
       // Progressive UX messages
       const elapsed = poll * 2;

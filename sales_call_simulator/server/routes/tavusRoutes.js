@@ -14,6 +14,7 @@ const { tavusFetch } = require('../services/tavusClient');
 const { extractConversationMeta } = require('../services/tavusNormalizer');
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -39,7 +40,7 @@ function loadScenarioConfig(scenarioId) {
 /**
  * GET /api/tavus/personas - List available personas.
  */
-router.get('/personas', async (req, res) => {
+router.get('/personas', requireAuth, async (req, res) => {
   try {
     const data = await tavusFetch('/personas');
     return sendSuccess(res, data);
@@ -52,7 +53,7 @@ router.get('/personas', async (req, res) => {
 /**
  * GET /api/tavus/personas/:id - Get specific persona.
  */
-router.get('/personas/:id', async (req, res) => {
+router.get('/personas/:id', requireAuth, async (req, res) => {
   try {
     const data = await tavusFetch(`/personas/${req.params.id}`);
     return sendSuccess(res, data);
@@ -69,7 +70,7 @@ router.get('/personas/:id', async (req, res) => {
  * Body: { sessionId, properties? }
  * Returns normalized conversation data with stable internal field names.
  */
-router.post('/conversations', async (req, res) => {
+router.post('/conversations', requireAuth, async (req, res) => {
   if (!db.isAvailable()) {
     return sendError(res, req, 503, 'Database not available');
   }
