@@ -117,31 +117,37 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
     });
   }
 
+  const accessCode = (req.body.accessCode || '').trim();
+  if (config.TRAINING_ACCESS_CODE && accessCode !== config.TRAINING_ACCESS_CODE) {
+    return res.status(401).json({ error: 'Invalid access code' });
+  }
+
   const displayName = name.trim().substring(0, 100);
   const userId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const role = config.FACILITATOR_IDS.includes(userId) ? 'admin' : 'user';
 
   if (!config.JWT_SECRET) {
     // Dev mode — return a mock token
     return res.json({
       data: {
         token: 'dev-token',
-        user: { userId, displayName, role: 'user' },
+        user: { userId, displayName, role },
       },
     });
   }
 
   const token = jwt.sign(
-    { userId, displayName, role: 'user' },
+    { userId, displayName, role },
     config.JWT_SECRET,
     { expiresIn: '24h' }
   );
 
-  logger.info('User logged in', { userId, displayName });
+  logger.info('User logged in', { userId, displayName, role });
 
   return res.json({
     data: {
       token,
-      user: { userId, displayName, role: 'user' },
+      user: { userId, displayName, role },
     },
   });
 });

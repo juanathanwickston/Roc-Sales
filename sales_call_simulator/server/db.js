@@ -20,7 +20,7 @@ const CONNECTION_TIMEOUT_MS = 5000;
 const IDLE_TIMEOUT_MS = 30000;
 
 // Maximum connections in the pool
-const MAX_POOL_SIZE = 10;
+const MAX_POOL_SIZE = 20;
 
 // Slow query warning threshold in milliseconds
 const SLOW_QUERY_THRESHOLD_MS = 1000;

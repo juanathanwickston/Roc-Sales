@@ -29,6 +29,12 @@ const config = {
 
   // Simulator Sync — dedicated secret for academy completion callbacks
   SIMULATOR_SYNC_SECRET: process.env.SIMULATOR_SYNC_SECRET || '',
+
+  // Training gate — access code shared with reps to gate login
+  TRAINING_ACCESS_CODE: process.env.TRAINING_ACCESS_CODE || '',
+
+  // Facilitator user IDs — get admin role on login
+  FACILITATOR_IDS: (process.env.FACILITATOR_IDS || 'john_hamilton,kevin_reed,mike_mccaffrey,zack_zivkovich').split(','),
 };
 
 /**
@@ -49,6 +55,9 @@ function validateConfig() {
   }
   if (!config.JWT_SECRET) {
     warnings.push('JWT_SECRET is not set - auth will be disabled.');
+  }
+  if (!config.TRAINING_ACCESS_CODE) {
+    warnings.push('TRAINING_ACCESS_CODE is not set - login will not require an access code.');
   }
 
   if (warnings.length > 0) {

@@ -78,6 +78,7 @@ const app = {
         if (res.ok) {
           const envelope = await res.json();
           this.currentUser = envelope.data;
+          this.updateFacilitatorNav();
           await this.initAfterAuth();
           return;
         }
@@ -100,7 +101,7 @@ const app = {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, accessCode: this._pendingAccessCode || '' }),
       });
 
       if (!res.ok) {
@@ -113,6 +114,10 @@ const app = {
 
       localStorage.setItem('roc_token', data.token);
       this.currentUser = data.user;
+      this._pendingAccessCode = '';
+
+      // Show facilitator dashboard button if admin
+      this.updateFacilitatorNav();
 
       await this.initAfterAuth();
     } catch (err) {
@@ -127,7 +132,20 @@ const app = {
     localStorage.removeItem('roc_token');
     this.currentUser = null;
     this.scenarios = [];
+    // Hide facilitator nav
+    var facBtn = document.getElementById('btn-facilitator');
+    if (facBtn) facBtn.style.display = 'none';
     this.showScreen('login');
+  },
+
+  /**
+   * Show/hide the facilitator dashboard nav link based on role.
+   */
+  updateFacilitatorNav() {
+    var btn = document.getElementById('btn-facilitator');
+    if (btn && this.currentUser) {
+      btn.style.display = this.currentUser.role === 'admin' ? '' : 'none';
+    }
   },
 
   /**
@@ -180,11 +198,19 @@ const app = {
         const errorEl = document.getElementById('login-error');
         const submitBtn = document.getElementById('login-submit');
         const name = nameInput ? nameInput.value.trim() : '';
+        const codeInput = document.getElementById('login-code');
+        const code = codeInput ? codeInput.value.trim() : '';
 
         if (!name) {
           if (errorEl) errorEl.textContent = 'Please enter your name.';
           return;
         }
+        if (!code) {
+          if (errorEl) errorEl.textContent = 'Please enter the access code.';
+          return;
+        }
+
+        app._pendingAccessCode = code;
 
         if (submitBtn) {
           submitBtn.disabled = true;
@@ -205,6 +231,25 @@ const app = {
     // Logout
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) btnLogout.addEventListener('click', function() { app.logout(); });
+
+    // Facilitator dashboard
+    const btnFacilitator = document.getElementById('btn-facilitator');
+    if (btnFacilitator) btnFacilitator.addEventListener('click', function() {
+      facilitator.init();
+      app.showScreen('facilitator');
+      var greetEl = document.getElementById('facilitator-greeting');
+      if (greetEl && app.currentUser) greetEl.textContent = 'Hi, ' + app.currentUser.displayName;
+    });
+    const btnFacBack = document.getElementById('btn-facilitator-back');
+    if (btnFacBack) btnFacBack.addEventListener('click', function() {
+      facilitator.destroy();
+      app.showScreen('scenarios');
+    });
+    const btnFacLogout = document.getElementById('btn-facilitator-logout');
+    if (btnFacLogout) btnFacLogout.addEventListener('click', function() {
+      facilitator.destroy();
+      app.logout();
+    });
 
     // Lobby cancel
     const lobbyCancel = document.getElementById('lobby-cancel');

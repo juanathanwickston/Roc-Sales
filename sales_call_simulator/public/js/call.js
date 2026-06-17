@@ -5,7 +5,7 @@
  */
 
 // Minimum call duration (seconds) before allowing end without confirmation
-const MIN_CALL_DURATION_SECONDS = 30;
+const MIN_CALL_DURATION_SECONDS = 120;
 
 // Delay (ms) before Tavus conversation cleanup to give backend time to fetch transcript
 
@@ -405,7 +405,7 @@ const callManager = {
     if (duration < MIN_CALL_DURATION_SECONDS) {
       const confirmed = await this.showConfirmModal(
         'End call early?',
-        'The call just started. Are you sure you want to end it?'
+        'Calls under 2 minutes may not receive a detailed performance score. Are you sure you want to end it?'
       );
       if (!confirmed) return;
     }
