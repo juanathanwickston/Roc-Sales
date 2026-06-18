@@ -1,4 +1,4 @@
-/* facilitator.js — Facilitator Dashboard */
+/* facilitator.js - Facilitator Dashboard */
 'use strict';
 
 const facilitator = {

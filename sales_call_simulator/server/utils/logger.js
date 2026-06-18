@@ -1,5 +1,5 @@
 /**
- * Structured logger CommonJS adapter — aligns with shared logger standards.
+ * Structured logger CommonJS adapter.
  */
 
 const ENV = process.env.NODE_ENV || 'development';

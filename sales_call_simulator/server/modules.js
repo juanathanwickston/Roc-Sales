@@ -26,10 +26,10 @@ const COURSE_MODULES = [
 ];
 
 const PERSONA_DISPLAY_NAMES = {
-  sam_patel: 'Sam Patel – QuickStop Market',
-  carla_reyes: 'Carla Reyes – Studio Collective Salon',
-  mike_turner: 'Mike Turner – Precision Plumbing & Drain',
-  david_miller: 'Pastor David Miller – New Hope Community Church',
+  sam_patel: 'Sam Patel - QuickStop Market',
+  carla_reyes: 'Carla Reyes - Studio Collective Salon',
+  mike_turner: 'Mike Turner - Precision Plumbing & Drain',
+  david_miller: 'Pastor David Miller - New Hope Community Church',
 };
 
 const PERSONA_FIRST_NAMES = {

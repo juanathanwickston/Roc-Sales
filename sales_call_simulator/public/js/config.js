@@ -1,5 +1,5 @@
 /**
- * Sales Call Simulator — Shared Client Configuration
+ * Sales Call Simulator - Shared Client Configuration
  * Canonical scoring thresholds used by all UI surfaces.
  *
  * Decision: 80/50 approved as canonical thresholds (2026-06-01).

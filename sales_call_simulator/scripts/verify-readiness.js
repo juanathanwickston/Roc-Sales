@@ -18,7 +18,7 @@ function check(name, condition, detail) {
     console.log(`  [PASS] ${name}`);
     passed++;
   } else {
-    console.log(`  [FAIL] ${name} — ${detail}`);
+    console.log(`  [FAIL] ${name} - ${detail}`);
     failed++;
   }
 }
@@ -57,7 +57,7 @@ try {
         allValid = false;
       }
     } catch (e) {
-      console.log(`    [WARN] ${file}: invalid JSON — ${e.message}`);
+      console.log(`    [WARN] ${file}: invalid JSON - ${e.message}`);
       allValid = false;
     }
   }

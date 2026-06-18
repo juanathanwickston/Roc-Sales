@@ -1,6 +1,5 @@
 /**
  * Sales Call Simulator - Express Server
- * Sales Call Simulator Express server.
  */
 
 const path = require('path');

@@ -1,7 +1,6 @@
 /**
  * Sales Call Simulator - Server Configuration
  * Validates environment variables on startup.
- * Validates environment variables on startup.
  */
 
 require('dotenv').config();
