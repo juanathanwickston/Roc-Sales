@@ -166,7 +166,7 @@ const callManager = {
    * Create Daily call object and join the conversation.
    */
   async joinDaily() {
-    try {
+
       // Create a new call object
       this.callObject = window.DailyIframe.createCallObject({
         audioSource: true,
@@ -193,9 +193,7 @@ const callManager = {
       this.callObject.setLocalAudio(true);
       this.callObject.setLocalVideo(true);
 
-    } catch (err) {
-      throw err;
-    }
+
   },
 
   /**
@@ -564,12 +562,12 @@ const callManager = {
    * and rubric weights as the scoring footer.
    */
   renderCallGuide(scenario) {
-    var bodyEl = document.getElementById('call-guide-body');
-    var scoringEl = document.getElementById('call-guide-scoring');
+    const bodyEl = document.getElementById('call-guide-body');
+    const scoringEl = document.getElementById('call-guide-scoring');
     if (!bodyEl || !scoringEl) return;
 
     // Update module badge in sidebar header
-    var badges = document.querySelectorAll('#call-sidebar .guide-badge');
+    const badges = document.querySelectorAll('#call-sidebar .guide-badge');
     if (badges.length > 0 && scenario) {
       badges[0].textContent = scenario.module || 'Module';
     }
@@ -581,12 +579,12 @@ const callManager = {
       return;
     }
 
-    var html = '';
-    var notes = scenario.coaching_notes;
+    let html = '';
+    const notes = scenario.coaching_notes;
 
     // Key concepts section (open by default)
     if (notes.key_concepts && notes.key_concepts.length > 0) {
-      var conceptId = 'guide-concepts';
+      const conceptId = 'guide-concepts';
       html += '<div class="guide-section open">';
       html += '<button class="guide-section-btn" aria-expanded="true" aria-controls="' + conceptId + '">';
       html += '<span class="guide-section-title">Key Concepts</span>';
@@ -594,7 +592,7 @@ const callManager = {
       html += '</button>';
       html += '<div class="guide-section-content" id="' + conceptId + '">';
       html += '<div class="guide-section-inner"><ul>';
-      for (var i = 0; i < notes.key_concepts.length; i++) {
+      for (let i = 0; i < notes.key_concepts.length; i++) {
         html += '<li>' + esc(notes.key_concepts[i]) + '</li>';
       }
       html += '</ul></div></div></div>';
@@ -602,7 +600,7 @@ const callManager = {
 
     // Common mistakes section
     if (notes.common_mistakes && notes.common_mistakes.length > 0) {
-      var mistakesId = 'guide-mistakes';
+      const mistakesId = 'guide-mistakes';
       html += '<div class="guide-section">';
       html += '<button class="guide-section-btn" aria-expanded="false" aria-controls="' + mistakesId + '">';
       html += '<span class="guide-section-title">Areas to Avoid</span>';
@@ -610,7 +608,7 @@ const callManager = {
       html += '</button>';
       html += '<div class="guide-section-content" id="' + mistakesId + '">';
       html += '<div class="guide-section-inner guide-mistake"><ul>';
-      for (var j = 0; j < notes.common_mistakes.length; j++) {
+      for (let j = 0; j < notes.common_mistakes.length; j++) {
         html += '<li>' + esc(notes.common_mistakes[j]) + '</li>';
       }
       html += '</ul></div></div></div>';
@@ -619,18 +617,18 @@ const callManager = {
     bodyEl.innerHTML = html;
 
     // Scoring footer from rubric weights
-    var rubric = scenario.rubric;
+    const rubric = scenario.rubric;
     if (rubric) {
-      var dotColors = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--orange)', 'var(--payroc-blue)', 'var(--text-muted)', 'var(--color-warning)'];
-      var scoringHtml = '<h4>Scoring Criteria</h4>';
-      var colorIndex = 0;
-      var keys = Object.keys(rubric);
-      for (var k = 0; k < keys.length; k++) {
-        var entry = rubric[keys[k]];
-        var weight = entry.weight || 0;
+      const dotColors = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--orange)', 'var(--payroc-blue)', 'var(--text-muted)', 'var(--color-warning)'];
+      let scoringHtml = '<h4>Scoring Criteria</h4>';
+      let colorIndex = 0;
+      const keys = Object.keys(rubric);
+      for (let k = 0; k < keys.length; k++) {
+        const entry = rubric[keys[k]];
+        const weight = entry.weight || 0;
         if (weight <= 0) continue;
-        var displayName = keys[k].replace(/_/g, ' ').replace(/\b[a-z]/g, function(c) { return c.toUpperCase(); });
-        var color = dotColors[colorIndex % dotColors.length];
+        const displayName = keys[k].replace(/_/g, ' ').replace(/\b[a-z]/g, function(c) { return c.toUpperCase(); });
+        const color = dotColors[colorIndex % dotColors.length];
         scoringHtml += '<div class="scoring-row">';
         scoringHtml += '<span class="scoring-dot" style="background:' + color + '"></span>';
         scoringHtml += '<span class="scoring-label">' + esc(displayName) + '</span>';
@@ -648,7 +646,7 @@ const callManager = {
    * Update lobby status message.
    */
   updateLobbyStatus(text) {
-    var el = document.getElementById('lobby-status');
+    const el = document.getElementById('lobby-status');
     if (el) el.textContent = text;
   },
 };

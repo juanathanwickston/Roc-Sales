@@ -583,7 +583,7 @@ function renderCertificate(progressData) {
     '<div class="certificate-print-area" id="certificate-print-area">' +
       '<div class="certificate-printable">' +
         '<div class="cert-header">CERTIFICATE OF COMPLETION</div>' +
-        '<div class="cert-logo">ROC Academy</div>' +
+        '<div class="cert-logo">Payroc</div>' +
         '<div class="cert-body">' +
           '<p>This certifies that</p>' +
           '<h2 class="cert-name">Sales Representative</h2>' +

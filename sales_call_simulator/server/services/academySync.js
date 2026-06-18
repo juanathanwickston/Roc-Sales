@@ -1,7 +1,7 @@
 /**
- * Academy Completion Sync Service
- * Notifies ROC Academy when a simulator session completes with scoring.
- * Logs sync attempts to academy_completion_sync for auditability.
+ * Completion Sync Service
+ * Notifies external LMS when a simulator session completes with scoring.
+ * Logs sync attempts to the completion sync table for auditability.
  *
  * The callback is fire-and-forget from the pipeline perspective.
  * Failures are logged but do not block session completion.
@@ -13,11 +13,11 @@ const logger = require('../utils/logger');
 
 
 
-// Maximum time to wait for ROC Academy response
+// Maximum time to wait for callback response
 const CALLBACK_TIMEOUT_MS = 10000;
 
 /**
- * Send completion callback to ROC Academy.
+ * Send completion callback to external LMS.
  * Called after scoring results are persisted.
  * Does not throw - failures are logged to the sync table.
  */
@@ -34,10 +34,7 @@ async function sendCompletionCallback({ sessionId, scorecard, scenarioId, userId
   // Log the sync attempt
   await logSyncAttempt(sessionId, payload, 'pending');
 
-  // Skip callback if SIMULATOR_SYNC_SECRET is not configured
-  // This code change may be deployed before the ROC Academy validator is updated
-  // only if stakeholders accept that completion callbacks will be skipped until
-  // both systems are configured. Prefer a coordinated staging deployment first.
+  // Skip callback if sync secret is not configured
   if (!config.SIMULATOR_SYNC_SECRET) {
     logger.warn('[AcademySync] Skipping callback - SIMULATOR_SYNC_SECRET is not configured');
     await updateSyncStatus(sessionId, 'skipped', null, 'SIMULATOR_SYNC_SECRET not configured');

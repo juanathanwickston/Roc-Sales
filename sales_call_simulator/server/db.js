@@ -1,8 +1,6 @@
 /**
  * Database module for the Sales Call Simulator.
  * Manages Postgres connection pool and schema migrations.
- * Adapted from ROC Academy's db.js with graceful degradation
- * for local development without a database.
  */
 
 const fs = require('fs');

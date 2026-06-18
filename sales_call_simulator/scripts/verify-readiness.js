@@ -7,7 +7,7 @@ const fs = require('fs');
 // Load env
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const config = require('../server/config');
+const { config } = require('../server/config');
 
 const checks = [];
 let passed = 0;
@@ -31,7 +31,12 @@ check('JWT_SECRET is set', !!config.JWT_SECRET, 'Set JWT_SECRET in .env');
 check('DATABASE_URL is set', !!config.DATABASE_URL, 'Set DATABASE_URL in .env');
 check('TAVUS_API_KEY is set', !!config.TAVUS_API_KEY, 'Set TAVUS_API_KEY in .env');
 check('OPENAI_API_KEY is set', !!config.OPENAI_API_KEY, 'Set OPENAI_API_KEY in .env');
-check('TRAINING_ACCESS_CODE is set', !!config.TRAINING_ACCESS_CODE, 'Set TRAINING_ACCESS_CODE in .env');
+if (config.TRAINING_ACCESS_CODE) {
+  console.log('  [PASS] TRAINING_ACCESS_CODE is set');
+  passed++;
+} else {
+  console.log('  [NOTE] TRAINING_ACCESS_CODE is not set - login will not require an access code');
+}
 check('JWT_SECRET is not default', config.JWT_SECRET !== 'REPLACE_ME', 'Change JWT_SECRET from default value');
 
 // 2. Scenarios
@@ -45,10 +50,10 @@ try {
   for (const file of files) {
     try {
       const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, file), 'utf8'));
-      const hasPersona = !!scenario.tavus_persona_id;
-      const hasName = !!scenario.persona_name;
+      const hasPersona = !!(scenario.persona_id_tavus || scenario.persona_id);
+      const hasName = !!scenario.name;
       if (!hasPersona || !hasName) {
-        console.log(`    [WARN] ${file}: missing ${!hasPersona ? 'tavus_persona_id' : ''} ${!hasName ? 'persona_name' : ''}`);
+        console.log(`    [WARN] ${file}: missing ${!hasPersona ? 'persona_id_tavus' : ''} ${!hasName ? 'name' : ''}`);
         allValid = false;
       }
     } catch (e) {

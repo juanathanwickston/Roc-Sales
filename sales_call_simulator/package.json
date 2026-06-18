@@ -1,7 +1,7 @@
 {
   "name": "sales-call-simulator",
   "version": "1.0.0",
-  "description": "Tavus-powered sales call simulation for ROC Academy",
+  "description": "Sales call simulation training platform",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",

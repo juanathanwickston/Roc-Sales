@@ -1,7 +1,5 @@
 /**
- * JWT Authentication Middleware
- * Shares JWT_SECRET with ROC Academy for seamless auth passthrough.
- * Pattern adapted from roc_academy/server/auth.js
+ * JWT authentication middleware.
  */
 
 const jwt = require('jsonwebtoken');
@@ -55,7 +53,7 @@ function optionalAuth(req, res, next) {
 }
 
 /**
- * Verify a signed launch token from ROC Academy.
+ * Verify a signed launch token from an external LMS.
  * Launch tokens include learner and module context for auto-setup.
  * Returns the decoded payload or null if invalid/missing.
  *

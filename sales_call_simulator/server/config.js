@@ -1,7 +1,7 @@
 /**
  * Sales Call Simulator - Server Configuration
  * Validates environment variables on startup.
- * Pattern adapted from support_chatbot/app/core/config.py
+ * Validates environment variables on startup.
  */
 
 require('dotenv').config();
@@ -24,10 +24,10 @@ const config = {
   // Auth
   JWT_SECRET: process.env.JWT_SECRET || '',
 
-  // ROC Academy
+  // External LMS (optional)
   ROC_ACADEMY_URL: process.env.ROC_ACADEMY_URL || 'http://localhost:3000',
 
-  // Simulator Sync — dedicated secret for academy completion callbacks
+  // Simulator Sync — dedicated secret for external completion callbacks
   SIMULATOR_SYNC_SECRET: process.env.SIMULATOR_SYNC_SECRET || '',
 
   // Training gate — access code shared with reps to gate login

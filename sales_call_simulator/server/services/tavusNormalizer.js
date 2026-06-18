@@ -71,14 +71,14 @@ function extractTranscript(rawConversation, personaName) {
     // a fingerprint: if consecutive same-role entries share the same opening words,
     // keep only the longest (most complete) version.
     const deduplicated = [];
-    for (var i = 0; i < messages.length; i++) {
-      var current = messages[i];
-      var next = (i + 1 < messages.length) ? messages[i + 1] : null;
+    for (let i = 0; i < messages.length; i++) {
+      const current = messages[i];
+      const next = (i + 1 < messages.length) ? messages[i + 1] : null;
 
       if (next && next.role === current.role) {
         // Compare first 5 words of each entry
-        var currentWords = current.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
-        var nextWords = next.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
+        const currentWords = current.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
+        const nextWords = next.content.trim().split(/\s+/).slice(0, 5).join(' ').toLowerCase();
 
         if (currentWords === nextWords) {
           // Same opening words, same role - skip the shorter (current) entry
@@ -90,9 +90,9 @@ function extractTranscript(rawConversation, personaName) {
     }
 
     // Map to readable format and clean text
-    var lines = deduplicated.map(function(msg) {
-      var role = msg.role === 'assistant' ? (personaName || 'Merchant') : 'Rep';
-      var content = cleanTranscriptText(msg.content);
+    const lines = deduplicated.map(function(msg) {
+      const role = msg.role === 'assistant' ? (personaName || 'Merchant') : 'Rep';
+      const content = cleanTranscriptText(msg.content);
       return '[' + role + ']: ' + content;
     });
 

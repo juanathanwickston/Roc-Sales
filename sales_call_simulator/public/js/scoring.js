@@ -180,7 +180,7 @@ const scoring = {
       container.removeEventListener('click', _categoriesClickHandler);
     }
     _categoriesClickHandler = function(e) {
-      var header = e.target.closest('[data-expandable]');
+      const header = e.target.closest('[data-expandable]');
       if (header) {
         header.parentElement.classList.toggle('expanded');
       }

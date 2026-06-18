@@ -1,6 +1,6 @@
 /**
  * Sales Call Simulator - Express Server
- * Pattern adapted from roc_academy/server/server.js
+ * Sales Call Simulator Express server.
  */
 
 const path = require('path');
@@ -51,7 +51,7 @@ app.use(
   })
 );
 
-// CORS - accept requests from ROC Academy
+// CORS - accept requests from configured origins
 app.use((req, res, next) => {
   const allowedOrigins = [config.ROC_ACADEMY_URL, `http://localhost:${config.PORT}`];
   const origin = req.headers.origin;
@@ -206,7 +206,7 @@ app.get('/api/health', async (req, res) => {
 // --- Launch Route ---
 
 /**
- * GET /launch?token=... - ROC Academy signed launch entry point.
+ * GET /launch?token=... - Signed launch entry point for external LMS integration.
  * Validates the JWT, then redirects to the simulator with launch context
  * as query params. The frontend reads these params on load.
  */

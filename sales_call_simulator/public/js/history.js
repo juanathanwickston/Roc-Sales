@@ -416,8 +416,8 @@ function renderCoaching(coaching, scoreData) {
   const statsEl = document.getElementById('coaching-stats');
   if (statsEl && scoreData && scoreData.categories) {
     statsEl.innerHTML = Object.entries(scoreData.categories).map(function(entry) {
-      var name = entry[0];
-      var data = entry[1];
+      const name = entry[0];
+      const data = entry[1];
       const observed = data.observed_count || 0;
       const total = data.total_count || 0;
       const pct = total > 0 ? Math.round((observed / total) * 100) : 0;

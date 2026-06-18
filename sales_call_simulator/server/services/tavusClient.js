@@ -1,7 +1,6 @@
 /**
  * Tavus API Client
  * Shared service for making authenticated calls to the Tavus CVI API.
- * Extracted from tavusRoutes.js so multiple route files can use it.
  */
 
 const { config } = require('../config');

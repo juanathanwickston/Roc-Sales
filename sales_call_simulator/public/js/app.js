@@ -161,7 +161,7 @@ const app = {
       loadProgress().catch(function() {});
     }
 
-    // Check for launch context from ROC Academy (set by GET /launch redirect)
+    // Check for launch context (set by GET /launch redirect)
     const params = new URLSearchParams(window.location.search);
     const launchScenarioId = params.get('scenarioId');
     if (launchScenarioId) {

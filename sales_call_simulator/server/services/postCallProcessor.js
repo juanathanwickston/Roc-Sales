@@ -1,7 +1,7 @@
 /**
  * Post-Call Processor
  * Backend service that orchestrates the full post-call pipeline:
- * fetch transcript -> score -> persist results -> mastery check -> summary generation -> notify ROC Academy -> update session status.
+ * fetch transcript -> score -> persist results -> mastery check -> summary generation -> send completion callback -> update session status.
  *
  * This runs entirely server-side. The frontend triggers it via
  * POST /api/sessions/:id/process and polls for completion.
@@ -136,7 +136,7 @@ async function processSession(sessionId) {
       await generateAndPersistRelationshipSummary(sessionId, transcript, scenarioId, scenarioConfig);
     }
 
-    // 9. Notify ROC Academy (fire-and-forget, does not block completion)
+    // 9. Send completion callback (fire-and-forget)
     sendCompletionCallback({ sessionId, scorecard, scenarioId, userId }).catch(() => {});
 
     // 10. Mark session as completed
