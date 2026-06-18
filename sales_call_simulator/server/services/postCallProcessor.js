@@ -537,6 +537,112 @@ function calculateMechanicalScore(extraction, rubric, autoFailTriggers) {
 }
 
 /**
+ * Insert or update a score row within an open transaction.
+ * Serializes all scorecard fields and runs the INSERT/ON CONFLICT query.
+ * Must be called inside a BEGIN/COMMIT block.
+ */
+async function insertScore(client, sessionId, scorecard) {
+  const rawResponse = JSON.stringify(scorecard);
+  const categories = JSON.stringify(scorecard.categories || {});
+  const topStrengths = JSON.stringify(scorecard.top_strengths || []);
+  const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
+  const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
+  const autoFails = JSON.stringify(scorecard.automatic_fails_triggered || []);
+
+  await client.query(
+    `INSERT INTO session_scores
+       (session_id, raw_response, overall_score, overall_verdict, categories,
+        top_strengths, critical_improvements, coaching_tip, coaching_analysis,
+        raw_score, final_score, automatic_fails_triggered, rubric_version, scoring_model)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+     ON CONFLICT (session_id)
+     DO UPDATE SET
+       raw_response = $2, overall_score = $3, overall_verdict = $4,
+       categories = $5, top_strengths = $6, critical_improvements = $7,
+       coaching_tip = $8, coaching_analysis = $9,
+       raw_score = $10, final_score = $11, automatic_fails_triggered = $12,
+       rubric_version = $13, scoring_model = $14`,
+    [
+      sessionId,
+      rawResponse,
+      scorecard.final_score || 0,
+      scorecard.overall_verdict || 'unknown',
+      categories,
+      topStrengths,
+      criticalImprovements,
+      scorecard.coaching_tip || '',
+      coachingAnalysis,
+      scorecard.raw_score || 0,
+      scorecard.final_score || 0,
+      autoFails,
+      '1.0',
+      'gpt-4o',
+    ]
+  );
+}
+
+/**
+ * Calculate rolling average mastery and upsert into module_masteries.
+ * Skips if any required ID is missing or if module is 'legacy'.
+ * Must be called inside a BEGIN/COMMIT block.
+ */
+async function updateMastery(client, sessionId, scorecard, { moduleId, personaId, userId }) {
+  if (!moduleId || !personaId || !userId || moduleId === 'legacy') return;
+
+  const recentSessions = await client.query(
+    `SELECT s.id, COALESCE(sc.final_score, sc.overall_score) AS effective_score
+     FROM simulation_sessions s
+     INNER JOIN session_scores sc ON sc.session_id = s.id
+     WHERE s.external_user_id = $1
+       AND s.module_id = $2
+       AND s.persona_id = $3
+       AND s.status = 'completed'
+     ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
+     LIMIT 3`,
+    [userId, moduleId, personaId]
+  );
+
+  // Include the current session (it may not yet be marked 'completed')
+  const allScores = [];
+  const allSessionIds = [];
+  let currentIncluded = false;
+
+  for (const row of recentSessions.rows) {
+    if (row.id === parseInt(sessionId, 10)) currentIncluded = true;
+    allScores.push(parseFloat(row.effective_score));
+    allSessionIds.push(row.id);
+  }
+
+  if (!currentIncluded) {
+    allScores.unshift(scorecard.final_score || 0);
+    allSessionIds.unshift(parseInt(sessionId, 10));
+    if (allScores.length > 3) {
+      allScores.pop();
+      allSessionIds.pop();
+    }
+  }
+
+  if (allScores.length === 0) return;
+
+  const rollingAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+  if (rollingAvg < 80) return;
+
+  await client.query(
+    `INSERT INTO module_masteries
+       (external_user_id, module_id, persona_id, mastery_score, source_session_ids)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (external_user_id, module_id, persona_id)
+     DO UPDATE SET
+       mastery_score = $4,
+       source_session_ids = $5,
+       mastered_at = NOW()`,
+    [userId, moduleId, personaId, Math.round(rollingAvg * 100) / 100, allSessionIds]
+  );
+
+  logger.info(`[PostCall] Mastery updated for ${userId}/${moduleId}/${personaId}: ${Math.round(rollingAvg * 100) / 100}`);
+}
+
+/**
  * Persist scoring results and calculate mastery in a single transaction.
  * Uses db.getClient() for transaction boundaries.
  */
@@ -545,106 +651,8 @@ async function persistScoreAndMastery(sessionId, scorecard, { moduleId, personaI
 
   try {
     await client.query('BEGIN');
-
-    // 1. Persist score
-    const rawResponse = JSON.stringify(scorecard);
-    const categories = JSON.stringify(scorecard.categories || {});
-    const topStrengths = JSON.stringify(scorecard.top_strengths || []);
-    const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
-    const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
-    const autoFails = JSON.stringify(scorecard.automatic_fails_triggered || []);
-
-    await client.query(
-      `INSERT INTO session_scores
-         (session_id, raw_response, overall_score, overall_verdict, categories,
-          top_strengths, critical_improvements, coaching_tip, coaching_analysis,
-          raw_score, final_score, automatic_fails_triggered, rubric_version, scoring_model)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-       ON CONFLICT (session_id)
-       DO UPDATE SET
-         raw_response = $2, overall_score = $3, overall_verdict = $4,
-         categories = $5, top_strengths = $6, critical_improvements = $7,
-         coaching_tip = $8, coaching_analysis = $9,
-         raw_score = $10, final_score = $11, automatic_fails_triggered = $12,
-         rubric_version = $13, scoring_model = $14`,
-      [
-        sessionId,
-        rawResponse,
-        scorecard.final_score || 0,
-        scorecard.overall_verdict || 'unknown',
-        categories,
-        topStrengths,
-        criticalImprovements,
-        scorecard.coaching_tip || '',
-        coachingAnalysis,
-        scorecard.raw_score || 0,
-        scorecard.final_score || 0,
-        autoFails,
-        '1.0',
-        'gpt-4o',
-      ]
-    );
-
-    // 2. Calculate mastery (rolling average of latest 3 scored attempts)
-    if (moduleId && personaId && userId && moduleId !== 'legacy') {
-      const recentSessions = await client.query(
-        `SELECT s.id, COALESCE(sc.final_score, sc.overall_score) AS effective_score
-         FROM simulation_sessions s
-         INNER JOIN session_scores sc ON sc.session_id = s.id
-         WHERE s.external_user_id = $1
-           AND s.module_id = $2
-           AND s.persona_id = $3
-           AND s.status = 'completed'
-         ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
-         LIMIT 3`,
-        [userId, moduleId, personaId]
-      );
-
-      // Include the current session in the calculation (it may not yet be 'completed')
-      const allScores = [];
-      const allSessionIds = [];
-      let currentIncluded = false;
-
-      for (const row of recentSessions.rows) {
-        if (row.id === parseInt(sessionId, 10)) {
-          currentIncluded = true;
-        }
-        allScores.push(parseFloat(row.effective_score));
-        allSessionIds.push(row.id);
-      }
-
-      // If current session not yet in results (status not completed yet), add it
-      if (!currentIncluded) {
-        allScores.unshift(scorecard.final_score || 0);
-        allSessionIds.unshift(parseInt(sessionId, 10));
-        // Keep only latest 3
-        if (allScores.length > 3) {
-          allScores.pop();
-          allSessionIds.pop();
-        }
-      }
-
-      if (allScores.length > 0) {
-        const rollingAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
-
-        if (rollingAvg >= 80) {
-          await client.query(
-            `INSERT INTO module_masteries
-               (external_user_id, module_id, persona_id, mastery_score, source_session_ids)
-             VALUES ($1, $2, $3, $4, $5)
-             ON CONFLICT (external_user_id, module_id, persona_id)
-             DO UPDATE SET
-               mastery_score = $4,
-               source_session_ids = $5,
-               mastered_at = NOW()`,
-            [userId, moduleId, personaId, Math.round(rollingAvg * 100) / 100, allSessionIds]
-          );
-
-          logger.info(`[PostCall] Mastery updated for ${userId}/${moduleId}/${personaId}: ${Math.round(rollingAvg * 100) / 100}`);
-        }
-      }
-    }
-
+    await insertScore(client, sessionId, scorecard);
+    await updateMastery(client, sessionId, scorecard, { moduleId, personaId, userId });
     await client.query('COMMIT');
     logger.info(`[PostCall] Score persisted for session ${sessionId}`);
   } catch (err) {

@@ -136,35 +136,7 @@ const tokenUserB = jwt.sign({ userId: 'user-b', role: 'user' }, process.env.JWT_
 const tokenManager = jwt.sign({ userId: 'manager-1', role: 'manager' }, process.env.JWT_SECRET);
 const tokenAdmin = jwt.sign({ userId: 'admin-1', role: 'admin' }, process.env.JWT_SECRET);
 
-async function runTests() {
-  server = app.listen(PORT);
-  console.log(`[TEST] Verification server running on port ${PORT}`);
-
-  const failures = [];
-
-  const assertStatus = async (name, url, options, expectedStatus, expectedDetailContains = null) => {
-    try {
-      const res = await fetch(`http://localhost:${PORT}${url}`, options);
-      if (res.status !== expectedStatus) {
-        failures.push(`${name}: expected status ${expectedStatus}, got ${res.status}`);
-        return;
-      }
-      if (expectedDetailContains) {
-        const body = await res.json().catch(() => ({}));
-        const detail = body.detail || body.error || JSON.stringify(body);
-        if (!detail.toLowerCase().includes(expectedDetailContains.toLowerCase())) {
-          failures.push(`${name}: response detail "${detail}" does not contain "${expectedDetailContains}"`);
-          return;
-        }
-      }
-      console.log(`  [PASS] ${name}`);
-    } catch (err) {
-      failures.push(`${name}: request failed with error: ${err.message}`);
-    }
-  };
-
-  console.log('\n--- Running Security & Access Control Tests ---');
-
+async function runAuthTests(assertStatus) {
   // Test 1: Unauthenticated sessions list
   await assertStatus(
     'Unauthenticated sessions list rejected (401)',
@@ -184,7 +156,9 @@ async function runTests() {
     },
     401
   );
+}
 
+async function runBolaTests(assertStatus) {
   // Test 3: User A reads User B session (BOLA/IDOR)
   await assertStatus(
     'User A reading User B session rejected (403)',
@@ -280,8 +254,10 @@ async function runTests() {
     },
     200
   );
+}
 
-  // Test 11: Module 2 gating block (No mastery)
+async function runModuleGatingTests(assertStatus) {
+  // Test 11: Module 2 gating block (no mastery for carla_reyes)
   await assertStatus(
     'Module 2 launch without Module 1 mastery rejected (403)',
     '/api/sessions',
@@ -313,7 +289,9 @@ async function runTests() {
     422,
     'No relationship summary found'
   );
+}
 
+async function runDataAccessTests(assertStatus) {
   // Test 13: User A reading User B score rejected (403)
   await assertStatus(
     'User A reading User B score rejected (403)',
@@ -397,7 +375,9 @@ async function runTests() {
     403,
     'cannot query sessions of other users'
   );
+}
 
+async function runScenarioTests(assertStatus) {
   // Test 20: Archived scenario fallback details allowed (200)
   await assertStatus(
     'Archived scenario fallback allowed for details (200)',
@@ -421,6 +401,41 @@ async function runTests() {
     403,
     'Cannot launch an archived scenario'
   );
+}
+
+async function runTests() {
+  server = app.listen(PORT);
+  console.log(`[TEST] Verification server running on port ${PORT}`);
+
+  const failures = [];
+
+  const assertStatus = async (name, url, options, expectedStatus, expectedDetailContains = null) => {
+    try {
+      const res = await fetch(`http://localhost:${PORT}${url}`, options);
+      if (res.status !== expectedStatus) {
+        failures.push(`${name}: expected status ${expectedStatus}, got ${res.status}`);
+        return;
+      }
+      if (expectedDetailContains) {
+        const body = await res.json().catch(() => ({}));
+        const detail = body.detail || body.error || JSON.stringify(body);
+        if (!detail.toLowerCase().includes(expectedDetailContains.toLowerCase())) {
+          failures.push(`${name}: response detail "${detail}" does not contain "${expectedDetailContains}"`);
+          return;
+        }
+      }
+      console.log(`  [PASS] ${name}`);
+    } catch (err) {
+      failures.push(`${name}: request failed with error: ${err.message}`);
+    }
+  };
+
+  console.log('\n--- Running Security & Access Control Tests ---');
+  await runAuthTests(assertStatus);
+  await runBolaTests(assertStatus);
+  await runModuleGatingTests(assertStatus);
+  await runDataAccessTests(assertStatus);
+  await runScenarioTests(assertStatus);
 
   server.close(() => {
     console.log('\n-----------------------------------------------');
@@ -441,3 +456,4 @@ runTests().catch(err => {
   if (server) server.close();
   process.exit(1);
 });
+

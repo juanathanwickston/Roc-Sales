@@ -397,16 +397,10 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
 }
 
 /**
- * Render the performance sidebar: score ring, module completion stats, focus areas.
+ * Calculate summary statistics from the modules data structure.
+ * Returns counts used by renderPerformanceSidebar.
  */
-function renderPerformanceSidebar(progressData) {
-  const sidebar = document.getElementById('performance-sidebar');
-  if (!sidebar) return;
-
-  const modules = progressData?.modules ?? {};
-  const categories = progressData?.categories ?? {};
-
-  // Check if user has any session data
+function calculateProgressStats(modules) {
   let hasSessions = false;
   let totalMastered = 0;
   let totalPersonas = 0;
@@ -433,29 +427,18 @@ function renderPerformanceSidebar(progressData) {
     }
   }
 
-  if (!hasSessions) {
-    sidebar.innerHTML = '<div class="perf-empty">' +
-      '<div class="perf-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>' +
-      '<p class="perf-empty-title">No progress yet</p>' +
-      '<p class="perf-empty-desc">Complete your first practice call to start tracking your performance.</p>' +
-    '</div>';
-    return;
-  }
+  return { hasSessions, totalMastered, totalPersonas, totalAttempts, bestScoreSum, bestScoreCount };
+}
 
-  let html = '';
-
-  // Overall mastery score ring
-  let masteryScore = totalPersonas > 0 ? Math.round((totalMastered / totalPersonas) * 100) : 0;
-  if (bestScoreCount > 0) {
-    // Use average best score as mastery when available
-    masteryScore = Math.round(bestScoreSum / bestScoreCount);
-  }
-
+/**
+ * Build the SVG score ring HTML for the performance sidebar.
+ */
+function buildMasteryRing(masteryScore) {
   const ringColor = masteryScore >= window.SCORE_PASS_THRESHOLD ? 'var(--payroc-blue)' : (masteryScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
   const circumference = 2 * Math.PI * 54;
   const offset = circumference - (masteryScore / 100) * circumference;
 
-  html += '<div class="perf-score-ring">' +
+  return '<div class="perf-score-ring">' +
     '<svg viewBox="0 0 120 120" width="80" height="80">' +
       '<circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-light)" stroke-width="5"/>' +
       '<circle cx="60" cy="60" r="54" fill="none" stroke="' + ringColor + '" stroke-width="5" ' +
@@ -464,25 +447,30 @@ function renderPerformanceSidebar(progressData) {
         'style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.5s ease"/>' +
     '</svg>' +
     '<div class="perf-score-text">' +
-      '<span class="perf-score-number">' + (masteryScore > 0 ? masteryScore : '—') + '</span>' +
+      '<span class="perf-score-number">' + (masteryScore > 0 ? masteryScore : '-') + '</span>' +
       '<span class="perf-score-label">Mastery</span>' +
     '</div>' +
   '</div>';
+}
 
-  const m1Status = getModuleStatus('module1', progressData);
-  const m2Status = getModuleStatus('module2', progressData);
-  const m1Complete = m1Status === 'mastered' ? 1 : 0;
-  const m2Complete = m2Status === 'mastered' ? 1 : 0;
-
-  html += '<div class="perf-stats-grid">' +
+/**
+ * Build the module completion stats grid HTML.
+ */
+function buildStatsGrid(m1Complete, m2Complete, totalAttempts) {
+  return '<div class="perf-stats-grid">' +
     '<div class="perf-stat"><div class="perf-stat-value">' + m1Complete + '/1</div><div class="perf-stat-label">Module 1</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + m2Complete + '/1</div><div class="perf-stat-label">Module 2</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + totalAttempts + '</div><div class="perf-stat-label">Attempts</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + (m1Complete + m2Complete) + '/2</div><div class="perf-stat-label">Total</div></div>' +
   '</div>';
+}
 
-  // Focus Areas (skill bars from categories)
-  html += '<div class="perf-skills-card">' +
+/**
+ * Build the focus areas skill bars HTML from category performance data.
+ * Shows the three weakest categories sorted by latest score ascending.
+ */
+function buildFocusAreas(categories) {
+  let html = '<div class="perf-skills-card">' +
     '<div class="perf-skills-title">Focus Areas</div>';
 
   const catEntries = [];
@@ -497,12 +485,10 @@ function renderPerformanceSidebar(progressData) {
       '<p style="font-size: 12px; color: var(--text-muted); margin: 0;">Complete a practice call to reveal focus areas.</p>' +
     '</div>';
   } else {
-    // Sort ascending by latest score to show weakest first
     catEntries.sort(function(a, b) {
       return (a[1].latest || 0) - (b[1].latest || 0);
     });
 
-    // Show bottom 3 (weakest)
     const focusSkills = catEntries.slice(0, 3);
 
     for (let f = 0; f < focusSkills.length; f++) {
@@ -516,9 +502,9 @@ function renderPerformanceSidebar(progressData) {
       if (catData.trend && catData.trend.length >= 2) {
         const prev = catData.trend[catData.trend.length - 2];
         const curr = catData.trend[catData.trend.length - 1];
-        if (curr > prev) trendArrow = '<span class="skill-trend skill-trend-up">▲</span>';
-        else if (curr < prev) trendArrow = '<span class="skill-trend skill-trend-down">▼</span>';
-        else trendArrow = '<span class="skill-trend skill-trend-same">—</span>';
+        if (curr > prev) trendArrow = '<span class="skill-trend skill-trend-up">&#9650;</span>';
+        else if (curr < prev) trendArrow = '<span class="skill-trend skill-trend-down">&#9660;</span>';
+        else trendArrow = '<span class="skill-trend skill-trend-same">-</span>';
       }
 
       html += '<div class="perf-skill-row" style="margin-bottom: 8px;">' +
@@ -532,10 +518,46 @@ function renderPerformanceSidebar(progressData) {
   }
 
   html += '</div>';
+  return html;
+}
 
-  sidebar.innerHTML = html;
+/**
+ * Render the performance sidebar: score ring, module completion stats, focus areas.
+ */
+function renderPerformanceSidebar(progressData) {
+  const sidebar = document.getElementById('performance-sidebar');
+  if (!sidebar) return;
 
-  // Animate skill bars
+  const modules = progressData?.modules ?? {};
+  const categories = progressData?.categories ?? {};
+
+  const stats = calculateProgressStats(modules);
+
+  if (!stats.hasSessions) {
+    sidebar.innerHTML = '<div class="perf-empty">' +
+      '<div class="perf-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>' +
+      '<p class="perf-empty-title">No progress yet</p>' +
+      '<p class="perf-empty-desc">Complete your first practice call to start tracking your performance.</p>' +
+    '</div>';
+    return;
+  }
+
+  let masteryScore = stats.totalPersonas > 0 ? Math.round((stats.totalMastered / stats.totalPersonas) * 100) : 0;
+  if (stats.bestScoreCount > 0) {
+    masteryScore = Math.round(stats.bestScoreSum / stats.bestScoreCount);
+  }
+
+  const m1Status = getModuleStatus('module1', progressData);
+  const m2Status = getModuleStatus('module2', progressData);
+  const m1Complete = m1Status === 'mastered' ? 1 : 0;
+  const m2Complete = m2Status === 'mastered' ? 1 : 0;
+
+  sidebar.innerHTML =
+    buildMasteryRing(masteryScore) +
+    buildStatsGrid(m1Complete, m2Complete, stats.totalAttempts) +
+    buildFocusAreas(categories);
+
+  // Animate skill bars after render
   setTimeout(function() {
     const bars = sidebar.querySelectorAll('.perf-skill-bar');
     for (let b = 0; b < bars.length; b++) {
@@ -547,6 +569,7 @@ function renderPerformanceSidebar(progressData) {
 /**
  * Render the certificate section if both modules are fully mastered.
  */
+
 function renderCertificate(progressData) {
   const container = document.getElementById('certificate-section');
   if (!container) return;
