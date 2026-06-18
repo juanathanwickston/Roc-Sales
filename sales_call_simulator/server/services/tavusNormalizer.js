@@ -43,7 +43,7 @@ function findEventProperties(rawConversation, eventType) {
  *
  * Returns the transcript string, or null if not available or too short.
  */
-function extractTranscript(rawConversation) {
+function extractTranscript(rawConversation, personaName) {
   if (!rawConversation || typeof rawConversation !== 'object') {
     return null;
   }
@@ -91,7 +91,7 @@ function extractTranscript(rawConversation) {
 
     // Map to readable format and clean text
     var lines = deduplicated.map(function(msg) {
-      var role = msg.role === 'assistant' ? 'Celine' : 'Rep';
+      var role = msg.role === 'assistant' ? (personaName || 'Merchant') : 'Rep';
       var content = cleanTranscriptText(msg.content);
       return '[' + role + ']: ' + content;
     });

@@ -11,7 +11,7 @@ const { requireAuth, requireAnyRole } = require('../middleware/auth');
 const { tavusFetch } = require('../services/tavusClient');
 const { extractTranscript, extractConversationMeta } = require('../services/tavusNormalizer');
 const { processSession, generateCoachingAnalysis, scoreTranscript } = require('../services/postCallProcessor');
-const { COURSE_MODULES, PERSONA_DISPLAY_NAMES } = require('../modules');
+const { COURSE_MODULES, PERSONA_DISPLAY_NAMES, PERSONA_FIRST_NAMES } = require('../modules');
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
 const { getScenario, SCENARIOS_DIR } = require('../services/scenarioLoader');
@@ -730,9 +730,9 @@ router.post('/:id/fetch-transcript', requireAuth, async (req, res) => {
       return sendError(res, req, ownership.status, ownership.error);
     }
 
-    // Look up the session to get the Tavus conversation ID
+    // Look up the session to get the Tavus conversation ID and persona
     const session = await db.query(
-      'SELECT id, tavus_conversation_id, status FROM simulation_sessions WHERE id = $1',
+      'SELECT id, tavus_conversation_id, persona_id, status FROM simulation_sessions WHERE id = $1',
       [req.params.id]
     );
 
@@ -740,7 +740,8 @@ router.post('/:id/fetch-transcript', requireAuth, async (req, res) => {
       return sendError(res, req, 404, 'Session not found');
     }
 
-    const { tavus_conversation_id: conversationId } = session.rows[0];
+    const { tavus_conversation_id: conversationId, persona_id: personaId } = session.rows[0];
+    const personaName = PERSONA_FIRST_NAMES[personaId] || null;
 
     if (!conversationId) {
       return sendError(res, req, 422, 'Session has no Tavus conversation ID');
@@ -773,7 +774,7 @@ router.post('/:id/fetch-transcript', requireAuth, async (req, res) => {
         rawResponse = JSON.stringify(data);
 
         // Use normalizer to extract transcript from vendor-specific fields
-        const text = extractTranscript(data);
+        const text = extractTranscript(data, personaName);
 
         if (text) {
           transcript = text;

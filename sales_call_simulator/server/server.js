@@ -4,6 +4,7 @@
  */
 
 const path = require('path');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const express = require('express');
@@ -123,8 +124,19 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   }
 
   const displayName = name.trim().substring(0, 100);
-  const userId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  const role = config.FACILITATOR_IDS.includes(userId) ? 'admin' : 'user';
+  const baseId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+  // Facilitators keep their clean IDs to match FACILITATOR_IDS config.
+  // All other users get a deterministic hash suffix to prevent name collisions
+  // (e.g. "John Hamilton" vs "John.Hamilton" would otherwise map to the same ID).
+  let userId;
+  if (config.FACILITATOR_IDS.includes(baseId)) {
+    userId = baseId;
+  } else {
+    const hash = crypto.createHash('sha256').update(displayName.toLowerCase()).digest('hex').substring(0, 8);
+    userId = (baseId + '_' + hash).replace(/_+/g, '_');
+  }
+  const role = config.FACILITATOR_IDS.includes(baseId) ? 'admin' : 'user';
 
   if (!config.JWT_SECRET) {
     // Dev mode — return a mock token

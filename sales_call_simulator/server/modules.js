@@ -32,4 +32,11 @@ const PERSONA_DISPLAY_NAMES = {
   david_miller: 'Pastor David Miller – New Hope Community Church',
 };
 
-module.exports = { COURSE_MODULES, PERSONA_DISPLAY_NAMES };
+const PERSONA_FIRST_NAMES = {
+  sam_patel: 'Sam Patel',
+  carla_reyes: 'Carla Reyes',
+  mike_turner: 'Mike Turner',
+  david_miller: 'David Miller',
+};
+
+module.exports = { COURSE_MODULES, PERSONA_DISPLAY_NAMES, PERSONA_FIRST_NAMES };

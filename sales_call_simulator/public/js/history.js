@@ -219,6 +219,7 @@ function renderPagination() {
 async function viewSessionScore(sessionId) {
   currentDetailSessionId = sessionId;
   cachedTranscript = null;
+  cachedCoaching = null;
 
   // Show debrief screen
   if (typeof app !== 'undefined' && app.showScreen) {

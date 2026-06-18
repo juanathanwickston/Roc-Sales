@@ -306,6 +306,9 @@ const callManager = {
     document.getElementById('call-scenario-label').textContent = label;
     document.getElementById('call-status-badge').textContent = 'Connected';
 
+    // Populate call guide sidebar with scenario-specific data
+    this.renderCallGuide(app.currentScenario);
+
     // Show call screen
     app.showScreen('call');
 
@@ -555,10 +558,97 @@ const callManager = {
   },
 
   /**
+   * Populate the call guide sidebar from scenario data.
+   * Renders coaching key concepts as collapsible sections,
+   * common mistakes as an "Areas to Avoid" section,
+   * and rubric weights as the scoring footer.
+   */
+  renderCallGuide(scenario) {
+    var bodyEl = document.getElementById('call-guide-body');
+    var scoringEl = document.getElementById('call-guide-scoring');
+    if (!bodyEl || !scoringEl) return;
+
+    // Update module badge in sidebar header
+    var badges = document.querySelectorAll('#call-sidebar .guide-badge');
+    if (badges.length > 0 && scenario) {
+      badges[0].textContent = scenario.module || 'Module';
+    }
+
+    // If scenario has no coaching_notes, show a minimal fallback
+    if (!scenario || !scenario.coaching_notes) {
+      bodyEl.innerHTML = '<p style="padding:12px;color:var(--text-muted);">Call guide not available for this scenario.</p>';
+      scoringEl.innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    var notes = scenario.coaching_notes;
+
+    // Key concepts section (open by default)
+    if (notes.key_concepts && notes.key_concepts.length > 0) {
+      var conceptId = 'guide-concepts';
+      html += '<div class="guide-section open">';
+      html += '<button class="guide-section-btn" aria-expanded="true" aria-controls="' + conceptId + '">';
+      html += '<span class="guide-section-title">Key Concepts</span>';
+      html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
+      html += '</button>';
+      html += '<div class="guide-section-content" id="' + conceptId + '">';
+      html += '<div class="guide-section-inner"><ul>';
+      for (var i = 0; i < notes.key_concepts.length; i++) {
+        html += '<li>' + esc(notes.key_concepts[i]) + '</li>';
+      }
+      html += '</ul></div></div></div>';
+    }
+
+    // Common mistakes section
+    if (notes.common_mistakes && notes.common_mistakes.length > 0) {
+      var mistakesId = 'guide-mistakes';
+      html += '<div class="guide-section">';
+      html += '<button class="guide-section-btn" aria-expanded="false" aria-controls="' + mistakesId + '">';
+      html += '<span class="guide-section-title">Areas to Avoid</span>';
+      html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
+      html += '</button>';
+      html += '<div class="guide-section-content" id="' + mistakesId + '">';
+      html += '<div class="guide-section-inner guide-mistake"><ul>';
+      for (var j = 0; j < notes.common_mistakes.length; j++) {
+        html += '<li>' + esc(notes.common_mistakes[j]) + '</li>';
+      }
+      html += '</ul></div></div></div>';
+    }
+
+    bodyEl.innerHTML = html;
+
+    // Scoring footer from rubric weights
+    var rubric = scenario.rubric;
+    if (rubric) {
+      var dotColors = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--orange)', 'var(--payroc-blue)', 'var(--text-muted)', 'var(--color-warning)'];
+      var scoringHtml = '<h4>Scoring Criteria</h4>';
+      var colorIndex = 0;
+      var keys = Object.keys(rubric);
+      for (var k = 0; k < keys.length; k++) {
+        var entry = rubric[keys[k]];
+        var weight = entry.weight || 0;
+        if (weight <= 0) continue;
+        var displayName = keys[k].replace(/_/g, ' ').replace(/\b[a-z]/g, function(c) { return c.toUpperCase(); });
+        var color = dotColors[colorIndex % dotColors.length];
+        scoringHtml += '<div class="scoring-row">';
+        scoringHtml += '<span class="scoring-dot" style="background:' + color + '"></span>';
+        scoringHtml += '<span class="scoring-label">' + esc(displayName) + '</span>';
+        scoringHtml += '<span class="scoring-weight">' + weight + '%</span>';
+        scoringHtml += '</div>';
+        colorIndex++;
+      }
+      scoringEl.innerHTML = scoringHtml;
+    } else {
+      scoringEl.innerHTML = '';
+    }
+  },
+
+  /**
    * Update lobby status message.
    */
   updateLobbyStatus(text) {
-    const el = document.getElementById('lobby-status');
+    var el = document.getElementById('lobby-status');
     if (el) el.textContent = text;
   },
 };

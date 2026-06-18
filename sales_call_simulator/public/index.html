@@ -89,6 +89,9 @@
 
     /* ─── Header ─── */
     .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 10px 24px;
       background: #FFFFFF;
       box-shadow: 0 1px 0 rgba(0,0,0,0.06);
@@ -1802,7 +1805,7 @@
 
   <!-- ═══════════════ SCREEN 1: HOME (2-MODULE COURSE) ═══════════════ -->
   <div id="screen-scenarios" class="screen">
-    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <header class="app-header">
       <div class="header-brand">
         <div class="header-brand-icon">
           <img src="payroc-logo.png" alt="Payroc Logo" style="height: 24px; object-fit: contain;">
@@ -1960,145 +1963,13 @@
             <span class="guide-badge guide-badge-green">Module 1</span>
           </div>
 
-          <div class="sidebar-body">
-            <!-- Call Objectives -->
-            <div class="guide-section open">
-              <button class="guide-section-btn" aria-expanded="true" aria-controls="guide-mission">
-                <span class="guide-section-title">Call Objectives</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-mission">
-                <div class="guide-section-inner">
-                  <p><strong>This is a discovery call.</strong> The prospect is a referral who didn't ask for this call and has no interest in Payroc yet.</p>
-                  <p>They are a <strong>suspect</strong> — they fit our Ideal Customer Profile but haven't shown any buying interest. Your job is to <strong>learn about their business</strong>, uncover payment processing pain points, and determine if they're worth pursuing.</p>
-                  <p><strong>What success looks like:</strong> You asked great questions, understood their situation, identified decision-makers and timeline, and earned the right to ask for a follow-up.</p>
-                  <p><strong>What failure looks like:</strong> You pitched Payroc's products before understanding their needs, or you tried to close a deal on the first call.</p>
-                  <p style="color:var(--color-warning);"><strong>Remember:</strong> Do NOT sell. Do NOT pitch. Ask questions, listen, and qualify. The sale comes later.</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 1 -->
-            <div class="guide-section">
-              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step1">
-                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 1</span> Build Rapport</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-step1">
-                <div class="guide-section-inner">
-                  <p>Customer-focused reps seek to understand needs before presenting solutions. Show genuine curiosity about their business.</p>
-                  <ul>
-                    <li>Ask about their business — how long they've been operating, what they do</li>
-                    <li>Reference the referral naturally</li>
-                    <li>Show you're interested in THEM, not just the sale</li>
-                  </ul>
-                  <div class="guide-sample">"I heard great things about your business — how long have you been in this industry?"</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="guide-section">
-              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step2">
-                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 2</span> Discover Pain Points</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-step2">
-                <div class="guide-section-inner">
-                  <p>Use open-ended questions to uncover challenges. You can't solve a problem you don't understand.</p>
-                  <ul>
-                    <li>Ask about their current payment processing setup</li>
-                    <li>Explore frustrations (fees, speed, reporting)</li>
-                    <li>Ask "What happens if nothing changes?"</li>
-                    <li>Quantify the pain — how much is it costing them?</li>
-                  </ul>
-                  <div class="guide-sample">"What are the biggest headaches with your current payment setup?"</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="guide-section">
-              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step3">
-                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 3</span> Qualify (BANT / CHAMP)</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-step3">
-                <div class="guide-section-inner">
-                  <p><strong>BANT:</strong> Budget, Authority, Need, Timeline<br><strong>CHAMP:</strong> Challenges, Authority, Money, Prioritization</p>
-                  <ul>
-                    <li><strong>Budget:</strong> "What budget has been allocated for this?"</li>
-                    <li><strong>Authority:</strong> "Who else is involved in this decision?"</li>
-                    <li><strong>Need:</strong> "What critical pain points are you addressing?"</li>
-                    <li><strong>Timeline:</strong> "When do you need a solution in place?"</li>
-                  </ul>
-                  <div class="guide-sample">"Besides yourself, who would need to be part of the decision to switch processors?"</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 4 -->
-            <div class="guide-section">
-              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-step4">
-                <span class="guide-section-title"><span class="guide-badge guide-badge-blue">Step 4</span> Close for Next Step</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-step4">
-                <div class="guide-section-inner">
-                  <p>Propose a clear, low-commitment next step. Do NOT push for a sale on the first call.</p>
-                  <ul>
-                    <li>Suggest a demo or follow-up with decision-makers present</li>
-                    <li>Set clear expectations for the follow-up</li>
-                    <li>Confirm their interest and timeline</li>
-                  </ul>
-                  <div class="guide-sample">"Would it make sense to set up a quick 15-minute follow-up so we can walk through the numbers together?"</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Areas to Avoid -->
-            <div class="guide-section">
-              <button class="guide-section-btn" aria-expanded="false" aria-controls="guide-mistakes">
-                <span class="guide-section-title">Areas to Avoid</span>
-                <span class="guide-chevron" aria-hidden="true">▶</span>
-              </button>
-              <div class="guide-section-content" id="guide-mistakes">
-                <div class="guide-section-inner guide-mistake">
-                  <ul>
-                    <li>Feature-dumping before asking about their situation</li>
-                    <li>Treating a suspect like a prospect from minute one</li>
-                    <li>Not asking about other decision-makers (authority)</li>
-                    <li>Failing to quantify pain points</li>
-                    <li>Pushing for a close instead of a follow-up</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+          <div class="sidebar-body" id="call-guide-body">
+            <!-- Populated dynamically by call.js renderCallGuide() -->
           </div>
 
           <!-- Scoring footer -->
-          <div class="sidebar-scoring">
-            <h4>Scoring Criteria</h4>
-            <div class="scoring-row">
-              <span class="scoring-dot" style="background:var(--green)"></span>
-              <span class="scoring-label">Discovery Questions</span>
-              <span class="scoring-weight">30%</span>
-            </div>
-            <div class="scoring-row">
-              <span class="scoring-dot" style="background:var(--blue)"></span>
-              <span class="scoring-label">Qualification Framework</span>
-              <span class="scoring-weight">30%</span>
-            </div>
-            <div class="scoring-row">
-              <span class="scoring-dot" style="background:var(--purple)"></span>
-              <span class="scoring-label">Funnel Awareness</span>
-              <span class="scoring-weight">20%</span>
-            </div>
-            <div class="scoring-row">
-              <span class="scoring-dot" style="background:var(--orange)"></span>
-              <span class="scoring-label">Next Step Close</span>
-              <span class="scoring-weight">20%</span>
-            </div>
+          <div class="sidebar-scoring" id="call-guide-scoring">
+            <!-- Populated dynamically by call.js renderCallGuide() -->
           </div>
         </aside>
       </div>
@@ -2107,7 +1978,7 @@
 
   <!-- ═══════════════ SCREEN 4: DEBRIEF / SCORECARD ═══════════════ -->
   <div id="screen-debrief" class="screen">
-    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <header class="app-header">
       <div class="header-brand">
         <div class="brand-icon" aria-hidden="true"></div>
       </div>
@@ -2244,7 +2115,7 @@
 
   <!-- ═══════════════ SCREEN 5: SESSION HISTORY ═══════════════ -->
   <div id="screen-history" class="screen">
-    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <header class="app-header">
       <div class="header-brand">
         <div class="header-brand-icon">
           <img src="payroc-logo.png" alt="Payroc Logo" style="height: 24px; object-fit: contain;">
@@ -2298,7 +2169,7 @@
 
   <!-- ═══════════════ SCREEN 6: FACILITATOR DASHBOARD ═══════════════ -->
   <div id="screen-facilitator" class="screen">
-    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <header class="app-header">
       <div class="header-brand">
         <div class="header-brand-icon">
           <img src="payroc-logo.png" alt="Payroc Logo" style="height: 24px; object-fit: contain;">

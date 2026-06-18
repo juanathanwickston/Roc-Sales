@@ -22,7 +22,46 @@ const { sendCompletionCallback } = require('./academySync');
 const { config } = require('../config');
 const logger = require('../utils/logger');
 const { getScenario } = require('./scenarioLoader');
+const { PERSONA_FIRST_NAMES } = require('../modules');
 
+// Timeout for OpenAI API requests (milliseconds)
+const OPENAI_TIMEOUT_MS = 60000;
+
+/**
+ * Call OpenAI Chat Completions API with a timeout guard.
+ * Returns the raw content string from the response, or throws on failure.
+ */
+async function callOpenAI(messages, temperature) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages,
+        temperature,
+        response_format: { type: 'json_object' },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 
 /**
@@ -47,19 +86,7 @@ async function processSession(sessionId) {
   await updateStatus(sessionId, 'processing');
 
   try {
-    // 1. Fetch transcript (also stores raw conversation for perception extraction)
-    const { transcript, rawConversationData } = await fetchAndStoreTranscript(sessionId);
-
-    if (!transcript) {
-      logger.warn(`[PostCall] No transcript available for session ${sessionId}`);
-      await updateStatus(sessionId, 'completed');
-      return { status: 'completed', scored: false };
-    }
-
-    // 2. Extract and persist perception analysis (non-blocking)
-    await persistPerceptionAnalysis(sessionId, rawConversationData);
-
-    // 3. Load session to get scenario, module, persona, and user info
+    // 1. Load session metadata (needed for persona name in transcript labeling)
     const session = await db.query(
       'SELECT scenario_id, module_id, persona_id, external_user_id FROM simulation_sessions WHERE id = $1',
       [sessionId]
@@ -68,6 +95,19 @@ async function processSession(sessionId) {
     const moduleId = session.rows[0]?.module_id || null;
     const personaId = session.rows[0]?.persona_id || null;
     const userId = session.rows[0]?.external_user_id || null;
+    const personaName = PERSONA_FIRST_NAMES[personaId] || null;
+
+    // 2. Fetch transcript (also stores raw conversation for perception extraction)
+    const { transcript, rawConversationData } = await fetchAndStoreTranscript(sessionId, personaName);
+
+    if (!transcript) {
+      logger.warn(`[PostCall] No transcript available for session ${sessionId}`);
+      await updateStatus(sessionId, 'completed');
+      return { status: 'completed', scored: false };
+    }
+
+    // 3. Extract and persist perception analysis (non-blocking)
+    await persistPerceptionAnalysis(sessionId, rawConversationData);
 
     // 4. Load scenario config (for auto-fail triggers)
     const scenarioConfig = getScenario(scenarioId) || {};
@@ -116,7 +156,7 @@ async function processSession(sessionId) {
  * Fetch transcript from Tavus and store in session_transcripts.
  * Returns the normalized transcript text, or null if unavailable.
  */
-async function fetchAndStoreTranscript(sessionId) {
+async function fetchAndStoreTranscript(sessionId, personaName) {
   // Check if transcript already exists
   const existing = await db.query(
     'SELECT normalized_transcript FROM session_transcripts WHERE session_id = $1',
@@ -169,7 +209,7 @@ async function fetchAndStoreTranscript(sessionId) {
       rawConversationData = data;
 
       // Use normalizer to extract transcript from vendor-specific fields
-      const text = extractTranscript(data);
+      const text = extractTranscript(data, personaName);
 
       if (text) {
         transcript = text;
@@ -302,30 +342,11 @@ async function scoreTranscript(transcript, scenarioId) {
  */
 async function callOpenAIForScoring(prompt) {
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: prompt.system },
-          { role: 'user', content: prompt.user },
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      }),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    const content = await callOpenAI([
+      { role: 'system', content: prompt.system },
+      { role: 'user', content: prompt.user },
+    ], 0.2);
+    return JSON.parse(content);
   } catch (err) {
     logger.error('[PostCall] OpenAI scoring call failed:', err.message);
     return null;
@@ -672,33 +693,15 @@ ${transcript}
 Extract the relationship summary. Return JSON only.`,
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: prompt.system },
-          { role: 'user', content: prompt.user },
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      }),
-    });
+    const rawContent = await callOpenAI([
+      { role: 'system', content: prompt.system },
+      { role: 'user', content: prompt.user },
+    ], 0.2);
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
     let summaryJson;
 
     try {
-      summaryJson = JSON.parse(data.choices[0].message.content);
+      summaryJson = JSON.parse(rawContent);
     } catch (parseErr) {
       logger.error('[PostCall] Failed to parse relationship summary response:', parseErr.message);
       return;
@@ -888,32 +891,13 @@ async function generateCoachingAnalysis({ transcript, scenarioId, scorecard }) {
 
     logger.info(`[PostCall] Generating coaching analysis for scenario ${scenarioId}...`);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: prompt.system },
-          { role: 'user', content: prompt.user },
-        ],
-        temperature: 0.4,
-        response_format: { type: 'json_object' },
-      }),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `OpenAI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const rawContent = await callOpenAI([
+      { role: 'system', content: prompt.system },
+      { role: 'user', content: prompt.user },
+    ], 0.4);
 
     try {
-      const coaching = JSON.parse(data.choices[0].message.content);
+      const coaching = JSON.parse(rawContent);
       logger.info(`[PostCall] Coaching analysis generated for scenario ${scenarioId}`);
       return coaching;
     } catch (parseErr) {
