@@ -497,7 +497,10 @@ function calculateMechanicalScore(extraction, rubric, autoFailTriggers) {
       observed_count: observed.length,
       total_count: behaviors.length,
       verdict: verdict,
-      evidence: checklist,
+      evidence: behaviors.reduce(function(acc, b) {
+        if (checklist[b.id]) acc[b.id] = checklist[b.id];
+        return acc;
+      }, {}),
     };
   }
 

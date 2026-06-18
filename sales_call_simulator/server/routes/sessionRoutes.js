@@ -58,10 +58,10 @@ async function checkSessionOwnership(req, res, sessionId) {
 // Both files have independent transcript fetch paths that need these values.
 const { TRANSCRIPT_RETRY_DELAY_MS } = require('../services/tavusNormalizer');
 
-// MAX_TRANSCRIPT_ATTEMPTS is defined locally because the main pipeline
-// (postCallProcessor) uses a time-based ceiling instead of fixed attempts.
-// This endpoint uses a simpler fixed-attempt approach for direct fetches.
-const MAX_TRANSCRIPT_ATTEMPTS = 10;
+// MAX_TRANSCRIPT_ATTEMPTS is capped low here because this route is a direct fetch
+// utility, not the main processing pipeline. The pipeline (postCallProcessor) handles
+// retries over a longer window internally. Keeping this short prevents long HTTP holds.
+const MAX_TRANSCRIPT_ATTEMPTS = 3;
 
 // Valid session statuses and their allowed transitions
 const STATUS_TRANSITIONS = {
@@ -1104,29 +1104,42 @@ router.post('/:id/rescore', requireAuth, requireAnyRole('admin'), async (req, re
       return sendError(res, req, 500, 'Scoring failed.');
     }
 
-    // Persist new score
+    // Persist new score — write all columns to avoid stale values from original score
     const rawResponse = JSON.stringify(scorecard);
     const categories = JSON.stringify(scorecard.categories || {});
     const topStrengths = JSON.stringify(scorecard.top_strengths || []);
     const criticalImprovements = JSON.stringify(scorecard.critical_improvements || []);
+    const coachingAnalysis = scorecard.coaching_analysis ? JSON.stringify(scorecard.coaching_analysis) : null;
+    const autoFails = JSON.stringify(scorecard.automatic_fails_triggered || []);
 
     await db.query(
       `INSERT INTO session_scores
-         (session_id, raw_response, overall_score, overall_verdict, categories, top_strengths, critical_improvements, coaching_tip)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         (session_id, raw_response, overall_score, overall_verdict, categories,
+          top_strengths, critical_improvements, coaching_tip, coaching_analysis,
+          raw_score, final_score, automatic_fails_triggered, rubric_version, scoring_model)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        ON CONFLICT (session_id)
        DO UPDATE SET
          raw_response = $2, overall_score = $3, overall_verdict = $4,
-         categories = $5, top_strengths = $6, critical_improvements = $7, coaching_tip = $8`,
+         categories = $5, top_strengths = $6, critical_improvements = $7,
+         coaching_tip = $8, coaching_analysis = $9,
+         raw_score = $10, final_score = $11, automatic_fails_triggered = $12,
+         rubric_version = $13, scoring_model = $14`,
       [
         sessionId,
         rawResponse,
-        scorecard.overall_score || 0,
+        scorecard.final_score || 0,
         scorecard.overall_verdict || 'unknown',
         categories,
         topStrengths,
         criticalImprovements,
         scorecard.coaching_tip || '',
+        coachingAnalysis,
+        scorecard.raw_score || 0,
+        scorecard.final_score || 0,
+        autoFails,
+        '1.0',
+        'gpt-4o',
       ]
     );
 
