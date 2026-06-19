@@ -17,6 +17,13 @@ function esc(str) {
 }
 
 /**
+ * Format a category key (e.g., "make_the_sale") into display text ("Make The Sale").
+ */
+function formatCategoryName(name) {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+}
+
+/**
  * Helper to inject the roc_token into API requests.
  */
 function fetchWithAuth(url, options = {}) {

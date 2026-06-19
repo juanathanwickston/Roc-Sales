@@ -324,6 +324,7 @@ const callManager = {
    * Start call duration timer.
    */
   startTimer() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
     this.startTime = Date.now();
     const timerEl = document.getElementById('call-timer');
     this.timerInterval = setInterval(() => {
@@ -627,7 +628,7 @@ const callManager = {
         const entry = rubric[keys[k]];
         const weight = entry.weight || 0;
         if (weight <= 0) continue;
-        const displayName = keys[k].replace(/_/g, ' ').replace(/\b[a-z]/g, function(c) { return c.toUpperCase(); });
+        const displayName = formatCategoryName(keys[k]);
         const color = dotColors[colorIndex % dotColors.length];
         scoringHtml += '<div class="scoring-row">';
         scoringHtml += '<span class="scoring-dot" style="background:' + color + '"></span>';

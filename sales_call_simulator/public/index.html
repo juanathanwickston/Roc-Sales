@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sales Call Simulator</title>
   <meta name="description" content="Practice and master consultative sales conversations. Powered by Payroc.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.daily.co; connect-src 'self' https://tavusapi.com https://*.daily.co https://*.wss.daily.co wss://*.daily.co https://api.openai.com; frame-src 'self' https://*.daily.co; media-src 'self' blob: https://*.daily.co; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -621,10 +622,10 @@
     
     .debrief-loading {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; min-height: 400px;
+      height: 100%; min-height: 400px; text-align: center; padding: 48px 0;
     }
     .debrief-loading-card {
-      background: #FFFFFF; padding: 48px; border-radius: var(--rl); box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
+      background: #FFFFFF; padding: 48px; border-radius: var(--r-lg); box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
       display: flex; flex-direction: column; align-items: center; justify-content: center; width: 400px; max-width: 90%; margin: auto; border: 1px solid rgba(0,0,0,0.04);
     }
     .debrief-loading-text { font-weight: var(--fw-semibold); color: var(--payroc-blue); margin-top: 24px; font-size: var(--fs-md); letter-spacing: -0.2px; text-align: center; }
@@ -636,7 +637,7 @@
 
     /* ─── Debrief Screen ─── */
     .debrief-main { flex: 1; padding: 24px 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .debrief-loading { text-align: center; padding: 48px 0; }
+
     .debrief-loading p { color: var(--gray); font-size: var(--fs-sm); margin-top: 16px; }
 
     .score-hero { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }

@@ -422,7 +422,7 @@ function renderCoaching(coaching, scoreData) {
       const total = data.total_count || 0;
       const pct = total > 0 ? Math.round((observed / total) * 100) : 0;
       const barColor = pct >= window.SCORE_PASS_THRESHOLD ? 'var(--green)' : (pct >= window.SCORE_WARNING_THRESHOLD ? 'var(--orange)' : 'var(--red)');
-      const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      const displayName = formatCategoryName(name);
       return '<div class="coaching-stats-row">' +
         '<span class="coaching-stats-label">' + esc(displayName) + '</span>' +
         '<div class="coaching-stats-bar-wrap">' +

@@ -122,7 +122,7 @@ const scoring = {
     container.innerHTML = Object.entries(categories)
       .map(([name, data]) => {
         const verdict = data.verdict || ((data.score >= window.SCORE_PASS_THRESHOLD) ? 'Strong' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'Adequate' : 'Weak'));
-        const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const displayName = formatCategoryName(name);
         const barColor = (data.score >= window.SCORE_PASS_THRESHOLD) ? 'var(--green)' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'var(--orange)' : 'var(--red)');
         const countText = (data.observed_count !== undefined && data.total_count !== undefined)
           ? ` (${data.observed_count}/${data.total_count})`
@@ -257,7 +257,7 @@ const scoring = {
    */
   formatDuration(seconds) {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = String(seconds % 60).padStart(2, '0');
     return `${mins}m ${secs}s`;
   },
 };

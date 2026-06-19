@@ -250,8 +250,8 @@ app.get('*', (req, res) => {
 
 // --- Error Handler ---
 
-app.use((err, req, res, _next) => {
-  if (res.headersSent) return;
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   logger.error('Server error', { error: err.stack || err.message, path: req.path });
   res.status(err.status || 500).json({
     error: config.NODE_ENV === 'development' ? err.message : 'Internal server error',

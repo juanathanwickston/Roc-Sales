@@ -37,6 +37,12 @@ function requireAuth(req, res, next) {
  * Optional auth - sets req.user if token present, continues regardless.
  */
 function optionalAuth(req, res, next) {
+  // Dev bypass: if no JWT_SECRET configured, use dev identity
+  if (!config.JWT_SECRET) {
+    req.user = { userId: 'dev-user', role: 'user' };
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     req.user = null;

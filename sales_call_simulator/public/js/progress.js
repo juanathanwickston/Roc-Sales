@@ -494,7 +494,7 @@ function buildFocusAreas(categories) {
     for (let f = 0; f < focusSkills.length; f++) {
       const catName = focusSkills[f][0];
       const catData = focusSkills[f][1];
-      const displayName = catName.replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
+      const displayName = formatCategoryName(catName);
       const latestScore = catData.latest || 0;
       const barColor2 = latestScore >= window.SCORE_PASS_THRESHOLD ? 'var(--color-pass)' : (latestScore >= window.SCORE_WARNING_THRESHOLD ? 'var(--color-warning)' : 'var(--color-fail)');
 
