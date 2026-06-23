@@ -487,7 +487,10 @@ const app = {
 
     this.showScreen('debrief');
     const scenarioName = this.currentScenario ? this.currentScenario.name : 'Sales Call Simulation';
-    document.getElementById('debrief-scenario-name').textContent = scenarioName;
+    const debriefScenarioNameEl = document.getElementById('debrief-scenario-name');
+    if (debriefScenarioNameEl) {
+      debriefScenarioNameEl.textContent = scenarioName;
+    }
     document.getElementById('debrief-loading').style.display = 'flex';
     document.getElementById('debrief-content').style.display = 'none';
 

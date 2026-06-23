@@ -472,9 +472,13 @@ const callManager = {
 
     // Leave the Daily room first (stops media)
     if (this.callObject) {
-      this.callObject.leave().catch(function() {});
-      this.callObject.destroy().catch(function() {});
+      const co = this.callObject;
       this.callObject = null;
+      co.leave().then(() => {
+        co.destroy().catch(() => {});
+      }).catch(() => {
+        co.destroy().catch(() => {});
+      });
     }
 
     // Transition to debrief - backend handles scoring via POST /process
@@ -488,9 +492,13 @@ const callManager = {
     this._ending = false;
     this.stopTimer();
     if (this.callObject) {
-      this.callObject.leave().catch(() => {});
-      this.callObject.destroy().catch(() => {});
+      const co = this.callObject;
       this.callObject = null;
+      co.leave().then(() => {
+        co.destroy().catch(() => {});
+      }).catch(() => {
+        co.destroy().catch(() => {});
+      });
     }
     this.conversationId = null;
     this.conversationUrl = null;
