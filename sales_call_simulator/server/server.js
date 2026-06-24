@@ -299,10 +299,11 @@ app.get('/launch-unsigned', authLimiter, (req, res) => {
 });
 
 /**
- * POST /launch-lti - LTI 1.0 launch from Docebo.
+ * POST /launch-lti/:moduleId - LTI 1.1 launch from Docebo.
+ * Module ID is encoded in the URL path since Docebo lacks custom parameter support.
  * Verifies OAuth 1.0 signature, resolves persona assignment, redirects to simulator.
  */
-app.post('/launch-lti', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
+app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
   if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
     return res.status(500).json({ error: 'LTI is not configured on this server' });
   }
@@ -320,18 +321,20 @@ app.post('/launch-lti', authLimiter, express.urlencoded({ extended: false }), as
   });
 });
 
+const VALID_LTI_MODULES = new Set(['module4', 'module5']);
+
 async function handleLtiLaunch(req, res) {
   const ltiUserId = req.body.lis_person_contact_email_primary
     || req.body.user_id
     || '';
   const userId = sanitizeLaunchUserId(ltiUserId);
-  const moduleId = req.body.custom_module_id || '';
+  const moduleId = req.params.moduleId;
 
   if (!userId) {
     return res.status(400).json({ error: 'LTI launch missing user identity' });
   }
-  if (!moduleId) {
-    return res.status(400).json({ error: 'LTI launch missing module_id custom parameter' });
+  if (!VALID_LTI_MODULES.has(moduleId)) {
+    return res.status(400).json({ error: 'Invalid module ID. Must be module4 or module5.' });
   }
 
   const assignmentResult = await db.query(
