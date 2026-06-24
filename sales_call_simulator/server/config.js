@@ -40,6 +40,8 @@ const config = {
   DOCEBO_BASE_URL: process.env.DOCEBO_BASE_URL || '',
   DOCEBO_CLIENT_ID: process.env.DOCEBO_CLIENT_ID || '',
   DOCEBO_CLIENT_SECRET: process.env.DOCEBO_CLIENT_SECRET || '',
+  DOCEBO_USERNAME: process.env.DOCEBO_USERNAME || '',
+  DOCEBO_PASSWORD: process.env.DOCEBO_PASSWORD || '',
 
   // Training gate — access code shared with reps to gate login
   TRAINING_ACCESS_CODE: process.env.TRAINING_ACCESS_CODE || '',

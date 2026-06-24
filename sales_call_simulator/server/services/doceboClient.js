@@ -32,9 +32,11 @@ async function getAccessToken() {
 
   const url = `${config.DOCEBO_BASE_URL}/oauth2/token`;
   const body = new URLSearchParams({
-    grant_type: 'client_credentials',
+    grant_type: 'password',
     client_id: config.DOCEBO_CLIENT_ID,
     client_secret: config.DOCEBO_CLIENT_SECRET,
+    username: config.DOCEBO_USERNAME,
+    password: config.DOCEBO_PASSWORD,
     scope: 'api',
   });
 
@@ -101,12 +103,21 @@ async function getAssignedPersona(email) {
     return null;
   }
 
+  // DEBUG: log all field_* keys to identify the persona field
+  const fieldKeys = Object.keys(user).filter((k) => k.startsWith('field_'));
+  const fieldData = {};
+  for (const k of fieldKeys) {
+    fieldData[k] = user[k];
+  }
+  logger.info('Docebo user fields (debug)', { email: masked, fields: fieldData });
+
   // field_15 = "Assigned Persona (Simulations)"
-  const persona = user.field_15 || null;
+  const rawPersona = user.field_15;
+  const persona = (typeof rawPersona === 'string' ? rawPersona.trim() : rawPersona) || null;
   if (persona) {
-    logger.info('Docebo persona resolved', { email: masked, persona });
+    logger.info('Docebo persona resolved', { email: masked, persona, rawType: typeof rawPersona });
   } else {
-    logger.warn('Docebo user has no persona assigned', { email: masked });
+    logger.warn('Docebo user has no persona assigned', { email: masked, rawValue: rawPersona });
   }
 
   return persona;
