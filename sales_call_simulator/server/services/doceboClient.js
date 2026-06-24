@@ -119,6 +119,8 @@ async function getAssignedPersona(email) {
   const searchUrl = `${config.DOCEBO_BASE_URL}/manage/v1/user`
     + `?search_text=${encodeURIComponent(email)}&page_size=5`;
 
+  logger.info('Docebo user search (debug)', { url: searchUrl.replace(/search_text=[^&]+/, `search_text=${masked}`), email: masked });
+
   const res = await fetch(searchUrl, {
     method: 'GET',
     headers: { Authorization: `Bearer ${token}` },
@@ -126,7 +128,6 @@ async function getAssignedPersona(email) {
   });
 
   if (res.status === 401) {
-    // Token expired or revoked — clear cache so next call gets a fresh token
     clearTokenCache();
     logger.error('Docebo user search returned 401, token cache cleared', { email: masked });
     return null;
@@ -138,6 +139,14 @@ async function getAssignedPersona(email) {
   }
 
   const data = await res.json();
+
+  // DEBUG: log raw response keys to verify structure
+  logger.info('Docebo search response (debug)', {
+    hasData: !!data.data,
+    itemCount: data.data && data.data.items ? data.data.items.length : 0,
+    totalCount: data.data && data.data.count,
+    topLevelKeys: Object.keys(data),
+  });
 
   // Validate response structure before accessing nested fields
   if (!data || typeof data !== 'object') {
