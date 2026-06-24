@@ -1775,6 +1775,13 @@
   <!-- Toast container for all notifications -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- Hide login screen immediately during launch redirects (runs before paint) -->
+  <script>
+    if (window.location.search.indexOf('token=') !== -1) {
+      document.write('<style>#screen-login{display:none!important}</style>');
+    }
+  </script>
+
   <!-- ═══════════════ SCREEN 0: LOGIN ═══════════════ -->
   <div id="screen-login" class="screen active">
     <div class="login-backdrop">
