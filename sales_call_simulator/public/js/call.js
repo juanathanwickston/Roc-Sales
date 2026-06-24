@@ -44,7 +44,7 @@ const callManager = {
       }
 
       // Fetch relationship continuity summary for Module 2 scenarios
-      if (scenario.module_id === 'module2' && scenario.persona_id) {
+      if (scenario.module_id === 'module5' && scenario.persona_id) {
         try {
           const notesRes = await fetchWithAuth('/api/sessions/continuity?personaId=' + scenario.persona_id);
           if (notesRes.ok) {

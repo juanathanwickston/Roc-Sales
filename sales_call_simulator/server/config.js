@@ -32,6 +32,10 @@ const config = {
   // Static key for bypass/unsigned launches (optional)
   SIMULATOR_LAUNCH_KEY: process.env.SIMULATOR_LAUNCH_KEY || '',
 
+  // LTI integration
+  LTI_CONSUMER_KEY: process.env.LTI_CONSUMER_KEY || '',
+  LTI_SHARED_SECRET: process.env.LTI_SHARED_SECRET || '',
+
   // Training gate — access code shared with reps to gate login
   TRAINING_ACCESS_CODE: process.env.TRAINING_ACCESS_CODE || '',
 

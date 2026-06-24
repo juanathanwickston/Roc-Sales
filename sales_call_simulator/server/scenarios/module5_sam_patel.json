@@ -1,8 +1,8 @@
 {
-  "id": "module2_sam_patel",
-  "module_id": "module2",
+  "id": "module5_sam_patel",
+  "module_id": "module5",
   "persona_id": "sam_patel",
-  "continuity_source_module_id": "module1",
+  "continuity_source_module_id": "module4",
   "name": "Module 2: Close the Sale - Sam Patel (QuickStop Market)",
   "description": "Return to Sam Patel at QuickStop Market for a follow-up closing call. Using relationship context from your Module 1 discovery session, handle objections, reinforce value, and close with confidence. Sam is a Controller-style buyer who expects you to remember what you discussed and deliver on the next step you earned.",
   "module": "Module 2 - Close the Sale",

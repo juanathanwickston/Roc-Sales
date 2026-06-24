@@ -93,6 +93,7 @@ const { optionalAuth, requireAuth, requireAnyRole, verifyLaunchToken } = require
 const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
 const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessionRoutes');
+const assignmentRoutes = require('./routes/assignmentRoutes');
 
 // --- Standalone Auth ---
 // Lightweight token endpoint for standalone mode.
@@ -180,6 +181,7 @@ app.use('/api/tavus', requireAuth, tavusRoutes);
 app.use('/api/scenarios', scenarioRoutes); // Always public
 app.use('/api/sessions', requireAuth, sessionRoutes);
 app.get('/api/admin/dashboard', requireAuth, requireAnyRole('manager', 'admin'), adminDashboardHandler);
+app.use('/api/assignments', requireAuth, requireAnyRole('admin'), assignmentRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -295,6 +297,63 @@ app.get('/launch-unsigned', authLimiter, (req, res) => {
   logger.info('Unsigned launch redirect', { userId, scenarioId });
   res.redirect(`/?${params.toString()}`);
 });
+
+/**
+ * POST /launch-lti - LTI 1.0 launch from Docebo.
+ * Verifies OAuth 1.0 signature, resolves persona assignment, redirects to simulator.
+ */
+app.post('/launch-lti', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
+  if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
+    return res.status(500).json({ error: 'LTI is not configured on this server' });
+  }
+
+  const lti = require('ims-lti');
+  const provider = new lti.Provider(config.LTI_CONSUMER_KEY, config.LTI_SHARED_SECRET);
+
+  provider.valid_request(req, (err, isValid) => {
+    if (err || !isValid) {
+      logger.warn('LTI signature verification failed', { error: err ? err.message : 'invalid' });
+      return res.status(401).json({ error: 'Invalid LTI launch signature' });
+    }
+
+    handleLtiLaunch(req, res);
+  });
+});
+
+async function handleLtiLaunch(req, res) {
+  const ltiUserId = req.body.lis_person_contact_email_primary
+    || req.body.user_id
+    || '';
+  const userId = sanitizeLaunchUserId(ltiUserId);
+  const moduleId = req.body.custom_module_id || '';
+
+  if (!userId) {
+    return res.status(400).json({ error: 'LTI launch missing user identity' });
+  }
+  if (!moduleId) {
+    return res.status(400).json({ error: 'LTI launch missing module_id custom parameter' });
+  }
+
+  const assignmentResult = await db.query(
+    'SELECT persona_id FROM persona_assignments WHERE external_user_id = $1',
+    [userId]
+  );
+
+  if (assignmentResult.rows.length === 0) {
+    return res.status(404).json({ error: 'No persona assigned for this user. Contact your administrator.' });
+  }
+
+  const personaId = assignmentResult.rows[0].persona_id;
+  const scenarioId = `${moduleId}_${personaId}`;
+
+  const userToken = signUserToken(userId, userId, 'user');
+  const params = buildLaunchRedirectParams(userToken, {
+    scenarioId, userId, moduleId,
+  });
+
+  logger.info('LTI launch redirect', { userId, moduleId, personaId, scenarioId });
+  res.redirect(`/?${params.toString()}`);
+}
 
 // --- Static Files ---
 

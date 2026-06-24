@@ -787,7 +787,7 @@ function loadCurriculum(scenarioId) {
 
     const curriculumDir = path.join(__dirname, '..', 'curriculum');
 
-    // Map scenarioId to curriculum filename: module1_identifying_customer -> module1_identifying_customer.md
+    // Map scenarioId to curriculum filename: module4_identifying_customer -> module4_identifying_customer.md
     const filePath = path.join(curriculumDir, scenarioId + '.md');
 
     if (fs.existsSync(filePath)) {

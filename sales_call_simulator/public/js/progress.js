@@ -42,12 +42,12 @@ const PERSONA_META = {
  * Module metadata — static descriptions for each module.
  */
 const MODULE_META = {
-  module1: {
+  module4: {
     number: 1,
     name: 'Discovery & Qualification',
     description: 'Build rapport, ask the right discovery questions, qualify using BANT/CHAMP, and close for a next step.'
   },
-  module2: {
+  module5: {
     number: 2,
     name: 'Objection Handling & Close',
     description: 'Handle real-world objections, present tailored solutions, and guide the prospect toward a buying decision.'
@@ -115,12 +115,12 @@ function renderModuleCardsFallback() {
   if (!container) return;
 
   let html = '';
-  const moduleIds = ['module1', 'module2'];
+  const moduleIds = ['module4', 'module5'];
 
   for (let i = 0; i < moduleIds.length; i++) {
     const moduleId = moduleIds[i];
     const meta = MODULE_META[moduleId] || {};
-    const isLocked = moduleId === 'module2';
+    const isLocked = moduleId === 'module5';
 
     html += '<div class="module-card' + (isLocked ? ' module-card-locked' : '') + '" data-module-id="' + moduleId + '">' +
       '<div class="module-card-header">' +
@@ -148,9 +148,9 @@ function getModuleStatus(moduleId, progressData) {
   const modules = progressData?.modules ?? {};
   const mod = modules[moduleId];
 
-  if (moduleId === 'module2') {
-    // Module 2 is locked unless at least one persona is mastered in Module 1
-    const mod1 = modules['module1'];
+  if (moduleId === 'module5') {
+    // Module 5 is locked unless at least one persona is mastered in Module 4
+    const mod1 = modules['module4'];
     if (!mod1 || !mod1.personas) return 'locked';
     let anyMastered = false;
     const personas = mod1.personas;
@@ -201,7 +201,7 @@ function renderModuleCards(modulesData, progressData) {
   const container = document.getElementById('module-cards');
   if (!container) return;
 
-  const moduleIds = ['module1', 'module2'];
+  const moduleIds = ['module4', 'module5'];
   let html = '';
 
   for (let i = 0; i < moduleIds.length; i++) {
@@ -318,8 +318,8 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
 
   // For Module 2, check Module 1 mastery
   let mod1Personas = {};
-  if (moduleId === 'module2' && modules['module1']) {
-    mod1Personas = modules['module1'].personas || {};
+  if (moduleId === 'module5' && modules['module4']) {
+    mod1Personas = modules['module4'].personas || {};
   }
 
   // Get scenario IDs from modules data if available
@@ -345,7 +345,7 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
     // Check lock for Module 2
     let isLocked = false;
     let lockReason = '';
-    if (moduleId === 'module2') {
+    if (moduleId === 'module5') {
       const mod1PersonaProgress = mod1Personas[pid] || {};
       if (!mod1PersonaProgress.mastered) {
         isLocked = true;
@@ -408,7 +408,7 @@ function calculateProgressStats(modules) {
   let bestScoreSum = 0;
   let bestScoreCount = 0;
 
-  const moduleIds = ['module1', 'module2'];
+  const moduleIds = ['module4', 'module5'];
   for (let m = 0; m < moduleIds.length; m++) {
     const mod = modules[moduleIds[m]];
     if (!mod || !mod.personas) continue;
@@ -547,8 +547,8 @@ function renderPerformanceSidebar(progressData) {
     masteryScore = Math.round(stats.bestScoreSum / stats.bestScoreCount);
   }
 
-  const m1Status = getModuleStatus('module1', progressData);
-  const m2Status = getModuleStatus('module2', progressData);
+  const m1Status = getModuleStatus('module4', progressData);
+  const m2Status = getModuleStatus('module5', progressData);
   const m1Complete = m1Status === 'mastered' ? 1 : 0;
   const m2Complete = m2Status === 'mastered' ? 1 : 0;
 

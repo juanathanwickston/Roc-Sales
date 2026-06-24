@@ -7,20 +7,20 @@
 
 const COURSE_MODULES = [
   {
-    id: 'module1',
-    name: 'Module 1: Discovery & Make the Sale',
-    shortName: 'Discovery',
+    id: 'module4',
+    name: 'Module 4: Make the Sale',
+    shortName: 'Make the Sale',
     description: 'Conduct effective discovery, identify business pain points, align the correct Payroc solution, and earn a next step.',
     order: 1,
     personas: ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'],
   },
   {
-    id: 'module2',
-    name: 'Module 2: Close the Sale',
-    shortName: 'Close',
-    description: 'Handle objections, reinforce value, and close with confidence using relationship context from Module 1.',
+    id: 'module5',
+    name: 'Module 5: Close the Sale',
+    shortName: 'Close the Sale',
+    description: 'Handle objections, reinforce value, and close with confidence using relationship context from Module 4.',
     order: 2,
-    prerequisiteModuleId: 'module1',
+    prerequisiteModuleId: 'module4',
     personas: ['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller'],
   },
 ];

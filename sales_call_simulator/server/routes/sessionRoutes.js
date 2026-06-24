@@ -237,25 +237,25 @@ router.post('/', requireAuth, async (req, res) => {
     let relationshipSummaryJson = null;
 
     // Module 2 prerequisite checks
-    if (moduleId === 'module2' && personaId) {
+    if (moduleId === 'module5' && personaId) {
       // Check mastery of Module 1 for this persona
       const masteryResult = await db.query(
         `SELECT mastery_score FROM module_masteries
-         WHERE external_user_id = $1 AND module_id = 'module1' AND persona_id = $2`,
+         WHERE external_user_id = $1 AND module_id = 'module4' AND persona_id = $2`,
          [externalUserId, personaId]
       );
 
       if (masteryResult.rows.length === 0) {
-        return sendError(res, req, 403, 'Module 1 mastery required before starting Module 2 for this persona.');
+        return sendError(res, req, 403, 'Module 4 mastery required before starting Module 5 for this persona.');
       }
 
-      // Retrieve the most recent passing Module 1 session's relationship summary
+      // Retrieve the most recent passing Module 4 session's relationship summary
       const summaryResult = await db.query(
         `SELECT s.relationship_summary, s.relationship_summary_json
          FROM simulation_sessions s
          INNER JOIN session_scores sc ON sc.session_id = s.id
          WHERE s.external_user_id = $1
-           AND s.module_id = 'module1'
+           AND s.module_id = 'module4'
            AND s.persona_id = $2
            AND s.status = 'completed'
            AND s.relationship_summary IS NOT NULL
@@ -268,7 +268,7 @@ router.post('/', requireAuth, async (req, res) => {
       );
 
       if (summaryResult.rows.length === 0) {
-        return sendError(res, req, 422, 'No relationship summary found from a passing Module 1 session for this persona.');
+        return sendError(res, req, 422, 'No relationship summary found from a passing Module 4 session for this persona.');
       }
 
       relationshipSummary = summaryResult.rows[0].relationship_summary;
@@ -324,13 +324,13 @@ router.get('/continuity', requireAuth, async (req, res) => {
       return sendError(res, req, 400, 'Invalid personaId');
     }
 
-    // Retrieve latest passing Module 1 session's summary (final_score >= 80, pass)
+    // Retrieve latest passing Module 4 session's summary (final_score >= 80, pass)
     const result = await db.query(
       `SELECT s.relationship_summary, s.relationship_summary_json, sc.final_score
        FROM simulation_sessions s
        INNER JOIN session_scores sc ON sc.session_id = s.id
        WHERE s.external_user_id = $1
-         AND s.module_id = 'module1'
+         AND s.module_id = 'module4'
          AND s.persona_id = $2
          AND s.status = 'completed'
          AND s.relationship_summary IS NOT NULL
@@ -343,7 +343,7 @@ router.get('/continuity', requireAuth, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return sendError(res, req, 404, 'No passing Module 1 summary found for this persona.');
+      return sendError(res, req, 404, 'No passing Module 4 summary found for this persona.');
     }
 
     const payload = {
@@ -406,7 +406,7 @@ router.get('/progress', requireAuth, async (req, res) => {
       [userId]
     );
 
-    // Build mastery lookup: { "module1:sam_patel": { mastery_score: 85 } }
+    // Build mastery lookup: { "module4:sam_patel": { mastery_score: 85 } }
     const masteryLookup = {};
     for (const m of masteriesResult.rows) {
       masteryLookup[`${m.module_id}:${m.persona_id}`] = {
@@ -461,8 +461,8 @@ router.get('/progress', requireAuth, async (req, res) => {
     const certificates = {};
     const allPersonas = [...new Set(COURSE_MODULES.flatMap(m => m.personas))];
     for (const personaId of allPersonas) {
-      const m1Key = `module1:${personaId}`;
-      const m2Key = `module2:${personaId}`;
+      const m1Key = `module4:${personaId}`;
+      const m2Key = `module5:${personaId}`;
       certificates[personaId] = {
         unlocked: !!(masteryLookup[m1Key] && masteryLookup[m2Key])
       };

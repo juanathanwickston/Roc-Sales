@@ -53,7 +53,7 @@ const facilitator = {
     const summary = data.summary || {};
     const masteries = data.masteries || [];
 
-    // Build mastery lookup: userId -> { module1: bool, module2: bool }
+    // Build mastery lookup: userId -> { module4: bool, module5: bool }
     const masteryMap = {};
     for (let m = 0; m < masteries.length; m++) {
       const entry = masteries[m];
@@ -74,8 +74,8 @@ const facilitator = {
       '<table class="facilitator-table">' +
       '<thead><tr>' +
         '<th>Rep</th>' +
-        '<th>Module 1</th>' +
-        '<th>Module 2</th>' +
+        '<th>Module 4</th>' +
+        '<th>Module 5</th>' +
         '<th>Attempts</th>' +
         '<th>Best Score</th>' +
         '<th>Avg Score</th>' +
@@ -108,8 +108,8 @@ const facilitator = {
 
         html += '<tr>' +
           '<td class="facilitator-rep-name">' + esc(this.formatName(uid)) + '</td>' +
-          '<td>' + this.statusBadge(um.module1) + '</td>' +
-          '<td>' + this.statusBadge(um.module2) + '</td>' +
+          '<td>' + this.statusBadge(um.module4) + '</td>' +
+          '<td>' + this.statusBadge(um.module5) + '</td>' +
           '<td>' + ud.attempts + '</td>' +
           '<td>' + (ud.bestScore > 0 ? ud.bestScore : '—') + '</td>' +
           '<td>' + (avgScore > 0 ? avgScore : '—') + '</td>' +

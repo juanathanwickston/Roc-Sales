@@ -1,8 +1,8 @@
 {
-  "id": "module2_carla_reyes",
-  "module_id": "module2",
+  "id": "module5_carla_reyes",
+  "module_id": "module5",
   "persona_id": "carla_reyes",
-  "continuity_source_module_id": "module1",
+  "continuity_source_module_id": "module4",
   "name": "Module 2: Close the Sale - Carla Reyes (Studio Collective Salon)",
   "description": "Return to Carla Reyes at Studio Collective Salon for a follow-up closing call. Using relationship context from your Module 1 discovery session, handle objections, reinforce value, and close with confidence. Carla is a Supporter-style buyer who needs reassurance and a smooth transition plan.",
   "module": "Module 2 - Close the Sale",
