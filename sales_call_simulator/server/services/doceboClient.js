@@ -15,7 +15,7 @@ const logger = require('../utils/logger');
 
 const TOKEN_BUFFER_MS = 60_000;
 const API_TIMEOUT_MS = 10_000;
-const PERSONA_FIELD_KEY = 'field_15';
+const PERSONA_FIELD_KEY = 'field_3';
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
