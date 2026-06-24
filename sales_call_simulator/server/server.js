@@ -303,7 +303,7 @@ app.get('/launch-unsigned', authLimiter, (req, res) => {
  * Module ID is encoded in the URL path since Docebo lacks custom parameter support.
  * Verifies OAuth 1.0 signature, resolves persona assignment, redirects to simulator.
  */
-app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
+app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: false }), (req, res) => {
   if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
     return res.status(500).json({ error: 'LTI is not configured on this server' });
   }
@@ -317,7 +317,12 @@ app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: fa
       return res.status(401).json({ error: 'Invalid LTI launch signature' });
     }
 
-    handleLtiLaunch(req, res);
+    handleLtiLaunch(req, res).catch((launchErr) => {
+      logger.error('LTI launch handler failed', { error: launchErr.message });
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Internal error during LTI launch' });
+      }
+    });
   });
 });
 
