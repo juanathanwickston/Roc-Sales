@@ -167,17 +167,10 @@ const app = {
    */
   async initAfterAuth() {
 
-    this.showScreen('scenarios');
-    await this.loadScenarios();
-
-    // Load progress dashboard (non-blocking)
-    if (typeof loadProgress === 'function') {
-      loadProgress().catch(function() {});
-    }
-
-    // Check for launch context (set by GET /launch redirect)
+    // Check for launch context before showing any screen (prevents dashboard flash)
     const params = new URLSearchParams(window.location.search);
     const launchScenarioId = params.get('scenarioId');
+
     if (launchScenarioId) {
       this.launchContext = {
         userId: params.get('userId'),
@@ -189,8 +182,17 @@ const app = {
       // Clear URL params so refresh does not re-trigger launch
       window.history.replaceState({}, '', window.location.pathname);
 
-
+      await this.loadScenarios();
       this.selectScenario(launchScenarioId);
+      return;
+    }
+
+    this.showScreen('scenarios');
+    await this.loadScenarios();
+
+    // Load progress dashboard (non-blocking)
+    if (typeof loadProgress === 'function') {
+      loadProgress().catch(function() {});
     }
   },
 
