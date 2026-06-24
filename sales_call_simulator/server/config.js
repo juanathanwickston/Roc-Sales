@@ -76,6 +76,17 @@ function validateConfig() {
     warnings.push('SIMULATOR_LAUNCH_KEY is not set - static bypass launch will be disabled.');
   }
 
+  // Docebo API — validate all-or-nothing (partial config is a misconfiguration)
+  const doceboVars = ['DOCEBO_BASE_URL', 'DOCEBO_CLIENT_ID', 'DOCEBO_CLIENT_SECRET', 'DOCEBO_USERNAME', 'DOCEBO_PASSWORD'];
+  const doceboSet = doceboVars.filter((k) => config[k]);
+  if (doceboSet.length > 0 && doceboSet.length < doceboVars.length) {
+    const missing = doceboVars.filter((k) => !config[k]);
+    warnings.push(`Docebo API partially configured — missing: ${missing.join(', ')}. LTI persona lookup will fail.`);
+  }
+  if (config.DOCEBO_BASE_URL && !config.DOCEBO_BASE_URL.startsWith('https://')) {
+    warnings.push('DOCEBO_BASE_URL must use HTTPS. Current value is insecure.');
+  }
+
   if (warnings.length > 0) {
     console.warn('\n[CONFIG] Missing configuration:');
     warnings.forEach(w => console.warn(`  - ${w}`));

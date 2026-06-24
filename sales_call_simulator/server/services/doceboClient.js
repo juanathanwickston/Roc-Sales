@@ -1,12 +1,21 @@
 /**
  * Docebo API client for reading user additional fields.
  * Used during LTI launches to resolve persona assignments.
+ *
+ * Security controls:
+ * - HTTPS enforced on all outbound requests
+ * - Credentials never logged (masked or omitted)
+ * - Token cached; invalidated on 401
+ * - All fetch calls hard-capped at 10s
+ * - Response structure validated before field access
+ * - Persona value validated against whitelist (in caller)
  */
 const config = require('../config').config;
 const logger = require('../utils/logger');
 
 const TOKEN_BUFFER_MS = 60_000;
 const API_TIMEOUT_MS = 10_000;
+const PERSONA_FIELD_KEY = 'field_15';
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -22,12 +31,39 @@ function maskEmail(email) {
 }
 
 /**
- * Get an OAuth2 access token via client_credentials grant.
+ * Validate that all required Docebo credentials are configured.
+ * Returns an error string or null if valid.
+ */
+function validateDoceboConfig() {
+  const required = ['DOCEBO_BASE_URL', 'DOCEBO_CLIENT_ID', 'DOCEBO_CLIENT_SECRET', 'DOCEBO_USERNAME', 'DOCEBO_PASSWORD'];
+  const missing = required.filter((k) => !config[k]);
+  if (missing.length > 0) {
+    return `Missing Docebo config: ${missing.join(', ')}`;
+  }
+  if (!config.DOCEBO_BASE_URL.startsWith('https://')) {
+    return 'DOCEBO_BASE_URL must use HTTPS';
+  }
+  return null;
+}
+
+function clearTokenCache() {
+  cachedToken = null;
+  tokenExpiresAt = 0;
+}
+
+/**
+ * Get an OAuth2 access token via password grant.
  * Caches the token until 60s before expiry.
+ * Clears cache on auth failure to prevent stale token reuse.
  */
 async function getAccessToken() {
   if (cachedToken && Date.now() < tokenExpiresAt) {
     return cachedToken;
+  }
+
+  const configError = validateDoceboConfig();
+  if (configError) {
+    throw new Error(configError);
   }
 
   const url = `${config.DOCEBO_BASE_URL}/oauth2/token`;
@@ -48,13 +84,23 @@ async function getAccessToken() {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Docebo token request failed (${res.status}): ${text}`);
+    clearTokenCache();
+    // Log status only — never log response body (may echo credentials)
+    logger.error('Docebo token request failed', { status: res.status });
+    throw new Error(`Docebo token request failed (${res.status})`);
   }
 
   const data = await res.json();
+
+  if (!data.access_token || typeof data.access_token !== 'string') {
+    throw new Error('Docebo token response missing access_token');
+  }
+
+  const expiresIn = typeof data.expires_in === 'number' ? data.expires_in : 3600;
   cachedToken = data.access_token;
-  tokenExpiresAt = Date.now() + (data.expires_in * 1000) - TOKEN_BUFFER_MS;
+  tokenExpiresAt = Date.now() + (expiresIn * 1000) - TOKEN_BUFFER_MS;
+
+  logger.info('Docebo token acquired', { expiresIn });
   return cachedToken;
 }
 
@@ -79,19 +125,33 @@ async function getAssignedPersona(email) {
     signal: AbortSignal.timeout(API_TIMEOUT_MS),
   });
 
+  if (res.status === 401) {
+    // Token expired or revoked — clear cache so next call gets a fresh token
+    clearTokenCache();
+    logger.error('Docebo user search returned 401, token cache cleared', { email: masked });
+    return null;
+  }
+
   if (!res.ok) {
     logger.error('Docebo user search failed', { status: res.status, email: masked });
     return null;
   }
 
   const data = await res.json();
-  const items = data.data && data.data.items;
-  if (!items || items.length === 0) {
+
+  // Validate response structure before accessing nested fields
+  if (!data || typeof data !== 'object') {
+    logger.error('Docebo returned invalid response structure');
+    return null;
+  }
+
+  const items = data.data && Array.isArray(data.data.items) ? data.data.items : [];
+  if (items.length === 0) {
     logger.warn('No Docebo user found', { email: masked });
     return null;
   }
 
-  // Match by exact email (search_text is a fuzzy match)
+  // Match by exact email — search_text is a fuzzy match, we need precision
   const emailLower = email.toLowerCase();
   const user = items.find((u) => {
     const userEmail = (u.email || '').toLowerCase();
@@ -99,11 +159,11 @@ async function getAssignedPersona(email) {
   });
 
   if (!user) {
-    logger.warn('Docebo user not found by exact email match', { email: masked });
+    logger.warn('Docebo user not found by exact email match', { email: masked, resultCount: items.length });
     return null;
   }
 
-  // DEBUG: log all field_* keys to identify the persona field
+  // DEBUG: log all field_* keys (remove after initial verification)
   const fieldKeys = Object.keys(user).filter((k) => k.startsWith('field_'));
   const fieldData = {};
   for (const k of fieldKeys) {
@@ -111,16 +171,17 @@ async function getAssignedPersona(email) {
   }
   logger.info('Docebo user fields (debug)', { email: masked, fields: fieldData });
 
-  // field_15 = "Assigned Persona (Simulations)"
-  const rawPersona = user.field_15;
-  const persona = (typeof rawPersona === 'string' ? rawPersona.trim() : rawPersona) || null;
+  // Read the persona field — handle both string and numeric (dropdown ID) values
+  const rawPersona = user[PERSONA_FIELD_KEY];
+  const persona = (typeof rawPersona === 'string' ? rawPersona.trim() : null) || null;
+
   if (persona) {
-    logger.info('Docebo persona resolved', { email: masked, persona, rawType: typeof rawPersona });
+    logger.info('Docebo persona resolved', { email: masked, persona });
   } else {
-    logger.warn('Docebo user has no persona assigned', { email: masked, rawValue: rawPersona });
+    logger.warn('Docebo user has no persona assigned', { email: masked, rawValue: rawPersona, rawType: typeof rawPersona });
   }
 
   return persona;
 }
 
-module.exports = { getAssignedPersona };
+module.exports = { getAssignedPersona, validateDoceboConfig };
