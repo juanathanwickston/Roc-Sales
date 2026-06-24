@@ -29,6 +29,9 @@ const config = {
   // Simulator Sync — dedicated secret for external completion callbacks
   SIMULATOR_SYNC_SECRET: process.env.SIMULATOR_SYNC_SECRET || '',
 
+  // Static key for bypass/unsigned launches (optional)
+  SIMULATOR_LAUNCH_KEY: process.env.SIMULATOR_LAUNCH_KEY || '',
+
   // Training gate — access code shared with reps to gate login
   TRAINING_ACCESS_CODE: process.env.TRAINING_ACCESS_CODE || '',
 
@@ -57,6 +60,9 @@ function validateConfig() {
   }
   if (!config.TRAINING_ACCESS_CODE) {
     warnings.push('TRAINING_ACCESS_CODE is not set - login will not require an access code.');
+  }
+  if (!config.SIMULATOR_LAUNCH_KEY) {
+    warnings.push('SIMULATOR_LAUNCH_KEY is not set - static bypass launch will be disabled.');
   }
 
   if (warnings.length > 0) {

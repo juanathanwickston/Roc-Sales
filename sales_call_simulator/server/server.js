@@ -203,14 +203,48 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// --- Launch Route ---
+// --- Launch Helpers ---
+
+/**
+ * Sign a user session JWT for use by the client app.
+ * Centralizes token creation to avoid duplication across launch routes.
+ */
+function signUserToken(userId, displayName, role) {
+  if (!config.JWT_SECRET) return 'dev-token';
+  return jwt.sign({ userId, displayName, role }, config.JWT_SECRET, { expiresIn: '24h' });
+}
+
+/**
+ * Build redirect query params for launch routes.
+ * Includes the signed token and all optional LMS context fields.
+ */
+function buildLaunchRedirectParams(token, context) {
+  return new URLSearchParams({
+    token,
+    scenarioId: context.scenarioId,
+    userId: context.userId,
+    ...(context.courseId && { courseId: context.courseId }),
+    ...(context.moduleId && { moduleId: context.moduleId }),
+    ...(context.returnUrl && { returnUrl: context.returnUrl }),
+  });
+}
+
+/**
+ * Sanitize a userId from an external source.
+ * Strips non-alphanumeric characters and caps length to prevent abuse.
+ */
+function sanitizeLaunchUserId(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw.trim().substring(0, 100).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+}
+
+// --- Launch Routes ---
 
 /**
  * GET /launch?token=... - Signed launch entry point for external LMS integration.
- * Validates the JWT, then redirects to the simulator with launch context
- * as query params. The frontend reads these params on load.
+ * Validates the JWT, generates a user session token, then redirects to the simulator.
  */
-app.get('/launch', (req, res) => {
+app.get('/launch', authLimiter, (req, res) => {
   const { token } = req.query;
 
   if (!token) {
@@ -222,16 +256,43 @@ app.get('/launch', (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired launch token' });
   }
 
-  // Redirect to the app with launch context as query params
-  const params = new URLSearchParams({
-    scenarioId: launch.scenarioId,
-    userId: launch.userId,
-    ...(launch.courseId && { courseId: launch.courseId }),
-    ...(launch.moduleId && { moduleId: launch.moduleId }),
-    ...(launch.returnUrl && { returnUrl: launch.returnUrl }),
+  const userToken = signUserToken(launch.userId, launch.userId, 'user');
+  const params = buildLaunchRedirectParams(userToken, launch);
+
+  logger.info('Signed launch redirect', { userId: launch.userId, scenarioId: launch.scenarioId });
+  res.redirect(`/?${params.toString()}`);
+});
+
+/**
+ * GET /launch-unsigned?userId=...&scenarioId=...&key=...
+ * Static-key launch for direct LMS linking (e.g. Docebo Web Page materials).
+ * Validates the key using constant-time comparison, sanitizes userId, and redirects.
+ */
+app.get('/launch-unsigned', authLimiter, (req, res) => {
+  const { scenarioId, key, courseId, moduleId, returnUrl } = req.query;
+  const userId = sanitizeLaunchUserId(req.query.userId);
+
+  if (!userId || !scenarioId || !key) {
+    return res.status(400).json({ error: 'userId, scenarioId, and key are required' });
+  }
+
+  if (!config.SIMULATOR_LAUNCH_KEY) {
+    return res.status(401).json({ error: 'Static launch is not configured on this server' });
+  }
+
+  // Constant-time comparison to prevent timing attacks on the launch key
+  const keyBuffer = Buffer.from(key);
+  const secretBuffer = Buffer.from(config.SIMULATOR_LAUNCH_KEY);
+  if (keyBuffer.length !== secretBuffer.length || !crypto.timingSafeEqual(keyBuffer, secretBuffer)) {
+    return res.status(401).json({ error: 'Invalid launch key' });
+  }
+
+  const userToken = signUserToken(userId, userId, 'user');
+  const params = buildLaunchRedirectParams(userToken, {
+    scenarioId, userId, courseId, moduleId, returnUrl,
   });
 
-  console.log(`[Launch] User ${launch.userId} launching scenario ${launch.scenarioId}`);
+  logger.info('Unsigned launch redirect', { userId, scenarioId });
   res.redirect(`/?${params.toString()}`);
 });
 

@@ -79,6 +79,13 @@ const app = {
   async init() {
     this.bindEvents();
 
+    // Check if token was provided in the launch URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+    if (urlToken) {
+      localStorage.setItem('roc_token', urlToken);
+    }
+
     // Check for existing valid token
     const token = localStorage.getItem('roc_token');
     if (token) {
