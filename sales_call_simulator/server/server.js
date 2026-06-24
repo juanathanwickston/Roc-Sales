@@ -94,6 +94,7 @@ const tavusRoutes = require('./routes/tavusRoutes');
 const scenarioRoutes = require('./routes/scenarioRoutes');
 const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessionRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
+const { verifyLtiSignature } = require('./utils/ltiVerifier');
 
 // --- Standalone Auth ---
 // Lightweight token endpoint for standalone mode.
@@ -303,27 +304,32 @@ app.get('/launch-unsigned', authLimiter, (req, res) => {
  * Module ID is encoded in the URL path since Docebo lacks custom parameter support.
  * Verifies OAuth 1.0 signature, resolves persona assignment, redirects to simulator.
  */
-app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: false }), (req, res) => {
-  if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
-    return res.status(500).json({ error: 'LTI is not configured on this server' });
-  }
+app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
+  try {
+    if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
+      return res.status(500).json({ error: 'LTI is not configured on this server' });
+    }
 
-  const lti = require('ims-lti');
-  const provider = new lti.Provider(config.LTI_CONSUMER_KEY, config.LTI_SHARED_SECRET);
+    // Verify consumer key matches
+    if (req.body.oauth_consumer_key !== config.LTI_CONSUMER_KEY) {
+      logger.warn('LTI consumer key mismatch');
+      return res.status(401).json({ error: 'Invalid LTI consumer key' });
+    }
 
-  provider.valid_request(req, (err, isValid) => {
-    if (err || !isValid) {
-      logger.warn('LTI signature verification failed', { error: err ? err.message : 'invalid' });
+    // Verify OAuth 1.0 HMAC-SHA1 signature
+    const { valid, error } = verifyLtiSignature(req, config.LTI_SHARED_SECRET);
+    if (!valid) {
+      logger.warn('LTI signature verification failed', { error });
       return res.status(401).json({ error: 'Invalid LTI launch signature' });
     }
 
-    handleLtiLaunch(req, res).catch((launchErr) => {
-      logger.error('LTI launch handler failed', { error: launchErr.message });
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Internal error during LTI launch' });
-      }
-    });
-  });
+    await handleLtiLaunch(req, res);
+  } catch (err) {
+    logger.error('LTI launch handler failed', { error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal error during LTI launch' });
+    }
+  }
 });
 
 const VALID_LTI_MODULES = new Set(['module4', 'module5']);
