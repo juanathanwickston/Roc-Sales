@@ -179,6 +179,9 @@ const app = {
         returnUrl: params.get('returnUrl'),
       };
 
+      // Activate LMS kiosk mode — hides dashboard, nav, and escape buttons
+      document.body.classList.add('lms-launch');
+
       // Clear URL params so refresh does not re-trigger launch
       window.history.replaceState({}, '', window.location.pathname);
 

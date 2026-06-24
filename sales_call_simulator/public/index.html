@@ -88,6 +88,17 @@
     .screen { display: none; min-height: 100vh; }
     .screen.active { display: flex; flex-direction: column; }
 
+    /* ─── LMS Kiosk Mode ───
+       When launched from an external LMS, hide all navigation that could
+       take the user away from their assigned simulation module. */
+    .lms-launch #screen-scenarios { display: none !important; }
+    .lms-launch #btn-try-another { display: none !important; }
+    .lms-launch #btn-logout { display: none !important; }
+    .lms-launch #btn-facilitator { display: none !important; }
+    .lms-launch #btn-view-history { display: none !important; }
+    .lms-launch #btn-back-history { display: none !important; }
+    .lms-launch .header-divider { display: none !important; }
+
     /* ─── Header ─── */
     .app-header {
       display: flex;
@@ -1775,10 +1786,13 @@
   <!-- Toast container for all notifications -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Hide login screen immediately during launch redirects (runs before paint) -->
+  <!-- LMS launch detection: hide login and activate kiosk mode before first paint -->
   <script>
     if (window.location.search.indexOf('token=') !== -1) {
       document.write('<style>#screen-login{display:none!important}</style>');
+      if (window.location.search.indexOf('scenarioId=') !== -1) {
+        document.documentElement.classList.add('lms-launch');
+      }
     }
   </script>
 
