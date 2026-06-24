@@ -322,6 +322,7 @@ app.post('/launch-lti/:moduleId', authLimiter, express.urlencoded({ extended: fa
 });
 
 const VALID_LTI_MODULES = new Set(['module4', 'module5']);
+const VALID_PERSONAS = new Set(['sam_patel', 'carla_reyes', 'mike_turner', 'david_miller']);
 
 async function handleLtiLaunch(req, res) {
   const ltiUserId = req.body.lis_person_contact_email_primary
@@ -337,16 +338,25 @@ async function handleLtiLaunch(req, res) {
     return res.status(400).json({ error: 'Invalid module ID. Must be module4 or module5.' });
   }
 
-  const assignmentResult = await db.query(
-    'SELECT persona_id FROM persona_assignments WHERE external_user_id = $1',
-    [userId]
-  );
+  // Resolve persona: prefer Docebo API, fall back to local DB
+  let personaId = null;
 
-  if (assignmentResult.rows.length === 0) {
-    return res.status(404).json({ error: 'No persona assigned for this user. Contact your administrator.' });
+  if (config.DOCEBO_BASE_URL && config.DOCEBO_CLIENT_ID && config.DOCEBO_CLIENT_SECRET) {
+    const { getAssignedPersona } = require('./services/doceboClient');
+    const email = req.body.lis_person_contact_email_primary || ltiUserId;
+    personaId = await getAssignedPersona(email);
+  } else {
+    const result = await db.query(
+      'SELECT persona_id FROM persona_assignments WHERE external_user_id = $1',
+      [userId]
+    );
+    personaId = result.rows.length > 0 ? result.rows[0].persona_id : null;
   }
 
-  const personaId = assignmentResult.rows[0].persona_id;
+  if (!personaId || !VALID_PERSONAS.has(personaId)) {
+    return res.status(404).json({ error: 'No valid persona assigned for this user. Contact your administrator.' });
+  }
+
   const scenarioId = `${moduleId}_${personaId}`;
 
   const userToken = signUserToken(userId, userId, 'user');

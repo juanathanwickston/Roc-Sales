@@ -36,6 +36,11 @@ const config = {
   LTI_CONSUMER_KEY: process.env.LTI_CONSUMER_KEY || '',
   LTI_SHARED_SECRET: process.env.LTI_SHARED_SECRET || '',
 
+  // Docebo API — reads user additional fields for persona resolution
+  DOCEBO_BASE_URL: process.env.DOCEBO_BASE_URL || '',
+  DOCEBO_CLIENT_ID: process.env.DOCEBO_CLIENT_ID || '',
+  DOCEBO_CLIENT_SECRET: process.env.DOCEBO_CLIENT_SECRET || '',
+
   // Training gate — access code shared with reps to gate login
   TRAINING_ACCESS_CODE: process.env.TRAINING_ACCESS_CODE || '',
 
