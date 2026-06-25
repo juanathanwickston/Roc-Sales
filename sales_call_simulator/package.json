@@ -9,7 +9,9 @@
     "lint": "node scripts/check-syntax.js",
     "test:security": "node scripts/test-security-audit.js",
     "ai:verify": "npm run lint && npm run test:security",
-    "verify:readiness": "node scripts/verify-readiness.js"
+    "verify:readiness": "node scripts/verify-readiness.js",
+    "tavus:provision": "node server/scripts/provisionTavus.js",
+    "tavus:provision:apply": "node server/scripts/provisionTavus.js --apply"
   },
   "engines": {
     "node": ">=18"
