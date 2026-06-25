@@ -3,19 +3,19 @@
   "module_id": "module5",
   "persona_id": "mike_turner",
   "continuity_source_module_id": "module4",
-  "name": "Module 2: Close the Sale - Mike Turner (Precision Plumbing & Drain)",
-  "description": "Return to Mike Turner at Precision Plumbing & Drain for a follow-up closing call. Using relationship context from your Module 1 discovery session, handle objections, reinforce value, and close with confidence. Mike is a Doer-style buyer who expects results, speed, and directness.",
-  "module": "Module 2 - Close the Sale",
+  "name": "Module 5: Close the Sale - Mike Turner (Precision Plumbing & Drain)",
+  "description": "Return to Mike Turner at Precision Plumbing & Drain for a follow-up closing call. Using relationship context from your Module 4 discovery session, handle objections, reinforce value, and close with confidence. Mike is a Doer-style buyer who expects results, speed, and directness.",
+  "module": "Module 5 - Close the Sale",
   "difficulty": "advanced",
-  "duration_minutes": 15,
+  "duration_minutes": 10,
   "product": "Roc Services",
   "persona_id_tavus": "pbc47baed055",
   "conversation_config": {
-    "conversation_name": "Module 2: Close the Sale - Mike Turner",
-    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. This is a FOLLOW-UP call. The rep called you previously and discussed your business challenges around payments and operations. You agreed to hear more because the rep seemed practical and understood your situation.\n\nYou are a Doer behavioral style: fast-paced, results-oriented, and direct. You expect the rep to get to the point, reference what was already discussed, and show you exactly how this solves your problems.\n\nYour known challenges from the first call: busy but cash flow could improve, mix of checks and invoices, manual billing. Depending on how well the first call went, you may have also shared: inconsistent tech payments, delayed invoices, 2 to 3 week payment delays, cash flow stress during slow seasons.\n\nObjection logic for the closing call: 'What is this going to cost me monthly?' (if rep has not discussed pricing or ROI), 'My guys are not tech people' (if rep has not addressed field adoption), 'We are too busy to switch right now' (if rep has not addressed timing), 'Just send me something I can look at' (stall tactic, rep should push for commitment).\n\nYou will close if the rep: gets to the point quickly, shows clear cash flow impact, addresses crew adoption simply, demonstrates it works in the field, and asks directly for your business.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation.",
+    "conversation_name": "Module 5: Close the Sale - Mike Turner",
+    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. This is a FOLLOW-UP call. The rep called you previously and discussed your business challenges around payments and operations. You agreed to hear more because the rep seemed practical and understood your situation.\n\nYou are a Doer behavioral style: fast-paced, results-oriented, and direct. You expect the rep to get to the point, reference what was already discussed, and show you exactly how this solves your problems.\n\nYour known challenges from the first call: busy but cash flow could improve, mix of checks and invoices, manual billing. Depending on how well the first call went, you may have also shared: inconsistent tech payments, delayed invoices, 2 to 3 week payment delays, cash flow stress during slow seasons.\n\nObjection logic for the closing call: 'What is this going to cost me monthly?' (if rep has not discussed pricing or ROI), 'My guys are not tech people' (if rep has not addressed field adoption), 'We are too busy to switch right now' (if rep has not addressed timing), 'Just send me something I can look at' (stall tactic, rep should push for commitment).\n\nYou will close if the rep: gets to the point quickly, shows clear cash flow impact, addresses crew adoption simply, demonstrates it works in the field, and asks directly for your business.\n\nTime pressure: You agreed to this follow-up but you are still a busy contractor. If the rep is slow, disorganized, or repeats basic questions, tell them to get to the point or you are hanging up.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation. Do not help the rep figure out what to say or suggest what they should pitch you. Behave like a real, impatient business owner who expects results.",
     "custom_greeting": "Yeah hey, you are the payment guy right? Alright, I have maybe ten minutes. Last time we talked you said you had something that could help with the invoicing mess. Let us hear it.",
     "properties": {
-      "max_call_duration": 900,
+      "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
@@ -25,74 +25,190 @@
     "discovery_and_questioning": {
       "weight": 20,
       "behaviors": [
-        { "id": "DQ1", "description": "Referenced specific details from the previous discovery conversation", "points": 5 },
-        { "id": "DQ2", "description": "Asked targeted follow-up questions to deepen understanding from Module 1", "points": 4 },
-        { "id": "DQ3", "description": "Confirmed or updated understanding of the merchant's priorities since last call", "points": 4 },
-        { "id": "DQ4", "description": "Used reflective listening to validate previously discovered pain points", "points": 4 },
-        { "id": "DQ5", "description": "Did not re-ask questions that were already covered in the first call", "points": 3 }
+        {
+          "id": "DQ1",
+          "description": "Referenced specific details from the previous discovery conversation",
+          "points": 5
+        },
+        {
+          "id": "DQ2",
+          "description": "Asked targeted follow-up questions to deepen understanding from Module 4",
+          "points": 4
+        },
+        {
+          "id": "DQ3",
+          "description": "Confirmed or updated understanding of the merchant's priorities since last call",
+          "points": 4
+        },
+        {
+          "id": "DQ4",
+          "description": "Used reflective listening to validate previously discovered pain points",
+          "points": 4
+        },
+        {
+          "id": "DQ5",
+          "description": "Did not re-ask questions that were already covered in the first call",
+          "points": 3
+        }
       ]
     },
     "problem_identification_and_gap_analysis": {
       "weight": 15,
       "behaviors": [
-        { "id": "PI1", "description": "Reinforced the gap between current state and desired state from discovery", "points": 4 },
-        { "id": "PI2", "description": "Connected ongoing problems to financial or operational consequences", "points": 4 },
-        { "id": "PI3", "description": "Created urgency by highlighting cost of inaction or delay", "points": 4 },
-        { "id": "PI4", "description": "Positioned the solution as the bridge between current and desired state", "points": 3 }
+        {
+          "id": "PI1",
+          "description": "Reinforced the gap between current state and desired state from discovery",
+          "points": 4
+        },
+        {
+          "id": "PI2",
+          "description": "Connected ongoing problems to financial or operational consequences",
+          "points": 4
+        },
+        {
+          "id": "PI3",
+          "description": "Created urgency by highlighting cost of inaction or delay",
+          "points": 4
+        },
+        {
+          "id": "PI4",
+          "description": "Positioned the solution as the bridge between current and desired state",
+          "points": 3
+        }
       ]
     },
     "product_alignment": {
       "weight": 15,
       "behaviors": [
-        { "id": "PA1", "description": "Presented Roc Services with specific alignment to previously discovered needs", "points": 5 },
-        { "id": "PA2", "description": "Customized the solution presentation to this merchant's unique field service situation", "points": 5 },
-        { "id": "PA3", "description": "Provided compelling cash flow improvement justification", "points": 5 }
+        {
+          "id": "PA1",
+          "description": "Presented Roc Services with specific alignment to previously discovered needs",
+          "points": 5
+        },
+        {
+          "id": "PA2",
+          "description": "Customized the solution presentation to this merchant's unique field service situation",
+          "points": 5
+        },
+        {
+          "id": "PA3",
+          "description": "Provided compelling cash flow improvement justification",
+          "points": 5
+        }
       ]
     },
     "feature_to_benefit_translation": {
       "weight": 15,
       "behaviors": [
-        { "id": "FB1", "description": "Translated product features into specific business outcomes tied to discovered pain points", "points": 5 },
-        { "id": "FB2", "description": "Used customer-centered language grounded in the merchant's own words from discovery", "points": 5 },
-        { "id": "FB3", "description": "Quantified benefits where possible (payment speed, admin time saved, revenue impact)", "points": 5 }
+        {
+          "id": "FB1",
+          "description": "Translated product features into specific business outcomes tied to discovered pain points",
+          "points": 5
+        },
+        {
+          "id": "FB2",
+          "description": "Used customer-centered language grounded in the merchant's own words from discovery",
+          "points": 5
+        },
+        {
+          "id": "FB3",
+          "description": "Quantified benefits where possible (payment speed, admin time saved, revenue impact)",
+          "points": 5
+        }
       ]
     },
     "objection_handling": {
       "weight": 15,
       "behaviors": [
-        { "id": "OH1", "description": "Responded to closing objections directly and confidently", "points": 5 },
-        { "id": "OH2", "description": "Probed for the real concern behind objections before responding", "points": 5 },
-        { "id": "OH3", "description": "Used previously discovered information to reinforce value when handling objections", "points": 5 }
+        {
+          "id": "OH1",
+          "description": "Responded to closing objections directly and confidently",
+          "points": 5
+        },
+        {
+          "id": "OH2",
+          "description": "Probed for the real concern behind objections before responding",
+          "points": 5
+        },
+        {
+          "id": "OH3",
+          "description": "Used previously discovered information to reinforce value when handling objections",
+          "points": 5
+        }
       ]
     },
     "behavioral_style_adaptation": {
       "weight": 10,
       "behaviors": [
-        { "id": "BS1", "description": "Maintained Doer-appropriate communication (direct, results-focused, concise, practical)", "points": 4 },
-        { "id": "BS2", "description": "Matched Mike's pace and energy without slowing down unnecessarily", "points": 3 },
-        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (long explanations, buzzwords, theoretical concepts)", "points": 3 }
+        {
+          "id": "BS1",
+          "description": "Maintained Doer-appropriate communication (direct, results-focused, concise, practical)",
+          "points": 4
+        },
+        {
+          "id": "BS2",
+          "description": "Matched Mike's pace and energy without slowing down unnecessarily",
+          "points": 3
+        },
+        {
+          "id": "BS3",
+          "description": "Avoided rapport-breaking behaviors (long explanations, buzzwords, theoretical concepts)",
+          "points": 3
+        }
       ]
     },
     "closing_and_next_step": {
       "weight": 10,
       "behaviors": [
-        { "id": "CN1", "description": "Asked for the business directly and confidently", "points": 4 },
-        { "id": "CN2", "description": "Close felt natural and earned based on value demonstrated throughout the call", "points": 3 },
-        { "id": "CN3", "description": "Handled stall tactics ('send me something') by pushing for a stronger commitment", "points": 3 }
+        {
+          "id": "CN1",
+          "description": "Asked for the business directly and confidently",
+          "points": 4
+        },
+        {
+          "id": "CN2",
+          "description": "Close felt natural and earned based on value demonstrated throughout the call",
+          "points": 3
+        },
+        {
+          "id": "CN3",
+          "description": "Handled stall tactics ('send me something') by pushing for a stronger commitment",
+          "points": 3
+        }
       ]
     }
   },
   "auto_fail_triggers": [
-    { "id": "AF1", "description": "Recommended the wrong product entirely (not Roc Services)", "check": "wrong_product" },
-    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
-    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
-    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
-    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+    {
+      "id": "AF1",
+      "description": "Recommended the wrong product entirely (not Roc Services)",
+      "check": "wrong_product"
+    },
+    {
+      "id": "AF2",
+      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
+      "check": "no_discovery"
+    },
+    {
+      "id": "AF3",
+      "description": "Immediately pitched product without understanding needs",
+      "check": "immediate_pitch"
+    },
+    {
+      "id": "AF4",
+      "description": "Failed to ask for any next step or commitment",
+      "check": "no_next_step"
+    },
+    {
+      "id": "AF5",
+      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
+      "check": "unprofessional"
+    }
   ],
   "coaching_notes": {
     "key_concepts": [
       "This is a follow-up closing call with a Doer, emphasis on speed and results",
-      "The rep must demonstrate continuity by referencing Module 1 discoveries",
+      "The rep must demonstrate continuity by referencing Module 4 discoveries",
       "Doers want to see clear, practical outcomes quickly",
       "Cash flow impact is the primary closing lever for Mike",
       "Field adoption simplicity is a must-address concern",
@@ -101,7 +217,7 @@
     ],
     "common_mistakes": [
       "Starting the call as if it were a brand new cold call instead of a follow-up",
-      "Failing to reference any specific details from the Module 1 discovery",
+      "Failing to reference any specific details from the Module 4 discovery",
       "Being too slow or verbose with a Doer personality",
       "Not quantifying the cash flow improvement clearly",
       "Failing to address crew adoption in simple, practical terms",

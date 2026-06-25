@@ -2,19 +2,19 @@
   "id": "module4_david_miller",
   "module_id": "module4",
   "persona_id": "david_miller",
-  "name": "Module 1: Discovery & Make the Sale - Pastor David Miller (New Hope Community Church)",
+  "name": "Module 4: Make the Sale - Pastor David Miller (New Hope Community Church)",
   "description": "Practice consultative selling with Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. Pastor David is a Talker-Supporter Hybrid: warm, relational, story-oriented, and mission-focused. Conduct effective discovery, uncover fundraising and engagement pain points, align Roc Giving as the right solution, and earn a next step.",
-  "module": "Module 1 - Discovery & Make the Sale",
+  "module": "Module 4 - Make the Sale",
   "difficulty": "intermediate",
-  "duration_minutes": 15,
+  "duration_minutes": 10,
   "product": "Roc Giving",
-  "persona_id_tavus": "TAVUS_PERSONA_DAVID_MILLER",
+  "persona_id_tavus": "p0eb588dbe16",
   "conversation_config": {
-    "conversation_name": "Module 1: Discovery & Make the Sale - Pastor David Miller",
-    "conversational_context": "You are Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. The church has been established for 27 years with approximately 350 active members. You are a Talker-Supporter Hybrid behavioral style: warm, relational, story-oriented, and deeply mission-focused. You care more about people and community impact than technology. You value trust, sincerity, and long-term relationships.\n\nKnown information you can share naturally: church currently accepts checks and cash donations, fundraising efforts are inconsistent, the basketball court renovation project is important to the community, church relies heavily on volunteers.\n\nSurface-level hidden info (reveal only after relevant questions): no recurring giving program exists, donations are difficult to track manually.\n\nMid-level hidden info (reveal only after meaningful follow-up): younger donors prefer digital giving methods, volunteers spend significant time organizing fundraising manually.\n\nDeep discovery info (reveal only if rep demonstrates curiosity, problem-solving, and business understanding): you worry fundraising momentum may stall, you want stronger community engagement but lack tools to support it, administrative tasks overwhelm volunteers.\n\nObjection logic: If rep pitches too early, say 'We already have ways to collect donations.' If rep does not address digital adoption, say 'Most people here still prefer checks.' If rep pushes too much technology, say 'We are not very tech-savvy.' If rep is too transactional, say 'We do not want giving to feel transactional.'\n\nDo not break character. Do not volunteer hidden information. Behave like a real community leader.",
-    "custom_greeting": "Well hello there, thanks so much for reaching out. You know, this basketball court means a lot to our community, so I am always happy to talk about how we can keep things moving forward. What brings you my way today?",
+    "conversation_name": "Module 4: Make the Sale - Pastor David Miller",
+    "conversational_context": "You are Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. The church has been established for 27 years with approximately 350 active members. You are a Talker-Supporter Hybrid behavioral style: warm, relational, story-oriented, and deeply mission-focused. You care more about people and community impact than technology. You value trust, sincerity, and long-term relationships.\n\nThis is your first interaction with this caller. You have never spoken to them before and have no prior relationship. If the caller references a previous meeting or acts as if you have spoken before, respond with warm confusion. Say something like 'Oh goodness, have we spoken before? My memory must be slipping. I thought this was our first time talking.'\n\nTime pressure: You have a Bible study group coming in about ten minutes. You are happy to talk because you care about your community projects, but you do need to wrap up on time. If the caller goes off-topic or becomes too transactional, gently redirect them. If they continue being pushy or unfocused after a gentle reminder, tell them you need to get ready for your group.\n\nKnown information you can share naturally when asked: the church currently accepts checks and cash donations, fundraising efforts for the basketball court are inconsistent, the court project is vital to the local youth and AAU sports program, and the church relies heavily on volunteers.\n\nSurface-level hidden info (share only when the caller asks a specific question directly about donation tracking or giving programs): no recurring giving program exists, and donations are difficult to track manually because volunteers count checks and cash after services.\n\nMid-level hidden info (share only after the caller has asked follow-up questions that build on surface-level details you already shared, for example following up on donation tracking to ask about younger families or volunteer workload): younger families have expressed a preference for digital or online giving methods, and volunteers spend significant time every week organizing physical checks, counting cash, and generating handwritten receipts.\n\nDeep discovery info (share only when ALL of the following are true: the caller has already uncovered at least one surface-level and one mid-level detail, AND the caller asks a specific question about volunteer burnout, fear of project delays, or long-term donor engagement): you are worried that the basketball court fundraising momentum will stall if you cannot engage donors more consistently, volunteers are increasingly overwhelmed by administrative tasks which threatens other church programs, and you lack the tools to keep donors engaged between services.\n\nObjection logic: If the caller pitches a product before asking questions about your church, say 'We already have ways to collect donations.' If the caller focuses only on transaction rates or terminal hardware, say 'We really care about keeping this personal. We do not want giving to feel transactional.' If the caller pushes heavy technical setup, say 'We are not very tech-savvy here. I do not want to make things complicated for our volunteers.'\n\nFollow-up condition: You will agree to a follow-up call only if the caller shows genuine interest in the church's mission and community programs, demonstrates understanding of your fundraising challenges, and asks for the next step in a warm, partnership-oriented way.\n\nDo not break character. Do not volunteer hidden information. Do not suggest what the caller should ask you about or offer a menu of your problems. Behave like a real, warm, mission-focused community leader.",
+    "custom_greeting": "Well hello there, thanks so much for calling. I have got a Bible study group coming in about ten minutes, but I know we had this time set aside. The basketball court project has been keeping us all busy. What brings you my way today?",
     "properties": {
-      "max_call_duration": 900,
+      "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
@@ -24,69 +24,185 @@
     "discovery_and_questioning": {
       "weight": 20,
       "behaviors": [
-        { "id": "DQ1", "description": "Asked layered, consultative questions that uncovered surface-level business problems", "points": 5 },
-        { "id": "DQ2", "description": "Used open-ended questions to encourage the merchant to share challenges", "points": 4 },
-        { "id": "DQ3", "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level", "points": 4 },
-        { "id": "DQ4", "description": "Used reflective listening to confirm understanding of merchant pain points", "points": 4 },
-        { "id": "DQ5", "description": "Discovery preceded any product discussion or pitching", "points": 3 }
+        {
+          "id": "DQ1",
+          "description": "Asked layered, consultative questions that uncovered surface-level business problems",
+          "points": 5
+        },
+        {
+          "id": "DQ2",
+          "description": "Used open-ended questions to encourage the merchant to share challenges",
+          "points": 4
+        },
+        {
+          "id": "DQ3",
+          "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level",
+          "points": 4
+        },
+        {
+          "id": "DQ4",
+          "description": "Used reflective listening to confirm understanding of merchant pain points",
+          "points": 4
+        },
+        {
+          "id": "DQ5",
+          "description": "Discovery preceded any product discussion or pitching",
+          "points": 3
+        }
       ]
     },
     "problem_identification_and_gap_analysis": {
       "weight": 15,
       "behaviors": [
-        { "id": "PI1", "description": "Identified the merchant's current state and key operational challenges", "points": 4 },
-        { "id": "PI2", "description": "Identified the merchant's desired state or goals", "points": 4 },
-        { "id": "PI3", "description": "Connected problems to operational or financial impact (consequences of inaction)", "points": 4 },
-        { "id": "PI4", "description": "Established urgency by highlighting the gap between current and desired state", "points": 3 }
+        {
+          "id": "PI1",
+          "description": "Identified the merchant's current state and key operational challenges",
+          "points": 4
+        },
+        {
+          "id": "PI2",
+          "description": "Identified the merchant's desired state or goals",
+          "points": 4
+        },
+        {
+          "id": "PI3",
+          "description": "Connected problems to operational or financial impact (consequences of inaction)",
+          "points": 4
+        },
+        {
+          "id": "PI4",
+          "description": "Established urgency by highlighting the gap between current and desired state",
+          "points": 3
+        }
       ]
     },
     "product_alignment": {
       "weight": 15,
       "behaviors": [
-        { "id": "PA1", "description": "Correctly identified Roc Giving as the appropriate Payroc product for this organization", "points": 5 },
-        { "id": "PA2", "description": "Aligned product recommendation to the organization's specific needs and challenges", "points": 5 },
-        { "id": "PA3", "description": "Provided strong justification for why this product fits this organization's situation", "points": 5 }
+        {
+          "id": "PA1",
+          "description": "Correctly identified Roc Giving as the appropriate Payroc product for this organization",
+          "points": 5
+        },
+        {
+          "id": "PA2",
+          "description": "Aligned product recommendation to the organization's specific needs and challenges",
+          "points": 5
+        },
+        {
+          "id": "PA3",
+          "description": "Provided strong justification for why this product fits this organization's situation",
+          "points": 5
+        }
       ]
     },
     "feature_to_benefit_translation": {
       "weight": 15,
       "behaviors": [
-        { "id": "FB1", "description": "Translated product features into meaningful outcomes for the organization", "points": 5 },
-        { "id": "FB2", "description": "Used mission-centered language connecting features to community impact", "points": 5 },
-        { "id": "FB3", "description": "Connected features to the specific pain points discovered during the call", "points": 5 }
+        {
+          "id": "FB1",
+          "description": "Translated product features into meaningful outcomes for the organization",
+          "points": 5
+        },
+        {
+          "id": "FB2",
+          "description": "Used mission-centered language connecting features to community impact",
+          "points": 5
+        },
+        {
+          "id": "FB3",
+          "description": "Connected features to the specific pain points discovered during the call",
+          "points": 5
+        }
       ]
     },
     "objection_handling": {
       "weight": 15,
       "behaviors": [
-        { "id": "OH1", "description": "Responded to objections confidently and professionally without becoming defensive", "points": 5 },
-        { "id": "OH2", "description": "Probed for understanding behind objections before responding", "points": 5 },
-        { "id": "OH3", "description": "Reinforced value effectively when addressing objections", "points": 5 }
+        {
+          "id": "OH1",
+          "description": "Responded to objections confidently and professionally without becoming defensive",
+          "points": 5
+        },
+        {
+          "id": "OH2",
+          "description": "Probed for understanding behind objections before responding",
+          "points": 5
+        },
+        {
+          "id": "OH3",
+          "description": "Reinforced value effectively when addressing objections",
+          "points": 5
+        }
       ]
     },
     "behavioral_style_adaptation": {
       "weight": 10,
       "behaviors": [
-        { "id": "BS1", "description": "Adapted communication style to Talker-Supporter Hybrid personality (warm, conversational, story-oriented, relationship-focused)", "points": 4 },
-        { "id": "BS2", "description": "Demonstrated emotional intelligence by connecting to the church's mission and community values", "points": 3 },
-        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (overly transactional tone, rushing, heavy technical jargon)", "points": 3 }
+        {
+          "id": "BS1",
+          "description": "Adapted communication style to Talker-Supporter Hybrid personality (warm, conversational, story-oriented, relationship-focused)",
+          "points": 4
+        },
+        {
+          "id": "BS2",
+          "description": "Demonstrated emotional intelligence by connecting to the church's mission and community values",
+          "points": 3
+        },
+        {
+          "id": "BS3",
+          "description": "Avoided rapport-breaking behaviors (overly transactional tone, rushing, heavy technical jargon)",
+          "points": 3
+        }
       ]
     },
     "closing_and_next_step": {
       "weight": 10,
       "behaviors": [
-        { "id": "CN1", "description": "Asked for a clear, confident next step or commitment", "points": 4 },
-        { "id": "CN2", "description": "Close aligned naturally with the conversation flow and discovered needs", "points": 3 },
-        { "id": "CN3", "description": "Used trial closes or temperature checks throughout the conversation", "points": 3 }
+        {
+          "id": "CN1",
+          "description": "Asked for a clear, confident next step or commitment",
+          "points": 4
+        },
+        {
+          "id": "CN2",
+          "description": "Close aligned naturally with the conversation flow and discovered needs",
+          "points": 3
+        },
+        {
+          "id": "CN3",
+          "description": "Used trial closes or temperature checks throughout the conversation",
+          "points": 3
+        }
       ]
     }
   },
   "auto_fail_triggers": [
-    { "id": "AF1", "description": "Recommended the wrong product entirely (not Roc Giving)", "check": "wrong_product" },
-    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
-    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
-    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
-    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+    {
+      "id": "AF1",
+      "description": "Recommended the wrong product entirely (not Roc Giving)",
+      "check": "wrong_product"
+    },
+    {
+      "id": "AF2",
+      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
+      "check": "no_discovery"
+    },
+    {
+      "id": "AF3",
+      "description": "Immediately pitched product without understanding needs",
+      "check": "immediate_pitch"
+    },
+    {
+      "id": "AF4",
+      "description": "Failed to ask for any next step or commitment",
+      "check": "no_next_step"
+    },
+    {
+      "id": "AF5",
+      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
+      "check": "unprofessional"
+    }
   ],
   "coaching_notes": {
     "key_concepts": [

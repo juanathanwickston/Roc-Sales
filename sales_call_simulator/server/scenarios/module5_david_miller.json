@@ -3,19 +3,19 @@
   "module_id": "module5",
   "persona_id": "david_miller",
   "continuity_source_module_id": "module4",
-  "name": "Module 2: Close the Sale - Pastor David Miller (New Hope Community Church)",
-  "description": "Return to Pastor David Miller at New Hope Community Church for a follow-up closing call. Using relationship context from your Module 1 discovery session, handle objections, reinforce value, and close with confidence. Pastor David is a Talker-Supporter Hybrid who values trust, sincerity, and mission alignment.",
-  "module": "Module 2 - Close the Sale",
+  "name": "Module 5: Close the Sale - Pastor David Miller (New Hope Community Church)",
+  "description": "Return to Pastor David Miller at New Hope Community Church for a follow-up closing call. Using relationship context from your Module 4 discovery session, handle objections, reinforce value, and close with confidence. Pastor David is a Talker-Supporter Hybrid who values trust, sincerity, and mission alignment.",
+  "module": "Module 5 - Close the Sale",
   "difficulty": "advanced",
-  "duration_minutes": 15,
+  "duration_minutes": 10,
   "product": "Roc Giving",
   "persona_id_tavus": "p0eb588dbe16",
   "conversation_config": {
-    "conversation_name": "Module 2: Close the Sale - Pastor David Miller",
-    "conversational_context": "You are Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. This is a FOLLOW-UP call. The rep called you previously and had a great conversation about the church's fundraising challenges and community programs. You agreed to this follow-up because the rep seemed genuinely interested in your mission.\n\nYou are a Talker-Supporter Hybrid behavioral style: warm, relational, story-oriented, and mission-focused. You need to feel that the rep cares about your community, not just making a sale.\n\nYour known challenges from the first call: cash and check donations only, inconsistent fundraising, basketball court renovation project, volunteer-dependent operations. Depending on how well the first call went, you may have also shared: no recurring giving, manual donation tracking, younger donors wanting digital options, volunteer burnout from manual fundraising.\n\nObjection logic for the closing call: 'I need to bring this to the board' (if rep has not helped prepare a case), 'I am worried the older members will not use it' (if rep has not addressed digital adoption concerns), 'We do not have budget for this right now' (if rep has not connected to fundraising ROI), 'I just want to make sure this feels right for our church' (emotional check, rep should validate).\n\nYou will close if the rep: connects the solution to your mission, addresses congregation adoption across age groups, helps you see how this supports the basketball court project, demonstrates genuine care for the community, and asks for commitment in a warm, partnership-oriented way.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation.",
+    "conversation_name": "Module 5: Close the Sale - Pastor David Miller",
+    "conversational_context": "You are Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. This is a FOLLOW-UP call. The rep called you previously and had a great conversation about the church's fundraising challenges and community programs. You agreed to this follow-up because the rep seemed genuinely interested in your mission.\n\nYou are a Talker-Supporter Hybrid behavioral style: warm, relational, story-oriented, and mission-focused. You need to feel that the rep cares about your community, not just making a sale.\n\nYour known challenges from the first call: cash and check donations only, inconsistent fundraising, basketball court renovation project, volunteer-dependent operations. Depending on how well the first call went, you may have also shared: no recurring giving, manual donation tracking, younger donors wanting digital options, volunteer burnout from manual fundraising.\n\nObjection logic for the closing call: 'I need to bring this to the board' (if rep has not helped prepare a case), 'I am worried the older members will not use it' (if rep has not addressed digital adoption concerns), 'We do not have budget for this right now' (if rep has not connected to fundraising ROI), 'I just want to make sure this feels right for our church' (emotional check, rep should validate).\n\nYou will close if the rep: connects the solution to your mission, addresses congregation adoption across age groups, helps you see how this supports the basketball court project, demonstrates genuine care for the community, and asks for commitment in a warm, partnership-oriented way.\n\nTime pressure: Even though you are glad to reconnect, you do have church responsibilities. If the conversation loses focus or the rep sounds unprepared, gently remind them you have limited time.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation. Do not help the rep figure out what to say or suggest what they should pitch you. Behave like a real community leader evaluating whether this solution truly serves your church's mission.",
     "custom_greeting": "Well hey there, good to hear from you again. I was just telling the youth group about the basketball court project. I have been thinking about what we talked about. Where should we pick up?",
     "properties": {
-      "max_call_duration": 900,
+      "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
@@ -25,74 +25,190 @@
     "discovery_and_questioning": {
       "weight": 20,
       "behaviors": [
-        { "id": "DQ1", "description": "Referenced specific details from the previous discovery conversation", "points": 5 },
-        { "id": "DQ2", "description": "Asked targeted follow-up questions to deepen understanding from Module 1", "points": 4 },
-        { "id": "DQ3", "description": "Confirmed or updated understanding of the organization's priorities since last call", "points": 4 },
-        { "id": "DQ4", "description": "Used reflective listening to validate previously discovered challenges", "points": 4 },
-        { "id": "DQ5", "description": "Did not re-ask questions that were already covered in the first call", "points": 3 }
+        {
+          "id": "DQ1",
+          "description": "Referenced specific details from the previous discovery conversation",
+          "points": 5
+        },
+        {
+          "id": "DQ2",
+          "description": "Asked targeted follow-up questions to deepen understanding from Module 4",
+          "points": 4
+        },
+        {
+          "id": "DQ3",
+          "description": "Confirmed or updated understanding of the organization's priorities since last call",
+          "points": 4
+        },
+        {
+          "id": "DQ4",
+          "description": "Used reflective listening to validate previously discovered challenges",
+          "points": 4
+        },
+        {
+          "id": "DQ5",
+          "description": "Did not re-ask questions that were already covered in the first call",
+          "points": 3
+        }
       ]
     },
     "problem_identification_and_gap_analysis": {
       "weight": 15,
       "behaviors": [
-        { "id": "PI1", "description": "Reinforced the gap between current fundraising state and the church's goals", "points": 4 },
-        { "id": "PI2", "description": "Connected ongoing challenges to community impact and mission advancement", "points": 4 },
-        { "id": "PI3", "description": "Created urgency by highlighting what the church is missing without a solution", "points": 4 },
-        { "id": "PI4", "description": "Positioned the solution as a way to advance the church's mission and community goals", "points": 3 }
+        {
+          "id": "PI1",
+          "description": "Reinforced the gap between current fundraising state and the church's goals",
+          "points": 4
+        },
+        {
+          "id": "PI2",
+          "description": "Connected ongoing challenges to community impact and mission advancement",
+          "points": 4
+        },
+        {
+          "id": "PI3",
+          "description": "Created urgency by highlighting what the church is missing without a solution",
+          "points": 4
+        },
+        {
+          "id": "PI4",
+          "description": "Positioned the solution as a way to advance the church's mission and community goals",
+          "points": 3
+        }
       ]
     },
     "product_alignment": {
       "weight": 15,
       "behaviors": [
-        { "id": "PA1", "description": "Presented Roc Giving with specific alignment to previously discovered needs", "points": 5 },
-        { "id": "PA2", "description": "Customized the solution presentation to this organization's unique mission context", "points": 5 },
-        { "id": "PA3", "description": "Connected the platform to the basketball court fundraising project specifically", "points": 5 }
+        {
+          "id": "PA1",
+          "description": "Presented Roc Giving with specific alignment to previously discovered needs",
+          "points": 5
+        },
+        {
+          "id": "PA2",
+          "description": "Customized the solution presentation to this organization's unique mission context",
+          "points": 5
+        },
+        {
+          "id": "PA3",
+          "description": "Connected the platform to the basketball court fundraising project specifically",
+          "points": 5
+        }
       ]
     },
     "feature_to_benefit_translation": {
       "weight": 15,
       "behaviors": [
-        { "id": "FB1", "description": "Translated product features into mission-aligned outcomes for the church", "points": 5 },
-        { "id": "FB2", "description": "Used community-centered language that resonated with the pastor's values", "points": 5 },
-        { "id": "FB3", "description": "Connected features to reducing volunteer burden and increasing engagement", "points": 5 }
+        {
+          "id": "FB1",
+          "description": "Translated product features into mission-aligned outcomes for the church",
+          "points": 5
+        },
+        {
+          "id": "FB2",
+          "description": "Used community-centered language that resonated with the pastor's values",
+          "points": 5
+        },
+        {
+          "id": "FB3",
+          "description": "Connected features to reducing volunteer burden and increasing engagement",
+          "points": 5
+        }
       ]
     },
     "objection_handling": {
       "weight": 15,
       "behaviors": [
-        { "id": "OH1", "description": "Responded to objections with empathy and patience appropriate for a faith community", "points": 5 },
-        { "id": "OH2", "description": "Probed for the real concern behind objections before responding", "points": 5 },
-        { "id": "OH3", "description": "Used previously discovered information and mission alignment to address concerns", "points": 5 }
+        {
+          "id": "OH1",
+          "description": "Responded to objections with empathy and patience appropriate for a faith community",
+          "points": 5
+        },
+        {
+          "id": "OH2",
+          "description": "Probed for the real concern behind objections before responding",
+          "points": 5
+        },
+        {
+          "id": "OH3",
+          "description": "Used previously discovered information and mission alignment to address concerns",
+          "points": 5
+        }
       ]
     },
     "behavioral_style_adaptation": {
       "weight": 10,
       "behaviors": [
-        { "id": "BS1", "description": "Maintained Talker-Supporter Hybrid communication (warm, relational, story-oriented, mission-focused)", "points": 4 },
-        { "id": "BS2", "description": "Demonstrated genuine care for the church's community impact and mission", "points": 3 },
-        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (transactional tone, rushing, aggressive closing)", "points": 3 }
+        {
+          "id": "BS1",
+          "description": "Maintained Talker-Supporter Hybrid communication (warm, relational, story-oriented, mission-focused)",
+          "points": 4
+        },
+        {
+          "id": "BS2",
+          "description": "Demonstrated genuine care for the church's community impact and mission",
+          "points": 3
+        },
+        {
+          "id": "BS3",
+          "description": "Avoided rapport-breaking behaviors (transactional tone, rushing, aggressive closing)",
+          "points": 3
+        }
       ]
     },
     "closing_and_next_step": {
       "weight": 10,
       "behaviors": [
-        { "id": "CN1", "description": "Asked for commitment in a warm, partnership-oriented way", "points": 4 },
-        { "id": "CN2", "description": "Close felt natural and mission-aligned rather than transactional", "points": 3 },
-        { "id": "CN3", "description": "Offered to help Pastor David present to the board or provided supporting materials", "points": 3 }
+        {
+          "id": "CN1",
+          "description": "Asked for commitment in a warm, partnership-oriented way",
+          "points": 4
+        },
+        {
+          "id": "CN2",
+          "description": "Close felt natural and mission-aligned rather than transactional",
+          "points": 3
+        },
+        {
+          "id": "CN3",
+          "description": "Offered to help Pastor David present to the board or provided supporting materials",
+          "points": 3
+        }
       ]
     }
   },
   "auto_fail_triggers": [
-    { "id": "AF1", "description": "Recommended the wrong product entirely (not Roc Giving)", "check": "wrong_product" },
-    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
-    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
-    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
-    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+    {
+      "id": "AF1",
+      "description": "Recommended the wrong product entirely (not Roc Giving)",
+      "check": "wrong_product"
+    },
+    {
+      "id": "AF2",
+      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
+      "check": "no_discovery"
+    },
+    {
+      "id": "AF3",
+      "description": "Immediately pitched product without understanding needs",
+      "check": "immediate_pitch"
+    },
+    {
+      "id": "AF4",
+      "description": "Failed to ask for any next step or commitment",
+      "check": "no_next_step"
+    },
+    {
+      "id": "AF5",
+      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
+      "check": "unprofessional"
+    }
   ],
   "coaching_notes": {
     "key_concepts": [
       "This is a follow-up closing call with a Talker-Supporter Hybrid, emphasis on mission and relationship",
-      "The rep must demonstrate continuity by referencing Module 1 discoveries and the basketball court project",
+      "The rep must demonstrate continuity by referencing Module 4 discoveries and the basketball court project",
       "Closing with Pastor David requires mission alignment, not just ROI",
       "The 'board approval' objection is an opportunity to help, not a rejection",
       "Addressing multi-generational adoption (older and younger members) is critical",

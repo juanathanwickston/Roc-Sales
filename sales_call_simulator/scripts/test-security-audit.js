@@ -27,9 +27,9 @@ db.isAvailable = () => true;
 
 const mockDbState = {
   sessions: {
-    101: { id: 101, external_user_id: 'user-a', scenario_id: 'module1_sam_patel', module_id: 'module1', persona_id: 'sam_patel', status: 'completed', tavus_conversation_id: 'tavus-conv-101', relationship_summary: 'prior notes' },
-    102: { id: 102, external_user_id: 'user-b', scenario_id: 'module1_sam_patel', module_id: 'module1', persona_id: 'sam_patel', status: 'completed', tavus_conversation_id: 'tavus-conv-102' },
-    103: { id: 103, external_user_id: 'user-a', scenario_id: 'module2_sam_patel', module_id: 'module2', persona_id: 'sam_patel', status: 'created' },
+    101: { id: 101, external_user_id: 'user-a', scenario_id: 'module4_sam_patel', module_id: 'module4', persona_id: 'sam_patel', status: 'completed', tavus_conversation_id: 'tavus-conv-101', relationship_summary: 'prior notes' },
+    102: { id: 102, external_user_id: 'user-b', scenario_id: 'module4_sam_patel', module_id: 'module4', persona_id: 'sam_patel', status: 'completed', tavus_conversation_id: 'tavus-conv-102' },
+    103: { id: 103, external_user_id: 'user-a', scenario_id: 'module5_sam_patel', module_id: 'module5', persona_id: 'sam_patel', status: 'created' },
   },
   masteries: {
     'user-a:sam_patel': { mastery_score: 85 }
@@ -70,12 +70,12 @@ db.query = async (text, params) => {
     return { rows: mastery ? [mastery] : [] };
   }
 
-  // 5. SELECT relationship_summary FROM simulation_sessions (Module 2 prerequisite summary lookup)
-  if (queryNormalized.includes('SELECT relationship_summary') && queryNormalized.includes('module_id = \'module1\'')) {
+  // 5. SELECT relationship_summary FROM simulation_sessions (Module 5 prerequisite summary lookup)
+  if (queryNormalized.includes('SELECT relationship_summary') && queryNormalized.includes('module_id = \'module4\'')) {
     const userId = params[0];
     const personaId = params[1];
     const session = Object.values(mockDbState.sessions).find(
-      s => s.external_user_id === userId && s.persona_id === personaId && s.module_id === 'module1' && s.relationship_summary
+      s => s.external_user_id === userId && s.persona_id === personaId && s.module_id === 'module4' && s.relationship_summary
     );
     return { rows: session ? [{ relationship_summary: session.relationship_summary }] : [] };
   }
@@ -257,9 +257,9 @@ async function runBolaTests(assertStatus) {
 }
 
 async function runModuleGatingTests(assertStatus) {
-  // Test 11: Module 2 gating block (no mastery for carla_reyes)
+  // Test 11: Module 5 gating block (no mastery for carla_reyes)
   await assertStatus(
-    'Module 2 launch without Module 1 mastery rejected (403)',
+    'Module 5 launch without Module 4 mastery rejected (403)',
     '/api/sessions',
     {
       method: 'POST',
@@ -267,16 +267,16 @@ async function runModuleGatingTests(assertStatus) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${tokenUserA}`
       },
-      body: JSON.stringify({ scenarioId: 'module2_carla_reyes' })
+      body: JSON.stringify({ scenarioId: 'module5_carla_reyes' })
     },
     403,
-    'Module 1 mastery required'
+    'Module 4 mastery required'
   );
 
-  // Test 12: Module 2 launch with mastery, but missing relationship summary
+  // Test 12: Module 5 launch with mastery, but missing relationship summary
   mockDbState.masteries['user-a:carla_reyes'] = { mastery_score: 85 };
   await assertStatus(
-    'Module 2 launch with mastery but missing summary rejected (422)',
+    'Module 5 launch with mastery but missing summary rejected (422)',
     '/api/sessions',
     {
       method: 'POST',
@@ -284,7 +284,7 @@ async function runModuleGatingTests(assertStatus) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${tokenUserA}`
       },
-      body: JSON.stringify({ scenarioId: 'module2_carla_reyes' })
+      body: JSON.stringify({ scenarioId: 'module5_carla_reyes' })
     },
     422,
     'No relationship summary found'

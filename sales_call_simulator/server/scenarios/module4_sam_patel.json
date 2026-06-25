@@ -2,19 +2,19 @@
   "id": "module4_sam_patel",
   "module_id": "module4",
   "persona_id": "sam_patel",
-  "name": "Module 1: Discovery & Make the Sale - Sam Patel (QuickStop Market)",
+  "name": "Module 4: Make the Sale - Sam Patel (QuickStop Market)",
   "description": "Practice consultative selling with Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. Sam is a Controller-style buyer: analytical, efficiency-focused, and skeptical of salespeople. Conduct effective discovery, uncover operational pain points, align Bodega AI as the right solution, and earn a next step.",
-  "module": "Module 1 - Discovery & Make the Sale",
+  "module": "Module 4 - Make the Sale",
   "difficulty": "intermediate",
-  "duration_minutes": 15,
+  "duration_minutes": 10,
   "product": "Bodega AI",
   "persona_id_tavus": "pa3f39ac095b",
   "conversation_config": {
-    "conversation_name": "Module 1: Discovery & Make the Sale - Sam Patel",
+    "conversation_name": "Module 4: Make the Sale - Sam Patel",
     "conversational_context": "You are Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. You have been in business for 11 years with 6 employees. You are a Controller behavioral style: analytical, efficient, and skeptical of salespeople. You dislike wasting time and quickly lose patience with vague or overly friendly sales conversations. You respect competence, preparation, and direct communication.\n\nThis is your first interaction with this caller. You have never spoken to them before and have no prior relationship. If the caller references a previous meeting or conversation with you, push back clearly. You do not recall any such meeting.\n\nTime pressure: You told the caller you have about ten minutes. As the conversation continues without productive progress, become noticeably more impatient. If the caller wastes time with irrelevant topics, vague statements, or nonsensical requests, remind them you are busy and need to get back to your store. If they continue wasting your time after a warning, tell them you need to go.\n\nKnown information you can share naturally when asked: margins are tighter than ever, credit card fees keep increasing, your POS system is older, you have high employee turnover, and you work long hours.\n\nSurface-level hidden info (share only when the caller asks a specific question directly about that topic, for example asking how you track inventory or how pricing gets updated): inventory is tracked loosely using a spreadsheet and nightly POS counts, pricing updates happen manually with staff walking the aisles, staff occasionally make pricing mistakes.\n\nMid-level hidden info (share only after the caller has asked follow-up questions that build on surface-level details you already shared, for example following up on inventory issues to ask about stockouts, or following up on manual processes to ask about rebates): you miss tobacco rebate opportunities because you are not in any automated scan data program, stockouts happen frequently because you lack real-time visibility, you do not fully understand which products are most profitable.\n\nDeep discovery info (share only when ALL of the following are true: the caller has already uncovered at least one surface-level and one mid-level detail, AND the caller asks a specific question that directly mentions compliance, age verification, or EBT): you recently received warnings related to age verification compliance, EBT compliance inconsistencies concern you, you worry about regulatory fines but have delayed investing in a better system because of cost.\n\nObjection logic: If the caller pitches a product before asking questions about your business, say 'I already have a POS system.' If the caller fails to connect their solution to saving you time, say 'I do not have time to switch systems.' If the caller discusses value without providing financial justification or specific numbers, say 'I do not know if I can afford this.'\n\nDo not break character. Do not volunteer hidden information. Do not suggest what the caller should ask you about or offer a menu of your problems. Behave like a real, skeptical, busy business owner.",
     "custom_greeting": "Yeah, hello. Look, I have got about ten minutes before my evening rush starts. You are the payment processing person, right? What do you need?",
     "properties": {
-      "max_call_duration": 900,
+      "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
@@ -24,69 +24,185 @@
     "discovery_and_questioning": {
       "weight": 20,
       "behaviors": [
-        { "id": "DQ1", "description": "Asked layered, consultative questions that uncovered surface-level business problems", "points": 5 },
-        { "id": "DQ2", "description": "Used open-ended questions to encourage the merchant to share challenges", "points": 4 },
-        { "id": "DQ3", "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level", "points": 4 },
-        { "id": "DQ4", "description": "Used reflective listening to confirm understanding of merchant pain points", "points": 4 },
-        { "id": "DQ5", "description": "Discovery preceded any product discussion or pitching", "points": 3 }
+        {
+          "id": "DQ1",
+          "description": "Asked layered, consultative questions that uncovered surface-level business problems",
+          "points": 5
+        },
+        {
+          "id": "DQ2",
+          "description": "Used open-ended questions to encourage the merchant to share challenges",
+          "points": 4
+        },
+        {
+          "id": "DQ3",
+          "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level",
+          "points": 4
+        },
+        {
+          "id": "DQ4",
+          "description": "Used reflective listening to confirm understanding of merchant pain points",
+          "points": 4
+        },
+        {
+          "id": "DQ5",
+          "description": "Discovery preceded any product discussion or pitching",
+          "points": 3
+        }
       ]
     },
     "problem_identification_and_gap_analysis": {
       "weight": 15,
       "behaviors": [
-        { "id": "PI1", "description": "Identified the merchant's current state and key operational challenges", "points": 4 },
-        { "id": "PI2", "description": "Identified the merchant's desired state or goals", "points": 4 },
-        { "id": "PI3", "description": "Connected problems to operational or financial impact (consequences of inaction)", "points": 4 },
-        { "id": "PI4", "description": "Established urgency by highlighting the gap between current and desired state", "points": 3 }
+        {
+          "id": "PI1",
+          "description": "Identified the merchant's current state and key operational challenges",
+          "points": 4
+        },
+        {
+          "id": "PI2",
+          "description": "Identified the merchant's desired state or goals",
+          "points": 4
+        },
+        {
+          "id": "PI3",
+          "description": "Connected problems to operational or financial impact (consequences of inaction)",
+          "points": 4
+        },
+        {
+          "id": "PI4",
+          "description": "Established urgency by highlighting the gap between current and desired state",
+          "points": 3
+        }
       ]
     },
     "product_alignment": {
       "weight": 15,
       "behaviors": [
-        { "id": "PA1", "description": "Correctly identified Bodega AI as the appropriate Payroc product for this merchant", "points": 5 },
-        { "id": "PA2", "description": "Aligned product recommendation to the merchant's specific needs and challenges", "points": 5 },
-        { "id": "PA3", "description": "Provided strong justification for why this product fits this merchant's situation", "points": 5 }
+        {
+          "id": "PA1",
+          "description": "Correctly identified Bodega AI as the appropriate Payroc product for this merchant",
+          "points": 5
+        },
+        {
+          "id": "PA2",
+          "description": "Aligned product recommendation to the merchant's specific needs and challenges",
+          "points": 5
+        },
+        {
+          "id": "PA3",
+          "description": "Provided strong justification for why this product fits this merchant's situation",
+          "points": 5
+        }
       ]
     },
     "feature_to_benefit_translation": {
       "weight": 15,
       "behaviors": [
-        { "id": "FB1", "description": "Translated product features into meaningful business outcomes for the merchant", "points": 5 },
-        { "id": "FB2", "description": "Used customer-centered language (e.g., 'What this means for you...')", "points": 5 },
-        { "id": "FB3", "description": "Connected features to the specific pain points discovered during the call", "points": 5 }
+        {
+          "id": "FB1",
+          "description": "Translated product features into meaningful business outcomes for the merchant",
+          "points": 5
+        },
+        {
+          "id": "FB2",
+          "description": "Used customer-centered language (e.g., 'What this means for you...')",
+          "points": 5
+        },
+        {
+          "id": "FB3",
+          "description": "Connected features to the specific pain points discovered during the call",
+          "points": 5
+        }
       ]
     },
     "objection_handling": {
       "weight": 15,
       "behaviors": [
-        { "id": "OH1", "description": "Responded to objections confidently and professionally without becoming defensive", "points": 5 },
-        { "id": "OH2", "description": "Probed for understanding behind objections before responding", "points": 5 },
-        { "id": "OH3", "description": "Reinforced value effectively when addressing objections", "points": 5 }
+        {
+          "id": "OH1",
+          "description": "Responded to objections confidently and professionally without becoming defensive",
+          "points": 5
+        },
+        {
+          "id": "OH2",
+          "description": "Probed for understanding behind objections before responding",
+          "points": 5
+        },
+        {
+          "id": "OH3",
+          "description": "Reinforced value effectively when addressing objections",
+          "points": 5
+        }
       ]
     },
     "behavioral_style_adaptation": {
       "weight": 10,
       "behaviors": [
-        { "id": "BS1", "description": "Adapted communication style to Controller personality (concise, data-driven, efficient)", "points": 4 },
-        { "id": "BS2", "description": "Demonstrated emotional intelligence by reading merchant cues and adjusting approach", "points": 3 },
-        { "id": "BS3", "description": "Avoided rapport-breaking behaviors (excessive small talk, vague claims, long explanations)", "points": 3 }
+        {
+          "id": "BS1",
+          "description": "Adapted communication style to Controller personality (concise, data-driven, efficient)",
+          "points": 4
+        },
+        {
+          "id": "BS2",
+          "description": "Demonstrated emotional intelligence by reading merchant cues and adjusting approach",
+          "points": 3
+        },
+        {
+          "id": "BS3",
+          "description": "Avoided rapport-breaking behaviors (excessive small talk, vague claims, long explanations)",
+          "points": 3
+        }
       ]
     },
     "closing_and_next_step": {
       "weight": 10,
       "behaviors": [
-        { "id": "CN1", "description": "Asked for a clear, confident next step or commitment", "points": 4 },
-        { "id": "CN2", "description": "Close aligned naturally with the conversation flow and discovered needs", "points": 3 },
-        { "id": "CN3", "description": "Used trial closes or temperature checks throughout the conversation", "points": 3 }
+        {
+          "id": "CN1",
+          "description": "Asked for a clear, confident next step or commitment",
+          "points": 4
+        },
+        {
+          "id": "CN2",
+          "description": "Close aligned naturally with the conversation flow and discovered needs",
+          "points": 3
+        },
+        {
+          "id": "CN3",
+          "description": "Used trial closes or temperature checks throughout the conversation",
+          "points": 3
+        }
       ]
     }
   },
   "auto_fail_triggers": [
-    { "id": "AF1", "description": "Recommended the wrong product entirely (not Bodega AI)", "check": "wrong_product" },
-    { "id": "AF2", "description": "Failed to perform meaningful discovery (jumped directly into product pitch)", "check": "no_discovery" },
-    { "id": "AF3", "description": "Immediately pitched product without understanding needs", "check": "immediate_pitch" },
-    { "id": "AF4", "description": "Failed to ask for any next step or commitment", "check": "no_next_step" },
-    { "id": "AF5", "description": "Behaved unprofessionally or ignored the merchant persona entirely", "check": "unprofessional" }
+    {
+      "id": "AF1",
+      "description": "Recommended the wrong product entirely (not Bodega AI)",
+      "check": "wrong_product"
+    },
+    {
+      "id": "AF2",
+      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
+      "check": "no_discovery"
+    },
+    {
+      "id": "AF3",
+      "description": "Immediately pitched product without understanding needs",
+      "check": "immediate_pitch"
+    },
+    {
+      "id": "AF4",
+      "description": "Failed to ask for any next step or commitment",
+      "check": "no_next_step"
+    },
+    {
+      "id": "AF5",
+      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
+      "check": "unprofessional"
+    }
   ],
   "coaching_notes": {
     "key_concepts": [

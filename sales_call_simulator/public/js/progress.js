@@ -43,14 +43,14 @@ const PERSONA_META = {
  */
 const MODULE_META = {
   module4: {
-    number: 1,
-    name: 'Discovery & Qualification',
-    description: 'Build rapport, ask the right discovery questions, qualify using BANT/CHAMP, and close for a next step.'
+    number: 4,
+    name: 'Make the Sale',
+    description: 'Conduct effective discovery, identify business pain points, align the correct Payroc solution, and earn a next step.'
   },
   module5: {
-    number: 2,
-    name: 'Objection Handling & Close',
-    description: 'Handle real-world objections, present tailored solutions, and guide the prospect toward a buying decision.'
+    number: 5,
+    name: 'Close the Sale',
+    description: 'Handle objections, reinforce value, and close with confidence using relationship context from Module 4.'
   }
 };
 
@@ -132,7 +132,7 @@ function renderModuleCardsFallback() {
       '</div>' +
       '<p class="module-card-desc">' + esc(meta.description || '') + '</p>' +
       (isLocked
-        ? '<p class="module-card-lock-msg">Complete Module 1 to unlock this module.</p>'
+        ? '<p class="module-card-lock-msg">Complete Module 4 to unlock this module.</p>'
         : '<button class="btn btn-primary module-card-cta" data-module-id="' + moduleId + '" type="button">Start Practice</button>') +
     '</div>';
   }
@@ -249,7 +249,7 @@ function renderModuleCards(modulesData, progressData) {
       '<p class="module-card-desc">' + esc(meta.description || '') + '</p>' +
       progressBarHtml +
       (status === 'locked'
-        ? '<p class="module-card-lock-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px;color:var(--color-locked)"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg> Master at least one persona in Module 1 to unlock.</p>'
+        ? '<p class="module-card-lock-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px;color:var(--color-locked)"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg> Master at least one persona in Module 4 to unlock.</p>'
         : '<button class="btn btn-primary module-card-cta" data-module-id="' + moduleId + '" type="button">Start Practice</button>') +
     '</div>';
   }
@@ -316,7 +316,7 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
   const modProgress = modules[moduleId] || {};
   const modPersonas = modProgress.personas || {};
 
-  // For Module 2, check Module 1 mastery
+  // For Module 5, check Module 4 mastery
   let mod1Personas = {};
   if (moduleId === 'module5' && modules['module4']) {
     mod1Personas = modules['module4'].personas || {};
@@ -342,14 +342,14 @@ function renderScenarioModal(moduleId, progressData, modulesData) {
     const bestScore = pProgress.bestScore || 0;
     const isMastered = pProgress.mastered || false;
 
-    // Check lock for Module 2
+    // Check lock for Module 5
     let isLocked = false;
     let lockReason = '';
     if (moduleId === 'module5') {
       const mod1PersonaProgress = mod1Personas[pid] || {};
       if (!mod1PersonaProgress.mastered) {
         isLocked = true;
-        lockReason = 'Master this persona in Module 1 first';
+        lockReason = 'Master this persona in Module 4 first';
       }
     }
 
@@ -458,8 +458,8 @@ function buildMasteryRing(masteryScore) {
  */
 function buildStatsGrid(m1Complete, m2Complete, totalAttempts) {
   return '<div class="perf-stats-grid">' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + m1Complete + '/1</div><div class="perf-stat-label">Module 1</div></div>' +
-    '<div class="perf-stat"><div class="perf-stat-value">' + m2Complete + '/1</div><div class="perf-stat-label">Module 2</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + m1Complete + '/1</div><div class="perf-stat-label">Module 4</div></div>' +
+    '<div class="perf-stat"><div class="perf-stat-value">' + m2Complete + '/1</div><div class="perf-stat-label">Module 5</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + totalAttempts + '</div><div class="perf-stat-label">Attempts</div></div>' +
     '<div class="perf-stat"><div class="perf-stat-value">' + (m1Complete + m2Complete) + '/2</div><div class="perf-stat-label">Total</div></div>' +
   '</div>';

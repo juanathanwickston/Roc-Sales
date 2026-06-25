@@ -110,7 +110,7 @@ router.post('/conversations', requireAuth, async (req, res) => {
     let props = cfg.properties || {};
     let reqAuth = cfg.require_auth !== undefined ? cfg.require_auth : null;
 
-    // Handle Module 2 continuity (retrieve and append relationship summary)
+    // Handle Module 5 continuity (retrieve and append relationship summary)
     if (session.module_id === 'module5' && session.persona_id) {
       const summaryResult = await db.query(
         `SELECT s.relationship_summary FROM simulation_sessions s

@@ -193,7 +193,7 @@ router.get('/', requireAuth, async (req, res) => {
 /**
  * POST /api/sessions - Create a new simulation session.
  * Body: { scenarioId, moduleId?, personaId? }
- * For Module 2 sessions, validates Module 1 mastery and retrieves relationship summary.
+ * For Module 5 sessions, validates Module 4 mastery and retrieves relationship summary.
  * Returns the created session record.
  */
 router.post('/', requireAuth, async (req, res) => {
@@ -236,9 +236,9 @@ router.post('/', requireAuth, async (req, res) => {
     let relationshipSummary = null;
     let relationshipSummaryJson = null;
 
-    // Module 2 prerequisite checks
+    // Module 5 prerequisite checks
     if (moduleId === 'module5' && personaId) {
-      // Check mastery of Module 1 for this persona
+      // Check mastery of Module 4 for this persona
       const masteryResult = await db.query(
         `SELECT mastery_score FROM module_masteries
          WHERE external_user_id = $1 AND module_id = 'module4' AND persona_id = $2`,
@@ -284,7 +284,7 @@ router.post('/', requireAuth, async (req, res) => {
 
     const session = result.rows[0];
 
-    // Attach relationship context for Module 2 sessions
+    // Attach relationship context for Module 5 sessions
     if (relationshipSummary) {
       session.relationship_context = {
         summary: relationshipSummary,
