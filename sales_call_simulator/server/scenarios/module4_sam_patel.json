@@ -142,6 +142,28 @@
           "criteria": "Drops price without context, fails to discuss value, or avoids the price conversation entirely."
         }
       }
+    },
+    "next_step_commitment": {
+      "display_name": "Next Step Commitment",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Asked for a clear, specific next step with a defined action (e.g., follow-up call, pilot program, trial period) and got the customer's agreement or a concrete timeline."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mentioned following up or next steps vaguely but did not propose a specific action, timeline, or get the customer's commitment."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Never asked for any next step, follow-up, or commitment before the call ended."
+        }
+      }
     }
   },
   "auto_fail_triggers": [
@@ -153,20 +175,10 @@
     {
       "id": "AF2",
       "check": "no_prior_reference",
-      "description": "Failed to reference the prior meeting or treated the call as a cold call"
+      "description": "Made zero reference to a prior conversation, prior discovery, or any previous interaction. Note: phrases like 'good to connect again', 'following up', or referencing any detail from a prior call all count as a valid reference."
     },
     {
       "id": "AF3",
-      "check": "monologue",
-      "description": "Monologued excessively or failed to maintain any dialogue"
-    },
-    {
-      "id": "AF4",
-      "check": "no_next_step",
-      "description": "Failed to ask for a next step or commitment"
-    },
-    {
-      "id": "AF5",
       "check": "unprofessional",
       "description": "Behaved unprofessionally or completely ignored the merchant persona"
     }
@@ -179,7 +191,8 @@
       "No Seagulls: Present only features that directly address the customer's stated needs.",
       "CPRC Method: Cushion the objection, Probe to understand, Respond with facts, Confirm agreement.",
       "Feel-Felt-Found: Acknowledge how they feel, share that others felt the same, explain what they found.",
-      "Price is not cost. Translate price into daily/weekly value and demonstrate ROI."
+      "Price is not cost. Translate price into daily/weekly value and demonstrate ROI.",
+      "Next Step: Always ask for a specific next action (follow-up call, pilot, trial) before the call ends."
     ],
     "common_mistakes": [
       "Jumping into features without restating and confirming the customer's needs first.",
@@ -187,7 +200,8 @@
       "Talking too much without pausing for feedback or customer input.",
       "Introducing features the customer never asked about (painting seagulls).",
       "Responding to objections with defensiveness instead of using a structured approach.",
-      "Dropping price too early before establishing value and business impact."
+      "Dropping price too early before establishing value and business impact.",
+      "Ending the call without asking for a clear next step or follow-up commitment."
     ]
   },
   "conversation_config": {
