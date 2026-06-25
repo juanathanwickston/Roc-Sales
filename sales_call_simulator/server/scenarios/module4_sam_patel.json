@@ -19,17 +19,17 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Clearly restates verified needs from the prior discovery call (manual pricing, checkout errors, rising fees) and asks for confirmation before starting the demo."
+          "criteria": "Acknowledges Sam's time, references the prior conversation, and confirms his key problems (manual pricing, checkout errors, rising fees) before presenting solutions."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Mentions some customer problems but jumps into features too quickly without explicitly confirming."
+          "criteria": "References the prior conversation but only confirms some needs, or jumps into features before fully anchoring."
         },
         "not_met": {
           "points": 0,
           "label": "Not Met",
-          "criteria": "Launches straight into a product pitch with zero reference to previous discovery."
+          "criteria": "No reference to a prior conversation. Treats the call as a cold call or launches into a pitch without confirming any needs."
         }
       }
     },
@@ -41,17 +41,17 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Uses the Repeat-Describe-Convert-Tell (RDCT) structure at least once: restates a need, describes a feature, converts it to a benefit, and tells the outcome."
+          "criteria": "Connects at least one Bodega AI feature to a specific problem Sam expressed and clearly explains what it does for his store or business. The customer should understand the benefit, not just the feature."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Mentions features and benefits but does not follow a structured RDCT flow. May skip the conversion step or fail to tie back to the customer's stated need."
+          "criteria": "Mentions relevant features but does not clearly explain the benefit or outcome for Sam's business. The connection between the feature and Sam's problem is vague or incomplete."
         },
         "not_met": {
           "points": 0,
           "label": "Not Met",
-          "criteria": "Lists product features without translating them into benefits for the customer."
+          "criteria": "Lists features or talks about the product generically without connecting anything to Sam's specific situation."
         }
       }
     },
@@ -63,17 +63,17 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Asks feedback questions throughout, pauses for customer input, and maintains roughly equal dialogue. Uses questions like 'What are your thoughts on this?' or 'How do you see this fitting?'"
+          "criteria": "Keeps the conversation two-way by asking questions, checking in, or inviting Sam's input throughout the call. Does not deliver long monologues without pausing."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Asks some feedback questions but dominates the conversation with long monologues between them."
+          "criteria": "The conversation is interactive but the rep relies mostly on Sam to drive it with questions rather than proactively checking in. Or the rep checks in once but monologues in other sections."
         },
         "not_met": {
           "points": 0,
           "label": "Not Met",
-          "criteria": "Delivers a one-sided pitch with minimal to no feedback questions or customer engagement."
+          "criteria": "Delivers a one-sided pitch, talks over Sam, or gives extended monologues with no effort to involve the customer."
         }
       }
     },
@@ -107,17 +107,17 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Uses a structured approach (CPRC: Cushion-Probe-Respond-Confirm or Feel-Felt-Found) when Sam raises an objection. Acknowledges, explores, addresses, and confirms."
+          "criteria": "When Sam pushes back or raises a concern, the rep acknowledges it, responds with relevant information, and checks that Sam is satisfied before moving on."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Responds to the objection but skips steps. May acknowledge without probing, or respond without confirming understanding."
+          "criteria": "Responds to Sam's pushback with relevant information but does not acknowledge the concern first or confirm it is resolved afterward."
         },
         "not_met": {
           "points": 0,
           "label": "Not Met",
-          "criteria": "Ignores the objection, dismisses it, or responds defensively without any structured approach."
+          "criteria": "Ignores Sam's pushback, dismisses it, argues, or gets defensive."
         }
       }
     },
@@ -129,12 +129,12 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Positions price in the context of value and ROI. Translates cost into business impact (time saved, revenue gained, risk reduced). Delivers price confidently."
+          "criteria": "Quantifies the business impact with specific numbers (dollars saved, hours recovered, risk reduced) and delivers the price. The customer should be able to compare the cost to the value."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Discusses price but does not fully tie it to value or business outcomes. May deliver price hesitantly or prematurely."
+          "criteria": "Mentions savings or value in general terms but does not use specific numbers. Or delivers price without any value context."
         },
         "not_met": {
           "points": 0,
@@ -151,12 +151,12 @@
         "met": {
           "points": 2,
           "label": "Met",
-          "criteria": "Asked for a clear, specific next step with a defined action (e.g., follow-up call, pilot program, trial period) and got the customer's agreement or a concrete timeline."
+          "criteria": "Proposes a specific follow-up action and offers two scheduling options (e.g., 'Tuesday or Thursday?'). Gets Sam's agreement with a confirmed date or time."
         },
         "partially_met": {
           "points": 1,
           "label": "Partially Met",
-          "criteria": "Mentioned following up or next steps vaguely but did not propose a specific action, timeline, or get the customer's commitment."
+          "criteria": "Asks for a follow-up but does not offer specific scheduling options, or proposes a vague next step like 'I'll send you some info' without a concrete commitment."
         },
         "not_met": {
           "points": 0,
@@ -185,16 +185,18 @@
   ],
   "coaching_notes": {
     "key_concepts": [
+      "Acknowledge the interruption: Thank the customer for their time and recognize you are interrupting their day before starting.",
       "Step 1 (Repeat): Always restate the customer's confirmed needs before presenting any features.",
-      "RDCT Framework: Repeat the need, Describe the feature, Convert to a benefit, Tell the outcome.",
-      "50/50 Rule: Maintain balanced dialogue using feedback questions throughout the demo.",
+      "RDCT Framework: Repeat the need, Describe the feature, Convert to a benefit, Tell the outcome. This is the ideal structure for connecting features to customer value.",
+      "50/50 Rule: Maintain balanced dialogue using feedback questions throughout the call.",
       "No Seagulls: Present only features that directly address the customer's stated needs.",
-      "CPRC Method: Cushion the objection, Probe to understand, Respond with facts, Confirm agreement.",
+      "CPRC Method: Cushion the objection, Probe to understand, Respond with facts, Confirm agreement. This is the ideal structure for handling pushback.",
       "Feel-Felt-Found: Acknowledge how they feel, share that others felt the same, explain what they found.",
-      "Price is not cost. Translate price into daily/weekly value and demonstrate ROI.",
-      "Next Step: Always ask for a specific next action (follow-up call, pilot, trial) before the call ends."
+      "Price is not cost. Quantify business impact with specific numbers and translate price into daily/weekly value.",
+      "Next Step: Always ask for a specific next action and offer two scheduling options (e.g., Tuesday or Thursday)."
     ],
     "common_mistakes": [
+      "Failing to acknowledge the customer's time before jumping into the conversation.",
       "Jumping into features without restating and confirming the customer's needs first.",
       "Listing features without converting them into customer-specific benefits.",
       "Talking too much without pausing for feedback or customer input.",
