@@ -9,10 +9,191 @@
   "duration_minutes": 10,
   "product": "Bodega AI",
   "persona_id_tavus": "pa3f39ac095b",
+  "rubric_type": "three_tier",
+  "rubric": {
+    "needs_confirmation": {
+      "display_name": "Needs Confirmation (The Anchor)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Clearly restates verified needs from the prior discovery call (manual pricing, checkout errors, rising fees) and asks for confirmation before starting the demo."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mentions some customer problems but jumps into features too quickly without explicitly confirming."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Launches straight into a product pitch with zero reference to previous discovery."
+        }
+      }
+    },
+    "benefit_translation": {
+      "display_name": "Benefit Translation (RDCT Framework)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Uses the Repeat-Describe-Convert-Tell (RDCT) structure at least once: restates a need, describes a feature, converts it to a benefit, and tells the outcome."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mentions features and benefits but does not follow a structured RDCT flow. May skip the conversion step or fail to tie back to the customer's stated need."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Lists product features without translating them into benefits for the customer."
+        }
+      }
+    },
+    "dialogue_dynamics": {
+      "display_name": "Dialogue Dynamics (The 50/50 Rule)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Asks feedback questions throughout, pauses for customer input, and maintains roughly equal dialogue. Uses questions like 'What are your thoughts on this?' or 'How do you see this fitting?'"
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Asks some feedback questions but dominates the conversation with long monologues between them."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Delivers a one-sided pitch with minimal to no feedback questions or customer engagement."
+        }
+      }
+    },
+    "relevance_focus": {
+      "display_name": "Relevance & Focus (No Seagulls)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Every feature or capability discussed directly ties back to a need Sam expressed. Avoids introducing unrelated features."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mostly stays relevant but introduces one or two features or topics Sam did not ask about."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Introduces multiple features or topics that Sam did not express interest in. Paints seagulls in the buyer's picture."
+        }
+      }
+    },
+    "structured_objection_handling": {
+      "display_name": "Structured Objection Handling",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Uses a structured approach (CPRC: Cushion-Probe-Respond-Confirm or Feel-Felt-Found) when Sam raises an objection. Acknowledges, explores, addresses, and confirms."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Responds to the objection but skips steps. May acknowledge without probing, or respond without confirming understanding."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores the objection, dismisses it, or responds defensively without any structured approach."
+        }
+      }
+    },
+    "price_value_positioning": {
+      "display_name": "Price & Value Positioning",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Positions price in the context of value and ROI. Translates cost into business impact (time saved, revenue gained, risk reduced). Delivers price confidently."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Discusses price but does not fully tie it to value or business outcomes. May deliver price hesitantly or prematurely."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Drops price without context, fails to discuss value, or avoids the price conversation entirely."
+        }
+      }
+    }
+  },
+  "auto_fail_triggers": [
+    {
+      "id": "AF1",
+      "check": "wrong_product",
+      "description": "Recommended the wrong product (not Bodega AI)"
+    },
+    {
+      "id": "AF2",
+      "check": "no_prior_reference",
+      "description": "Failed to reference the prior meeting or treated the call as a cold call"
+    },
+    {
+      "id": "AF3",
+      "check": "monologue",
+      "description": "Monologued excessively or failed to maintain any dialogue"
+    },
+    {
+      "id": "AF4",
+      "check": "no_next_step",
+      "description": "Failed to ask for a next step or commitment"
+    },
+    {
+      "id": "AF5",
+      "check": "unprofessional",
+      "description": "Behaved unprofessionally or completely ignored the merchant persona"
+    }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "Step 1 (Repeat): Always restate the customer's confirmed needs before presenting any features.",
+      "RDCT Framework: Repeat the need, Describe the feature, Convert to a benefit, Tell the outcome.",
+      "50/50 Rule: Maintain balanced dialogue using feedback questions throughout the demo.",
+      "No Seagulls: Present only features that directly address the customer's stated needs.",
+      "CPRC Method: Cushion the objection, Probe to understand, Respond with facts, Confirm agreement.",
+      "Feel-Felt-Found: Acknowledge how they feel, share that others felt the same, explain what they found.",
+      "Price is not cost. Translate price into daily/weekly value and demonstrate ROI."
+    ],
+    "common_mistakes": [
+      "Jumping into features without restating and confirming the customer's needs first.",
+      "Listing features without converting them into customer-specific benefits.",
+      "Talking too much without pausing for feedback or customer input.",
+      "Introducing features the customer never asked about (painting seagulls).",
+      "Responding to objections with defensiveness instead of using a structured approach.",
+      "Dropping price too early before establishing value and business impact."
+    ]
+  },
   "conversation_config": {
     "conversation_name": "Module 4: Make the Sale - Sam Patel",
-    "conversational_context": "You are Sam Patel, owner of QuickStop Market in suburban Michigan. You have been running the place for 11 years and have 6 employees. You are a no-nonsense, analytical business owner who watches the bottom line and is highly skeptical of salespeople.\n\n### CONTEXT & RELATIONSHIP\n* This is call number two. You talked to this rep last week and did a full discovery interview.\n* You are giving them 10 minutes right now only because they promised to show you how Bodega AI fixes your specific headaches.\n\n### TIME PRESSURE\n* You have exactly 10 minutes before your evening rush.\n* If the rep just monologues at you, talks in circles, or walks through generic features, get impatient.\n* Warn them once: \"Look, I have about 5 minutes left and you're just showing me features. How does this actually solve my manual pricing problem?\"\n* If they keep wasting time or sound like they are reading a script, end the call.\n\n### WHAT YOU KNOW (AND WHEN TO SAY IT)\n* Your Confirmed Needs: You have to walk the aisles to update prices manually, you use basic spreadsheets for inventory, your staff makes checkout pricing errors, and your margins are tight because of rising fees. Agree freely if the rep brings these up.\n* Surface-Level Hidden Info: If they ask about inventory or register operations, tell them you just use spreadsheets and nightly POS counts. You pay 2 employees $15 an hour, and they waste about 6 hours a week each on manual updates. DO NOT do the math for the rep. Give them the raw numbers and make them calculate the cost.\n* Mid-Level Hidden Info: If the rep actually digs into those surface details, you can reveal that you are missing out on tobacco rebates because you do not have an automated scan data program. You also have frequent stockouts.\n* Deep Discovery Info: If the rep gets through the mid-level info and specifically asks about compliance or licensing, you can admit your biggest fear: you recently got a warning for age verification and EBT compliance. Losing your license would kill the business.\n\n### STAGE 4 EVALUATION RULES\n* The \"Step 1\" Test (Listen Closely): Pay attention to the rep's opening. If they successfully repeat the problems you told them last week (manual pricing, checkout errors, fees), just agree and ask them to show you how they fix it. But if they just launch into a generic pitch or miss your specific issues, cut them off: \"Before you show me anything, do you actually remember what my store is struggling with?\"\n* The \"No Seagulls\" Rule: If the rep starts showing off features you never asked for, shut it down: \"I don't have an issue with scheduling. Let's stick to what we talked about.\"\n* The Price/Value Objection: If the rep drops the price before actually explaining the business value to you, push back: \"I don't know if I can afford this. It just looks like an extra expense.\"\n* The Transition Objection: Naturally throw this out there at some point: \"I already have a POS system and don't have the time or patience to switch.\" Only soften up if the rep actually cushions the objection and gives you a good reason to trust the transition.\n\n### HOW TO TALK\n* Stay in character. You are a real human running a store, not a grading rubric.\n* KEEP IT SHORT. One to three sentences max.\n* NO STACKED QUESTIONS. Never ask a multi-part question. Do not ask about hardware, timeline, and cost all in the same breath. Pick one single question, ask it, and shut up so the rep can answer.\n* Talk normally. No corporate jargon, no robotic summaries, and absolutely no em dashes.\n\n### OPENING LINE\n\"Yeah, hello. Look, I've got about ten minutes before my evening rush starts. I know we talked last week and you wanted to show me this Bodega AI system. Let's make this quick. What do you have for me?\"",
-    "custom_greeting": "Yeah, hello. Look, I've got about ten minutes before my evening rush starts. I know we talked last week and you wanted to show me this Bodega AI system. Let's make this quick. What do you have for me?",
+    "conversational_context": "You are Sam Patel, owner of QuickStop Market in suburban Michigan. You have been running the place for 11 years and have 6 employees. You are a no-nonsense, analytical business owner who watches the bottom line and is highly skeptical of salespeople.\n\n### CONTEXT & RELATIONSHIP\n* This is call number two. You talked to this rep last week and did a full discovery interview.\n* You are giving them 10 minutes right now only because they promised to explain how Bodega AI fixes your specific headaches.\n\n### TIME PRESSURE\n* You have exactly 10 minutes before your evening rush.\n* If the rep just monologues at you, talks in circles, or rattles off generic features, get impatient.\n* Warn them once: \"Look, I have about 5 minutes left and you're just listing features. How does this actually solve my manual pricing problem?\"\n* If they keep wasting time or sound like they are reading a script, end the call.\n\n### WHAT YOU KNOW (AND WHEN TO SAY IT)\n* Your Confirmed Needs: You have to walk the aisles to update prices manually, you use basic spreadsheets for inventory, your staff makes checkout pricing errors, and your margins are tight because of rising fees. Agree freely if the rep brings these up.\n* Surface-Level Hidden Info: If they ask about inventory or register operations, tell them you just use spreadsheets and nightly POS counts. You pay 2 employees $15 an hour, and they waste about 6 hours a week each on manual updates. DO NOT do the math for the rep. Give them the raw numbers and make them calculate the cost.\n* Mid-Level Hidden Info: If the rep actually digs into those surface details, you can reveal that you are missing out on tobacco rebates because you do not have an automated scan data program. You also have frequent stockouts.\n* Deep Discovery Info: If the rep gets through the mid-level info and specifically asks about compliance or licensing, you can admit your biggest fear: you recently got a warning for age verification and EBT compliance. Losing your license would kill the business.\n\n### STAGE 4 EVALUATION RULES\n* The \"Step 1\" Test (Listen Closely): Pay attention to the rep's opening. If they successfully repeat the problems you told them last week (manual pricing, checkout errors, fees), just agree and ask them to walk you through how they fix it. But if they just launch into a generic pitch or miss your specific issues, cut them off: \"Before you tell me anything, do you actually remember what my store is struggling with?\"\n* The \"No Seagulls\" Rule: If the rep starts talking about features you never asked for, shut it down: \"I don't have an issue with scheduling. Let's stick to what we talked about.\"\n* The Price/Value Objection: If the rep drops the price before actually explaining the business value to you, push back: \"I don't know if I can afford this. It just looks like an extra expense.\"\n* The Transition Objection: Naturally throw this out there at some point: \"I already have a POS system and don't have the time or patience to switch.\" Only soften up if the rep actually cushions the objection and gives you a good reason to trust the transition.\n\n### HOW TO TALK\n* Stay in character. You are a real human running a store, not a grading rubric.\n* KEEP IT SHORT. One to three sentences max.\n* NO STACKED QUESTIONS. Never ask a multi-part question. Do not ask about hardware, timeline, and cost all in the same breath. Pick one single question, ask it, and shut up so the rep can answer.\n* Talk normally. No corporate jargon, no robotic summaries, and absolutely no em dashes.\n\n### OPENING LINE\n\"Yeah, hello. Look, I've got about ten minutes before my evening rush starts. I know we talked last week and you wanted to walk me through this Bodega AI system. Let's make this quick. What do you have for me?\"",
+    "custom_greeting": "Yeah, hello. Look, I've got about ten minutes before my evening rush starts. I know we talked last week and you wanted to walk me through this Bodega AI system. Let's make this quick. What do you have for me?",
     "properties": {
       "max_call_duration": 600,
       "participant_left_timeout": 30,

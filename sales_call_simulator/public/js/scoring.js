@@ -42,7 +42,8 @@ const scoring = {
     // Category breakdown (pass rubric for expandable details)
     const rubric = scenario?.rubric ?? {};
     const checklist = scorecard.checklist || {};
-    this.renderCategories(scorecard.categories || {}, rubric, checklist);
+    const rubricType = scorecard.rubric_type || scenario?.rubric_type || 'binary';
+    this.renderCategories(scorecard.categories || {}, rubric, checklist, rubricType);
 
     // Strengths
     const strengthsEl = document.getElementById('score-strengths');
@@ -117,22 +118,54 @@ const scoring = {
    * Render expandable category score rows with behavior details.
    * Collapsed by default. Clicking expands to show individual behaviors.
    */
-  renderCategories(categories, rubric, checklist) {
+  renderCategories(categories, rubric, checklist, rubricType) {
     const container = document.getElementById('score-categories');
+    const isThreeTier = rubricType === 'three_tier';
+
     container.innerHTML = Object.entries(categories)
       .map(([name, data]) => {
-        const verdict = data.verdict || ((data.score >= window.SCORE_PASS_THRESHOLD) ? 'Strong' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'Adequate' : 'Weak'));
-        const displayName = formatCategoryName(name);
+        const displayName = data.display_name || formatCategoryName(name);
         const barColor = (data.score >= window.SCORE_PASS_THRESHOLD) ? 'var(--green)' : ((data.score >= window.SCORE_WARNING_THRESHOLD) ? 'var(--orange)' : 'var(--red)');
-        const countText = (data.observed_count !== undefined && data.total_count !== undefined)
-          ? ` (${data.observed_count}/${data.total_count})`
-          : '';
+        const chevronSvg = '<svg class="category-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5V3z"/></svg>';
 
-        // Build behavior detail rows from rubric
-        const rubricCat = rubric[name];
-        let behaviorsHtml = '';
-        if (rubricCat && rubricCat.behaviors && Object.keys(checklist).length > 0) {
-          behaviorsHtml = rubricCat.behaviors.map(b => {
+        let detailsHtml = '';
+
+        if (isThreeTier && data.tiers) {
+          // 3-tier rendering: show all three tiers with the graded one highlighted
+          const grade = data.grade || 'not_met';
+          const gradeColors = { met: 'var(--green)', partially_met: 'var(--orange)', not_met: 'var(--red)' };
+          const gradeLabels = { met: 'Met', partially_met: 'Partially Met', not_met: 'Not Met' };
+
+          let tiersHtml = Object.entries(data.tiers).map(([tierKey, tierData]) => {
+            const isActive = tierKey === grade;
+            const activeClass = isActive ? 'tier-active' : 'tier-inactive';
+            const tierColor = gradeColors[tierKey] || 'var(--text-muted)';
+            return `<div class="tier-row ${activeClass}" style="${isActive ? `border-left: 3px solid ${tierColor}; background: ${tierColor}10;` : 'border-left: 3px solid transparent; opacity: 0.5;'}">
+              <div class="tier-label" style="${isActive ? `color: ${tierColor}; font-weight: 600;` : ''}">${esc(tierData.label)} (${tierData.points} pt${tierData.points !== 1 ? 's' : ''})</div>
+              <div class="tier-criteria">${esc(tierData.criteria)}</div>
+            </div>`;
+          }).join('');
+
+          // Evidence and rationale
+          const evidenceHtml = data.evidence
+            ? `<div class="three-tier-evidence"><strong>Evidence:</strong> "${esc(data.evidence)}"</div>`
+            : '';
+          const rationaleHtml = data.rationale
+            ? `<div class="three-tier-rationale"><strong>Rationale:</strong> ${esc(data.rationale)}</div>`
+            : '';
+
+          detailsHtml = `<div class="category-behaviors">
+            <div class="grade-badge" style="background: ${gradeColors[grade]}20; color: ${gradeColors[grade]}; border: 1px solid ${gradeColors[grade]}40;">
+              ${esc(gradeLabels[grade])} (${data.earned}/${data.possible} pts)
+            </div>
+            ${tiersHtml}
+            ${evidenceHtml}
+            ${rationaleHtml}
+          </div>`;
+
+        } else if (rubric[name] && rubric[name].behaviors && Object.keys(checklist).length > 0) {
+          // Legacy binary rendering
+          const behaviorsHtml = rubric[name].behaviors.map(b => {
             const result = checklist[b.id];
             const observed = result && result.observed === true;
             const statusClass = observed ? 'observed' : 'missed';
@@ -148,22 +181,23 @@ const scoring = {
               </div>
             </div>`;
           }).join('');
+          detailsHtml = `<div class="category-behaviors">${behaviorsHtml}</div>`;
         }
 
-        const hasBehaviors = behaviorsHtml.length > 0;
-        const chevronSvg = '<svg class="category-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5V3z"/></svg>';
+        const hasDetails = detailsHtml.length > 0;
+        const scoreText = isThreeTier ? `${data.earned}/${data.possible}` : `${data.score}/100`;
 
         return `
           <div class="category-row">
-            <div class="category-header"${hasBehaviors ? ' data-expandable="true"' : ''}>
-              ${hasBehaviors ? chevronSvg : '<span style="width:16px"></span>'}
+            <div class="category-header"${hasDetails ? ' data-expandable="true"' : ''}>
+              ${hasDetails ? chevronSvg : '<span style="width:16px"></span>'}
               <span class="category-name">${esc(displayName)}</span>
               <div class="category-bar-wrap">
                 <div class="category-bar" style="width:0;background:${barColor}" data-target="${data.score}%"></div>
               </div>
-              <span class="category-score">${data.score}/100${countText}</span>
+              <span class="category-score">${scoreText}</span>
             </div>
-            ${hasBehaviors ? `<div class="category-behaviors">${behaviorsHtml}</div>` : ''}
+            ${detailsHtml}
           </div>`;
       })
       .join('');

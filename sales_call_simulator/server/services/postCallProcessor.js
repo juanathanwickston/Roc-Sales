@@ -57,7 +57,11 @@ async function callOpenAI(messages, temperature) {
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('OpenAI returned empty or malformed response (no choices[0].message.content)');
+    }
+    return content;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -304,9 +308,15 @@ async function scoreTranscript(transcript, scenarioId) {
   // Load scenario rubric and auto-fail triggers from file system
   const scenarioConfig = getScenario(scenarioId) || {};
   const rubric = scenarioConfig.rubric || {};
+  const rubricType = scenarioConfig.rubric_type || 'binary';
   const autoFailTriggers = scenarioConfig.auto_fail_triggers || [];
 
-  const prompt = buildScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers);
+  // Load source material for curriculum-grounded scoring
+  const sourceMaterial = loadCurriculum(scenarioId);
+
+  const prompt = (rubricType === 'three_tier')
+    ? buildThreeTierScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers, sourceMaterial)
+    : buildScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers);
 
   let extraction = null;
 
@@ -314,14 +324,17 @@ async function scoreTranscript(transcript, scenarioId) {
   extraction = await callOpenAIForScoring(prompt);
 
   // Validate response structure
-  if (extraction && !validateScoringResponse(extraction, rubric)) {
+  const validator = (rubricType === 'three_tier') ? validateThreeTierResponse : validateScoringResponse;
+  if (extraction && !validator(extraction, rubric)) {
     logger.warn('[PostCall] Malformed GPT response on first attempt, retrying with correction...');
 
     // Retry with correction prompt
-    const correctionPrompt = buildCorrectionPrompt(extraction, rubric);
+    const correctionPrompt = (rubricType === 'three_tier')
+      ? buildThreeTierCorrectionPrompt(extraction, rubric)
+      : buildCorrectionPrompt(extraction, rubric);
     extraction = await callOpenAIForScoring(correctionPrompt);
 
-    if (extraction && !validateScoringResponse(extraction, rubric)) {
+    if (extraction && !validator(extraction, rubric)) {
       logger.error('[PostCall] Malformed GPT response on retry. Scoring failed.');
       return null;
     }
@@ -331,7 +344,9 @@ async function scoreTranscript(transcript, scenarioId) {
     return null;
   }
 
-  const scorecard = calculateMechanicalScore(extraction, rubric, autoFailTriggers);
+  const scorecard = (rubricType === 'three_tier')
+    ? calculateThreeTierScore(extraction, rubric, autoFailTriggers)
+    : calculateMechanicalScore(extraction, rubric, autoFailTriggers);
   logger.info(`[PostCall] Scored scenario ${scenarioId}: raw ${scorecard.raw_score}, final ${scorecard.final_score}`);
   return scorecard;
 }
@@ -354,7 +369,7 @@ async function callOpenAIForScoring(prompt) {
 }
 
 /**
- * Validate the GPT scoring response has the expected structure.
+ * Validate the GPT scoring response has the expected structure (binary rubric).
  * Returns true if valid, false if malformed.
  */
 function validateScoringResponse(extraction, rubric) {
@@ -374,7 +389,28 @@ function validateScoringResponse(extraction, rubric) {
 }
 
 /**
- * Build a correction prompt for retry when GPT returns malformed JSON.
+ * Validate the GPT scoring response for three_tier rubric format.
+ * Expects a "competencies" object with a grade for each category.
+ */
+function validateThreeTierResponse(extraction, rubric) {
+  if (!extraction || typeof extraction !== 'object') return false;
+  if (!extraction.competencies || typeof extraction.competencies !== 'object') return false;
+
+  const validGrades = ['met', 'partially_met', 'not_met'];
+
+  for (const catName of Object.keys(rubric)) {
+    const entry = extraction.competencies[catName];
+    if (!entry) return false;
+    if (!validGrades.includes(entry.grade)) return false;
+    if (typeof entry.evidence !== 'string') return false;
+    if (typeof entry.rationale !== 'string') return false;
+  }
+
+  return true;
+}
+
+/**
+ * Build a correction prompt for retry when GPT returns malformed JSON (binary rubric).
  */
 function buildCorrectionPrompt(malformedResponse, rubric) {
   const behaviorIds = [];
@@ -391,7 +427,19 @@ function buildCorrectionPrompt(malformedResponse, rubric) {
 }
 
 /**
- * Build the scoring prompt from transcript and behavioral checklist rubric.
+ * Build a correction prompt for retry when GPT returns malformed JSON (three_tier rubric).
+ */
+function buildThreeTierCorrectionPrompt(malformedResponse, rubric) {
+  const categoryNames = Object.keys(rubric);
+
+  return {
+    system: `Your previous response was malformed. You MUST return a JSON object with a "competencies" property containing entries for ALL of these categories: ${categoryNames.join(', ')}. Each entry must have "grade" (one of: "met", "partially_met", "not_met"), "evidence" (string with exact transcript quote), and "rationale" (string explaining why this grade was chosen). Also include "auto_fail_checks" (object with boolean values), "top_strengths" (array of 2 strings), "critical_improvements" (array of 3 strings), and "coaching_tip" (string). Fix the response.`,
+    user: `Here was your malformed response:\n${JSON.stringify(malformedResponse)}\n\nPlease fix it and return valid JSON.`,
+  };
+}
+
+/**
+ * Build the scoring prompt from transcript and behavioral checklist rubric (binary).
  * GPT-4o only observes YES/NO per behavior with exact transcript quotes.
  * Score calculation happens server-side in calculateMechanicalScore.
  * Also includes auto-fail trigger checks.
@@ -457,7 +505,83 @@ Evaluate each behavior and auto-fail trigger. Return JSON only.`,
 }
 
 /**
- * Calculate mechanical score from GPT-4o checklist extraction and rubric behaviors.
+ * Build the scoring prompt for three_tier rubric format.
+ * GPT-4o grades each competency as met/partially_met/not_met with evidence and rationale.
+ * Source material is loaded as LAW for grading criteria.
+ */
+function buildThreeTierScoringPrompt(transcript, rubric, scenarioId, autoFailTriggers, sourceMaterial) {
+  // Build competency criteria from rubric
+  const competencyList = [];
+  for (const [catName, catData] of Object.entries(rubric)) {
+    const displayName = catData.display_name || catName;
+    const tiers = catData.tiers || {};
+    competencyList.push(
+      `### ${catName} ("${displayName}")\n` +
+      `  - Met (${tiers.met?.points || 2} pts): ${tiers.met?.criteria || ''}\n` +
+      `  - Partially Met (${tiers.partially_met?.points || 1} pt): ${tiers.partially_met?.criteria || ''}\n` +
+      `  - Not Met (${tiers.not_met?.points || 0} pts): ${tiers.not_met?.criteria || ''}`
+    );
+  }
+  const competencyText = competencyList.join('\n\n');
+
+  // Build auto-fail trigger list
+  const autoFailText = autoFailTriggers.length > 0
+    ? autoFailTriggers.map(af => `- ${af.check}: ${af.description}`).join('\n')
+    : 'None';
+
+  return {
+    system: `You are an expert sales training evaluator grading a new sales rep on how well they APPLIED the techniques from their training during a live sales simulation.
+
+SOURCE MATERIAL (LAW):
+The following source material is LAW. You must grade and coach the rep strictly on the exact definitions, frameworks, and criteria detailed in it. Do not use external or generic sales principles.
+
+${sourceMaterial}
+
+GRADING RULES:
+1. You are grading APPLICATION, not definitions. Do not test whether the rep can define a framework. Test whether they used it during the call.
+2. For each competency, assign exactly one grade: "met", "partially_met", or "not_met".
+3. Provide an EXACT verbatim quote from the transcript as evidence. Copy the words exactly.
+4. If no evidence exists, write "No evidence found in transcript" as the evidence.
+5. Provide a rationale explaining WHY you chose that grade, referencing the specific criteria.
+6. Do NOT paraphrase. Do NOT infer intent. Only use what was literally said.
+7. Also provide top_strengths (2 items) and critical_improvements (3 items) based ONLY on observed evidence.
+8. Provide a single coaching_tip with one actionable recommendation grounded in the source material.
+9. For each auto-fail trigger, determine if it was triggered (true) or not (false).
+
+Return a JSON object with this exact structure:
+{
+  "competencies": {
+    "<competency_id>": {
+      "grade": "met" | "partially_met" | "not_met",
+      "evidence": "<exact transcript quote or 'No evidence found in transcript'>",
+      "rationale": "<explanation of why this grade was assigned>"
+    }
+  },
+  "auto_fail_checks": {
+    "<trigger_check_id>": true|false
+  },
+  "top_strengths": ["<strength>", "<strength>"],
+  "critical_improvements": ["<improvement>", "<improvement>", "<improvement>"],
+  "coaching_tip": "<one actionable tip>"
+}`,
+
+    user: `SCENARIO: ${scenarioId || 'Sales Call Simulation'}
+
+COMPETENCIES TO GRADE:
+${competencyText}
+
+AUTO-FAIL TRIGGERS TO CHECK:
+${autoFailText}
+
+CALL TRANSCRIPT:
+${transcript}
+
+Grade each competency and check each auto-fail trigger. Return JSON only.`,
+  };
+}
+
+/**
+ * Calculate mechanical score from GPT-4o checklist extraction and rubric behaviors (binary rubric).
  * Computes raw_score from behaviors, checks auto-fail triggers.
  * If any auto-fail is triggered, final_score = 0 and overall_verdict = 'fail'.
  * Returns a backward-compatible scorecard object.
@@ -530,6 +654,80 @@ function calculateMechanicalScore(extraction, rubric, autoFailTriggers) {
     automatic_fails_triggered: triggeredFails,
     categories: categories,
     checklist: checklist,
+    top_strengths: extraction.top_strengths || [],
+    critical_improvements: extraction.critical_improvements || [],
+    coaching_tip: extraction.coaching_tip || '',
+  };
+}
+
+/**
+ * Calculate score from GPT-4o three-tier grading extraction.
+ * Each competency earns 0/1/2 points. Total possible = 12 (6 competencies x 2).
+ * Raw score is scaled to 0-100 percentage: (earned / 12) * 100.
+ * Auto-fail triggers override to 0.
+ * Returns a scorecard compatible with the existing persist/render pipeline.
+ */
+function calculateThreeTierScore(extraction, rubric, autoFailTriggers) {
+  const competencies = extraction.competencies || {};
+  let totalEarned = 0;
+  let totalPossible = 0;
+  const categories = {};
+
+  for (const [catName, catData] of Object.entries(rubric)) {
+    const maxPoints = catData.max_points || 2;
+    totalPossible += maxPoints;
+
+    const entry = competencies[catName] || {};
+    const grade = entry.grade || 'not_met';
+    const tiers = catData.tiers || {};
+    const earnedPoints = (tiers[grade]?.points !== undefined) ? tiers[grade].points : 0;
+    totalEarned += earnedPoints;
+
+    const catPct = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
+    const verdict = (grade === 'met') ? 'strong' : ((grade === 'partially_met') ? 'adequate' : 'weak');
+
+    categories[catName] = {
+      score: catPct,
+      weight: catData.weight || 1,
+      earned: earnedPoints,
+      possible: maxPoints,
+      grade: grade,
+      display_name: catData.display_name || catName,
+      verdict: verdict,
+      evidence: entry.evidence || '',
+      rationale: entry.rationale || '',
+      tiers: catData.tiers,
+    };
+  }
+
+  // Scale raw points to 0-100
+  const rawScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+
+  // Check auto-fail triggers
+  const autoFailChecks = extraction.auto_fail_checks || {};
+  const triggeredFails = [];
+
+  for (const af of autoFailTriggers) {
+    if (autoFailChecks[af.check] === true) {
+      triggeredFails.push({ id: af.id, check: af.check, description: af.description });
+    }
+  }
+
+  const hasAutoFail = triggeredFails.length > 0;
+  const finalScore = hasAutoFail ? 0 : rawScore;
+  const overallVerdict = (finalScore >= 80) ? 'pass' : 'fail';
+
+  return {
+    overall_score: finalScore,
+    overall_verdict: overallVerdict,
+    raw_score: rawScore,
+    final_score: finalScore,
+    rubric_type: 'three_tier',
+    total_earned: totalEarned,
+    total_possible: totalPossible,
+    automatic_fails_triggered: triggeredFails,
+    categories: categories,
+    competencies: competencies,
     top_strengths: extraction.top_strengths || [],
     critical_improvements: extraction.critical_improvements || [],
     coaching_tip: extraction.coaching_tip || '',
@@ -784,17 +982,24 @@ async function updateStatus(sessionId, status) {
  */
 function loadCurriculum(scenarioId) {
   try {
+    // Module 4 scenarios use the Make the Sale source material (LAW)
+    if (scenarioId && scenarioId.startsWith('module4')) {
+      const makeTheSalePath = path.join(__dirname, '..', '..', 'docs', 'source_material', 'make_the_sale.md');
+      if (fs.existsSync(makeTheSalePath)) {
+        logger.info(`[PostCall] Loaded Make the Sale source material for ${scenarioId}`);
+        return fs.readFileSync(makeTheSalePath, 'utf8');
+      }
+      logger.warn(`[PostCall] Make the Sale source material not found at expected path`);
+    }
 
+    // Legacy fallback: check curriculum directory
     const curriculumDir = path.join(__dirname, '..', 'curriculum');
-
-    // Map scenarioId to curriculum filename: module4_identifying_customer -> module4_identifying_customer.md
     const filePath = path.join(curriculumDir, scenarioId + '.md');
 
     if (fs.existsSync(filePath)) {
       return fs.readFileSync(filePath, 'utf8');
     }
 
-    // Fallback: list available files
     logger.warn(`[PostCall] No curriculum found for scenario ${scenarioId}`);
   } catch (err) {
     logger.warn(`[PostCall] Could not load curriculum for scenario ${scenarioId}:`, err.message);
@@ -824,6 +1029,22 @@ Auto-Fail Triggers: ${(scorecard.automatic_fails_triggered || []).length > 0 ? s
       .join('\n');
   }
 
+  // Detect if this is a module4 scenario for curriculum-specific coaching
+  const isModule4 = scenarioId && scenarioId.startsWith('module4');
+  const frameworkReferences = isModule4
+    ? `Your coaching analysis must directly reference the Make the Sale source material (provided below). This source material is LAW.
+- Reference specific frameworks: RDCT (Repeat-Describe-Convert-Tell), CPRC (Cushion-Probe-Respond-Confirm), Feel-Felt-Found.
+- Reference the 50/50 Rule for balanced dialogue.
+- Reference the "No Seagulls" principle for relevance.
+- Reference the difference between price, cost, and value.
+- Reference Step 1 (Repeat) for needs confirmation.
+- Grade on APPLICATION of techniques, not definitions.`
+    : `Your coaching analysis must directly reference the curriculum source material:
+- Reference specific frameworks (BANT, CHAMP) when relevant.
+- Reference the sales funnel stages (Suspect, Lead, Prospect) when relevant.
+- Reference the successful outcome criteria from the curriculum.
+- Reference customer-focused vs product-focused selling distinctions.`;
+
   return {
     system: `You are an expert sales coach providing detailed, constructive feedback on a sales call simulation. You have access to the training curriculum and the scorecard results.
 
@@ -840,11 +1061,7 @@ ANTI-HALLUCINATION RULES (strict, no exceptions):
 - Do NOT paraphrase the transcript. Use exact words.
 - If the rep did not do something, state that they did not do it.
 
-Your coaching analysis must directly reference the curriculum source material:
-- Reference specific frameworks (BANT, CHAMP) when relevant.
-- Reference the sales funnel stages (Suspect, Lead, Prospect) when relevant.
-- Reference the successful outcome criteria from the curriculum.
-- Reference customer-focused vs product-focused selling distinctions.
+${frameworkReferences}
 
 Return valid JSON with this exact structure:
 {

@@ -5,33 +5,45 @@
 
 const { config } = require('../config');
 
+/** Timeout for individual Tavus API requests (milliseconds). */
+const TAVUS_REQUEST_TIMEOUT_MS = 30000;
+
 /**
  * Make an authenticated request to the Tavus API.
  * Returns the parsed JSON response on success.
  * Throws an error with status and data on failure.
+ * Enforces a 30-second timeout via AbortController.
  */
 async function tavusFetch(path, options = {}) {
   const url = `${config.TAVUS_API_URL}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': config.TAVUS_API_KEY,
-      ...options.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TAVUS_REQUEST_TIMEOUT_MS);
 
-  const data = await res.json().catch(() => ({}));
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': config.TAVUS_API_KEY,
+        ...options.headers,
+      },
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    const errMsg = data.message || data.error || `Tavus API error: ${res.status}`;
-    const err = new Error(errMsg);
-    err.status = res.status;
-    err.data = data;
-    throw err;
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const errMsg = data.message || data.error || `Tavus API error: ${res.status}`;
+      const err = new Error(errMsg);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+
+    return data;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return data;
 }
 
 /** Maximum number of retry attempts for transient failures (Power of Ten Rule 2: bounded loop). */

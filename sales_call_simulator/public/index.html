@@ -232,26 +232,7 @@
     .lobby-card h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 8px; color: var(--text-primary); letter-spacing: -0.3px; }
     .lobby-status { color: var(--payroc-blue); font-weight: var(--fw-medium); font-size: var(--fs-sm); margin-bottom: 24px; }
     .lobby-spinner { margin-bottom: 24px; }
-    .lobby-tips {
-      text-align: left;
-      background: #F7F8FA;
-      border-radius: var(--rs);
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    .lobby-tips h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 12px; color: var(--text-primary); }
-    .lobby-tips ul { list-style: none; }
-    .lobby-tips li {
-      padding: 4px 0;
-      font-size: var(--fs-sm);
-      color: var(--text-muted);
-      position: relative;
-      padding-left: 20px;
-    }
-    .lobby-tips li::before {
-      content: ''; position: absolute; left: 0; top: 12px;
-      width: 5px; height: 5px; border-radius: 50%; background: var(--payroc-blue);
-    }
+
 
     /* ─── Call Screen — Teams-Style Layout ─── */
     .call-layout {
@@ -733,6 +714,57 @@
       font-style: italic;
       opacity: 0.7;
       margin-top: 2px;
+    }
+
+    /* ─── 3-Tier Rubric Styles ─── */
+    .grade-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      margin-bottom: 12px;
+    }
+    .tier-row {
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      border-radius: var(--r);
+      transition: all 0.2s ease;
+    }
+    .tier-label {
+      font-size: var(--fs-sm);
+      margin-bottom: 2px;
+    }
+    .tier-criteria {
+      font-size: var(--fs-xs);
+      color: var(--gray);
+      line-height: 1.4;
+    }
+    .three-tier-evidence {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(0,81,194,0.04);
+      border: 1px solid rgba(0,81,194,0.12);
+      border-radius: var(--r);
+      font-size: var(--fs-xs);
+      color: var(--text-secondary);
+      line-height: 1.5;
+      font-style: italic;
+    }
+    .three-tier-evidence strong,
+    .three-tier-rationale strong {
+      font-style: normal;
+      font-weight: var(--fw-semibold);
+      color: var(--text-primary);
+    }
+    .three-tier-rationale {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--n3);
+      border-radius: var(--r);
+      font-size: var(--fs-xs);
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
 
     /* Details grid */
@@ -1903,15 +1935,7 @@
           <div class="spinner spinner-large"></div>
         </div>
         <div id="lobby-continuity-notes" style="display:none;margin-bottom:16px;text-align:left;background:rgba(0,81,194,0.04);border:1px solid rgba(0,81,194,0.12);border-radius:var(--rs);padding:16px;"></div>
-        <div class="lobby-tips">
-          <h4>Quick Tips</h4>
-          <ul>
-            <li>Ask about their business <strong>before</strong> presenting solutions</li>
-            <li>Use BANT or CHAMP to qualify</li>
-            <li>Listen more than you talk in the first 5 minutes</li>
-            <li>Close for a next step, not a sale</li>
-          </ul>
-        </div>
+
         <button id="lobby-cancel" class="btn btn-ghost" aria-label="Cancel and return to scenarios">Cancel</button>
       </div>
     </div>
