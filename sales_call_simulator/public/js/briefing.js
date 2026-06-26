@@ -1,5 +1,5 @@
 /**
- * briefing.js — Pre-call Mission Briefing Dashboard Logic
+ * briefing.js: Pre-call Briefing Dashboard Logic
  * Handles persona data rendering, CHAMP interactions, MCQ drills, and completion flow.
  */
 
@@ -140,7 +140,7 @@
     sam_patel: {
       displayName: 'Sam Patel',
       initials: 'SP',
-      business: 'QuickStop Market — Independent Convenience Store',
+      business: 'QuickStop Market : Independent Convenience Store',
       location: 'Suburban Michigan',
       style: 'Controller',
       styleDesc: 'Analytical, efficient, highly skeptical',
@@ -165,12 +165,12 @@
         },
         money: {
           title: 'Money & Budget',
-          body: 'Thin margins (2-5% on most items). Every dollar matters. Processing fees are a known pain point. He has been quoted cheaper rates before and is skeptical of "savings" claims.',
+          body: 'Thin margins (2 to 5 percent on most items). Every dollar matters. Processing fees are a known pain point. He has been quoted cheaper rates before and is skeptical of savings claims.',
           action: 'Lead with margin protection and cost avoidance, not just lower rates.',
         },
         prioritization: {
           title: 'Prioritization & Timeline',
-          body: 'Sam is in "survive" mode — day-to-day operations consume him. He will not prioritize a new system unless the pain of the status quo is clearly worse. The EBT warning created urgency.',
+          body: 'Sam is in survival mode: day-to-day operations consume him. He will not prioritize a new system unless the pain of the status quo is clearly worse. The EBT warning created urgency.',
           action: 'Connect automation to time savings he can feel immediately. Use the compliance urgency.',
         },
       },
@@ -178,19 +178,64 @@
         'How do you currently handle price changes across your store?',
         'Walk me through what inventory management looks like week-to-week.',
         'How much time does your team spend on manual counts and restocking?',
-        'Tell me about the compliance situation — I heard there may have been a warning?',
+        'Tell me about the compliance situation: I heard there may have been a warning?',
         'What would it mean for the business if you lost your EBT license?',
       ],
       objections: [
-        { trigger: "We've always done it this way.", response: 'Acknowledge the comfort of routine, then quantify the cost of manual work. "Totally fair — when you add up the hours on pricing alone, what does that look like each week?"' },
-        { trigger: 'I already got quoted cheaper rates.', response: "Don't compete on rate. Pivot to total cost of ownership. \"Rates are one piece — what about the shrink and labor cost from manual inventory?\"" },
-        { trigger: "I don't have time for a new system.", response: "Mirror his time pressure back. \"That's exactly the problem we solve — the current system is what's stealing your time.\"" },
+        { trigger: "We've always done it this way.", response: 'Acknowledge the comfort of routine, then quantify the cost of manual work: "Totally fair. When you add up the hours on pricing alone, what does that look like each week?"' },
+        { trigger: 'I already got quoted cheaper rates.', response: 'Do not compete on rate. Pivot to total cost of ownership: "Rates are one piece. What about the shrink and labor cost from manual inventory?"' },
+        { trigger: "I don't have time for a new system.", response: 'Mirror his time pressure back: "That is exactly the problem we solve. The current system is what is stealing your time."' },
       ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Sam Patel, Owner, QuickStop Market (11 years in business)',
+        dialogueGuide: 'Controller. Skeptical and direct. Conciseness is key. Dialogue Pace: maintain 50/50 balance, check in every 1-2 sentences. Avoid monologues.',
+        timeConstraint: '10 minutes (call must finish before the evening rush)',
+        productFocus: 'Bodega AI (Automation and Inventory Software)',
+        openingStatement: 'Thanks for jumping on, Sam. I know you have your evening rush starting in about ten minutes, so I will get straight to it. When we chatted last week, you mentioned you guys were dealing with some manual pricing errors, keeping track of inventory on spreadsheets, and worrying about EBT audits. Is that still accurate?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Manual Aisle Walks: Staff walks aisles checking prices and changing tags manually.',
+            feature: 'Centralized Pricing: Automates price updates and syncs pricing changes instantly to registers.',
+            impact: 'Labor Savings Math: Saves 6 hours per week. At $15/hour, this equals $180/week or $9,360/year saved in labor costs.',
+          },
+          {
+            need: 'Spreadsheet Inventory and Stockouts: Manual counts cause frequent out-of-stock items and supplier margin leakage.',
+            feature: 'Automated Inventory Tracking: Tracks stock levels in real time and automates reordering.',
+            impact: 'Financial Recovery Math: Protects store margins, reduces manual count labor, and prevents walk-away customer losses.',
+          },
+          {
+            need: 'Compliance and Audit Risks: Recent warnings regarding manual age verification and EBT administration.',
+            feature: 'Age and EBT Compliance Prompts: System forces register prompts for age check and blocks invalid EBT purchases.',
+            impact: 'License Safeguard: Protects the store EBT/lottery licenses, prevents regulatory audits, and avoids costly fines.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "Look, I just don't have the time to switch systems right now. I can't risk having my registers down during our busy hours.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'That is a totally fair concern. I know any downtime at the register directly impacts your business.' },
+          { step: 'Step 2 (Explore):', text: 'Just so I understand, what is the main concern there, are you worried about actual system downtime during the switch, or is it more about how long it will take your cashiers to learn it?' },
+          { step: 'Step 3 (Solve):', text: 'Explain how our onboarding team handles the heavy lifting overnight, keeping register downtime to under 15 minutes.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to scheduling the demo to show them the interface.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us grab 15 minutes to run through a quick demo so you can see it in action. Do you have some time Tuesday morning, or would Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standalone card terminals instead of Bodega AI.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
     },
     carla_reyes: {
       displayName: 'Carla Reyes',
       initials: 'CR',
-      business: 'Studio Collective Salon — Multi-booth Beauty Salon',
+      business: 'Studio Collective Salon : Multi-booth Beauty Salon',
       location: 'Denver, Colorado',
       style: 'Supporter',
       styleDesc: 'Relationship-driven, warm, collaborative, cautious of disruption',
@@ -205,13 +250,13 @@
       champ: {
         challenges: {
           title: 'Challenges',
-          body: 'Shared checkout desk creates confusion among 6 stylists. Manual reconciliation at end of day is tedious and error-prone. Stylists occasionally lose track of client payments. Fear of disruption if new systems are introduced.',
+          body: 'Checkout confusion at the shared reception desk. Disjointed client experience where some stylists accept Venmo, others cash. Manual reconciliation at the end of the day is tedious.',
           action: 'Ask how checkout currently works when multiple stylists have clients finishing at the same time.',
         },
         authority: {
           title: 'Authority (Decision-Making)',
-          body: 'Carla owns the salon but the stylists are independent renters. She needs their buy-in — any change that feels forced will cause pushback or walkouts. Decisions are collaborative.',
-          action: 'Frame the solution as something that helps the TEAM, not just Carla. Use inclusive language.',
+          body: 'Carla owns the salon but the stylists are independent renters. She needs their buy-in: any change that feels forced will cause pushback. Decisions are collaborative.',
+          action: 'Frame the solution as something that helps the team, not just Carla. Use inclusive language.',
         },
         money: {
           title: 'Money & Budget',
@@ -220,7 +265,7 @@
         },
         prioritization: {
           title: 'Prioritization & Timeline',
-          body: 'Carla will not rush a decision. She needs to feel confident that her team is onboard. The biggest fear is losing top stylists to disruption. Timeline depends on team comfort.',
+          body: 'Carla will not rush a decision. She needs to feel confident that her team is onboard. The biggest fear is losing top stylists to disruption.',
           action: 'Propose a low-pressure trial or demo that stylists can experience before committing.',
         },
       },
@@ -232,15 +277,60 @@
         'How do your stylists feel about trying new tools or technology?',
       ],
       objections: [
-        { trigger: 'My stylists won\'t want to learn something new.', response: "Validate the concern, then reframe. \"I hear you — that's why this is designed to be simpler than what they do now, not more complex.\"" },
-        { trigger: 'We\'ve managed fine so far.', response: 'Agree and elevate. "You\'ve built something great — this is about protecting that by reducing the friction points that could frustrate your team."' },
-        { trigger: 'I need to talk to my stylists first.', response: "Support the collaborative process. \"Absolutely, I'd expect nothing less. Would a quick demo for the team make that conversation easier?\"" },
+        { trigger: "My stylists won't want to learn something new.", response: 'Validate the concern, then reframe: "I hear you. That is why this is designed to be simpler than what they do now, not more complex."' },
+        { trigger: "We've managed fine so far.", response: 'Agree and elevate: "You have built something great. This is about protecting that by reducing the friction points that could frustrate your team."' },
+        { trigger: "I need to talk to my stylists first.", response: 'Support the collaborative process: "Absolutely, I would expect nothing less. Would a quick demo for the team make that conversation easier?"' },
       ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Carla Reyes, Owner, Studio Collective Salon (6 independent stylists renting booths)',
+        dialogueGuide: 'Supporter. Relationship-driven, warm, and collaborative. Reassurance is key. Dialogue Pace: maintain 50/50 balance, check in every 1-2 sentences. Avoid high pressure or complex jargon.',
+        timeConstraint: '10 minutes (brief discussion on checkout operations)',
+        productFocus: 'Roc Terminal+ (Multi-merchant split payment terminal)',
+        openingStatement: 'Hey Carla, thanks for taking the call. I know running a busy salon keeps you on your feet, so I will keep this quick. When we talked last week, you mentioned you guys were dealing with some checkout confusion at the front desk, a disjointed payment experience for clients, and a lot of manual reconciliation at the end of the day. Does that still sound like the main challenges?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Shared Reception Confusion: Desk gets chaotic with booth renters using multiple payment apps or personal readers.',
+            feature: 'Multi-Merchant Split Payments: Allows independent booth renters to accept payments on a single physical terminal.',
+            impact: 'Stress-Free Reception: Routes funds directly to individual stylist accounts, keeping business finances separate.',
+          },
+          {
+            need: 'Disjointed Client Experience: Clients pay stylists via cash or personal apps, slowing checkout and feeling unprofessional.',
+            feature: 'Unified Client Checkout: A high-end payment terminal interface accepting tap, chip, and mobile wallets in one spot.',
+            impact: 'Premium Brand Perception: Gives clients a sleek, professional checkout experience that matches the high quality of your salon.',
+          },
+          {
+            need: 'Manual End-of-Day Reconciliation: Spent hours sorting through payments to calculate booth rentals and stylist transactions.',
+            feature: 'Simplified Reporting: Tracks rental dues and individual transactions automatically in the back office.',
+            impact: 'Time Savings: Saves hours of bookkeeping every week and prevents stylist accounting errors.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "I'm just worried my stylists won't want to use it. They aren't very tech-savvy and hate when we change things on them.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I completely get that. Your team comfort is the most important thing here.' },
+          { step: 'Step 2 (Explore):', text: 'Just to make sure we address it right, are they mostly worried about a complicated setup process, or is it more about the daily learning curve of using the app?' },
+          { step: 'Step 3 (Solve):', text: 'Explain that we provide dedicated, hands-on training for each stylist so they feel comfortable before we go live.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to the demo so they can see how straightforward the stylist interface is.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us grab 15 minutes to do a quick demo and I will show you how simple it is for your stylists to track their own sales. Would Tuesday morning or Thursday afternoon work best for you?',
+        fails: [
+          'Pitching the wrong product: Single-merchant terminals instead of Roc Terminal+.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
     },
     mike_turner: {
       displayName: 'Mike Turner',
       initials: 'MT',
-      business: 'Precision Plumbing & Drain — Residential Plumbing',
+      business: 'Precision Plumbing & Drain : Residential Plumbing',
       location: 'Columbus, Ohio',
       style: 'Doer',
       styleDesc: 'Fast-paced, direct, results-oriented, highly impatient',
@@ -255,12 +345,12 @@
       champ: {
         challenges: {
           title: 'Challenges',
-          body: 'Technicians leave jobs without collecting payment. Paper invoices are sent days after job completion. Payments take 2-3 weeks to arrive. Office staff spend hours chasing unpaid invoices manually.',
+          body: 'Technicians leave jobs without collecting payment. Paper invoices are sent days after job completion. Payments take 2 to 3 weeks to arrive. Office staff spend hours chasing unpaid invoices manually.',
           action: 'Ask how techs currently handle billing when they finish a job in the field.',
         },
         authority: {
           title: 'Authority (Decision-Making)',
-          body: 'Mike is the sole owner and makes all decisions quickly. He values directness — get to the point fast or he\'ll cut you off. No committee, no approval chain.',
+          body: 'Mike is the sole owner and makes all decisions quickly. He values directness: get to the point fast or he will cut you off. No committee, no approval chain.',
           action: 'Be direct. Lead with the result, then explain how. Skip the small talk.',
         },
         money: {
@@ -270,8 +360,8 @@
         },
         prioritization: {
           title: 'Prioritization & Timeline',
-          body: 'Mike knows operations are inefficient but hates dealing with new technology. He\'ll prioritize a change only if it\'s dead simple for his crew and solves an immediate pain.',
-          action: 'Emphasize crew-friendly design. "Your guys tap 3 buttons on their phone and the invoice goes out."',
+          body: 'Mike knows operations are inefficient but hates dealing with new technology. He will prioritize a change only if it is dead simple for his crew and solves an immediate pain.',
+          action: 'Emphasize crew-friendly design: "Your guys tap 3 buttons on their phone and the invoice goes out."',
         },
       },
       questions: [
@@ -282,15 +372,60 @@
         'What does cash flow look like during the slow season with these delays?',
       ],
       objections: [
-        { trigger: "We've always done it this way.", response: "Don't argue. Validate and redirect. \"Makes sense — when you look at the 2-3 week delay on getting paid, what's that costing you over a quarter?\"" },
-        { trigger: 'My guys won\'t use it. They\'re plumbers, not computer guys.', response: "Meet the objection head-on. \"Exactly — this is built for field crews, not office workers. Three taps and the invoice is sent.\"" },
-        { trigger: 'I already use QuickBooks.', response: "Don't compete. Complement. \"QuickBooks is great for the back office — this gets the data to QuickBooks faster by capturing it in the field.\"" },
+        { trigger: "We've always done it this way.", response: 'Do not argue. Validate and redirect: "Makes sense. When you look at the 2-3 week delay on getting paid, what is that costing you over a quarter?"' },
+        { trigger: "My guys won't use it. They're plumbers, not computer guys.", response: 'Meet the objection head-on: "Exactly. This is built for field crews, not office workers. Three taps and the invoice is sent."' },
+        { trigger: 'I already use QuickBooks.', response: 'Do not compete. Complement: "QuickBooks is great for the back office. This gets the data to QuickBooks faster by capturing it in the field."' },
       ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Mike Turner, Owner, Precision Plumbing & Drain (4 field technicians, 4 trucks)',
+        dialogueGuide: 'Doer. Highly practical, results-oriented, impatient, direct. Dialogue Pace: maintain 50/50 balance, conciseness is key. Focus immediately on cash flow and time savings.',
+        timeConstraint: '10 minutes (between calls on a job site)',
+        productFocus: 'Roc Services (Mobile Invoicing and Dispatch Software)',
+        openingStatement: 'Hey Mike, thanks for grabbing the phone. I know you are busy on a job site today, so I will get right to the point. When we spoke last week, you mentioned that technicians are collecting payments inconsistently in the field, paper invoices are dragging out your collection times, and you have got a backlog of manual invoicing in the office. Is that still what is going on?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Inconsistent Field Payments: Technicians walk away from jobs without collecting payment, or paper checks sit in trucks.',
+            feature: 'Mobile In-Field Processing: Allows field technicians to invoice and process card/ACH payments on-site via mobile app.',
+            impact: 'Zero Billing Lag: You collect payments immediately on job completion, preventing revenue leakage.',
+          },
+          {
+            need: 'Paper Invoice Delay: Writing and mailing paper invoices takes days, delaying payment clearances by weeks.',
+            feature: 'Mobile Invoice Generator: Generates and sends digital estimates and invoices to customers instantly on-site.',
+            impact: 'Accelerated Cash Flow: Gets funds cleared in minutes rather than weeks, supporting business during slow seasons.',
+          },
+          {
+            need: 'Office Bookkeeping Backlog: Office staff spends hours typing paper invoices and manually reconciling billing details.',
+            feature: 'QuickBooks Sync: Automatically syncs all generated field invoices and payments into accounting.',
+            impact: 'Admin Time Recovery: Eliminates double-entry and saves manual reconciliation and billing follow-up hours.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "Look, my guys are plumbers, not tech guys. They're going to complain and refuse to use some complicated app.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I hear you. If the field techs find it complicated, it is just going to sit there unused.' },
+          { step: 'Step 2 (Explore):', text: 'What is the biggest concern there, is it that the app itself has too many steps, or is it the time it takes to get them set up on their phones?' },
+          { step: 'Step 3 (Solve):', text: 'Explain that the field tech interface is designed for 1-click invoicing and takes less than 5 minutes to learn.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to the demo so they can see how simple the app looks on a mobile screen.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us set up a quick 15-minute online walkthrough so you can see how simple the mobile screen is for your techs. Do you have some time Tuesday morning, or would Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standalone retail terminals instead of Roc Services.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
     },
     david_miller: {
       displayName: 'Pastor David Miller',
       initials: 'DM',
-      business: 'New Hope Community Church — Church & Nonprofit',
+      business: 'New Hope Community Church : Church & Nonprofit',
       location: 'Western Pennsylvania',
       style: 'Talker-Supporter Hybrid',
       styleDesc: 'Warm, relational, deeply mission-focused',
@@ -305,13 +440,13 @@
       champ: {
         challenges: {
           title: 'Challenges',
-          body: 'Donations are inconsistent — heavily reliant on Sunday collections. Manual tracking of cash and checks is time-consuming. Volunteers are burning out generating handwritten tax receipts. Younger families want digital giving options.',
+          body: 'Donations are inconsistent: heavily reliant on Sunday collections. Manual tracking of cash and checks is time-consuming. Volunteers are burning out generating handwritten tax receipts. Younger families want digital giving options.',
           action: 'Ask about how the church currently collects and tracks donations week-to-week.',
         },
         authority: {
           title: 'Authority (Decision-Making)',
           body: 'Pastor David leads the church but values community input. Major decisions involve the church board. He needs to feel personally aligned with the mission before advocating.',
-          action: 'Connect the solution to the church\'s mission and community impact. Make him a champion.',
+          action: 'Connect the solution to the church mission and community impact. Make him a champion.',
         },
         money: {
           title: 'Money & Budget',
@@ -321,21 +456,66 @@
         prioritization: {
           title: 'Prioritization & Timeline',
           body: 'The basketball court repair is the immediate priority. Volunteer burnout is a growing concern. Pastor David will move when he believes the solution genuinely serves his community.',
-          action: 'Tie everything to the basketball court timeline. "What if you could fund the court project by Q4?"',
+          action: 'Tie everything to the basketball court timeline: "What if you could fund the court project by Q4?"',
         },
       },
       questions: [
         'How does the church currently collect donations on a typical Sunday?',
         'What does the process look like after service for counting and recording donations?',
         'Have younger families mentioned wanting other ways to give?',
-        'How\'s the basketball court fundraiser going? Are you on track?',
+        'How is the basketball court fundraiser going? Are you on track?',
         'How many volunteer hours go into donation tracking and receipts each week?',
       ],
       objections: [
-        { trigger: 'We already have ways to collect donations.', response: "Honor the tradition. \"Your congregation's generosity is clear — this is about making it easier for everyone to give in the way that's most comfortable for them.\"" },
-        { trigger: "We don't want giving to feel transactional.", response: "Align with the mission. \"100% — this is about deepening engagement, not processing payments. Think of it as extending the giving experience beyond Sunday.\"" },
-        { trigger: "We're not very tech-savvy.", response: "Remove the burden. \"Your volunteers won't need to be. The system handles tracking and receipts automatically — it actually reduces the tech burden on your team.\"" },
+        { trigger: 'We already have ways to collect donations.', response: 'Honor the tradition: "Your congregation generosity is clear. This is about making it easier for everyone to give in the way that is most comfortable for them."' },
+        { trigger: "We don't want giving to feel transactional.", response: 'Align with the mission: "100 percent. This is about deepening engagement, not processing payments. Think of it as extending the giving experience beyond Sunday."' },
+        { trigger: "We're not very tech-savvy.", response: 'Remove the burden: "Your volunteers won not need to be. The system handles tracking and receipts automatically. It actually reduces the tech burden on your team."' },
       ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Pastor David Miller, New Hope Community Church (350 active members)',
+        dialogueGuide: 'Talker-Supporter Hybrid. Warm, relational, mission-focused, community-oriented. Dialogue Pace: maintain 50/50 balance. Focus on trust, stories, and community impact.',
+        timeConstraint: '10 minutes (relaxed but respectful of church programs)',
+        productFocus: 'Roc Giving (Donor Management and Mobile Campaigns)',
+        openingStatement: 'Hi Pastor David, thanks for chatting today. I have been following your basketball court project and would love to hear how it is coming along. I will keep this brief, but when we spoke last week, you mentioned that giving is inconsistent when members miss a service, your volunteers are burning out tracking checks manually, and it is hard to get younger givers excited about the court project. Is that still what you are seeing?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Inconsistent Weekly Giving: Weekly giving drops off whenever members are traveling or cannot make Sunday service.',
+            feature: 'Recurring Online Donations: Set-and-forget digital giving options that members can configure on your website or mobile portal.',
+            impact: 'Consistent Church Funding: Provides the church with steady, predictable monthly support to run community outreach programs.',
+          },
+          {
+            need: 'Court Campaign Momentum: Traditional envelopes and paper checks make it hard to track fundraising progress dynamically.',
+            feature: 'Text-to-Give and Mobile Campaigns: Simple Text-to-Give keywords and mobile campaign pages built specifically for community projects.',
+            impact: 'Accelerated Project Completion: Keeps donors engaged and excited on the spot, with visible real-time campaign tracking.',
+          },
+          {
+            need: 'Volunteer Administrative Burnout: Volunteers spend hours counting cash, sorting checks, and manually writing out tax receipts.',
+            feature: 'Automated Contribution Tracking: Secure donor management software that logs donations and generates tax statements with one click.',
+            impact: 'Ministry-First Operations: Frees up volunteer hours from administrative paperwork, letting them focus on community service.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: 'We really care about keeping our church community personal. I do not want giving to feel commercial or like a cold business transaction.',
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I completely agree. Giving is a spiritual act, not a business transaction.' },
+          { step: 'Step 2 (Explore):', text: 'What is the main concern there, are you worried the digital giving page will look too commercial, or is it more about making sure older members do not feel excluded?' },
+          { step: 'Step 3 (Solve):', text: 'Show how the giving page is customized with church imagery and photos of the court, keeping it relational, while traditional check-giving remains fully supported.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to showing them a mockup of their custom page.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us take 15 minutes next week to look at a simple mockup of what your custom basketball court giving page could look like. Would Tuesday morning or Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standard credit card terminals instead of Roc Giving.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
     },
   };
 
@@ -401,13 +581,13 @@
     document.getElementById('briefingApp').style.display = 'block';
 
     // Header
-    document.getElementById('headerPersonaName').textContent = `${persona.displayName} — ${persona.product}`;
+    document.getElementById('headerPersonaName').textContent = `${persona.displayName} (${persona.product})`;
 
     // Persona profile
     document.getElementById('personaAvatar').textContent = persona.initials;
     document.getElementById('personaFullName').textContent = persona.displayName;
     document.getElementById('personaBusiness').textContent = persona.business + ' • ' + persona.location;
-    document.getElementById('behavioralStyle').textContent = `${persona.style} — ${persona.styleDesc}`;
+    document.getElementById('behavioralStyle').textContent = `${persona.style} : ${persona.styleDesc}`;
 
     // Info grid
     const infoGrid = document.getElementById('infoGrid');
@@ -430,9 +610,6 @@
     // Quiz
     renderQuiz();
 
-    // Download link
-    document.getElementById('downloadPdf').href = `/handouts/${state.personaId}_handout.pdf`;
-
     // Tabs
     setupTabs();
 
@@ -440,7 +617,7 @@
     setupChampSelector();
 
     // Blueprint title
-    document.getElementById('blueprintTitle').textContent = `${persona.displayName} — Pre-call Handout`;
+    document.getElementById('blueprintTitle').textContent = `Pre-call Handout : ${persona.displayName}`;
     document.getElementById('blueprintSubtitle').textContent = `${persona.business}`;
   }
 
@@ -451,7 +628,7 @@
         <div class="champ-detail-box">
           <div class="champ-detail-header">${data.title}</div>
           <div class="champ-detail-body">${data.body}</div>
-          <div class="champ-detail-action">💡 ${data.action}</div>
+          <div class="champ-detail-action">Action: ${data.action}</div>
         </div>
       </div>
     `).join('');
@@ -471,11 +648,11 @@
     objectionList.innerHTML = persona.objections.map(obj => `
       <div class="objection-item">
         <div class="objection-trigger">
-          <div class="objection-label">🔴 They Say</div>
+          <div class="objection-label">They Say</div>
           "${obj.trigger}"
         </div>
         <div class="objection-response">
-          <div class="objection-label">🟢 You Say</div>
+          <div class="objection-label">You Say</div>
           ${obj.response}
         </div>
       </div>
@@ -485,37 +662,91 @@
   function renderBlueprint(persona) {
     const body = document.getElementById('blueprintBody');
     body.innerHTML = `
-      <div class="blueprint-section">
-        <div class="blueprint-section-title">Merchant Profile</div>
-        <div class="blueprint-row"><span class="blueprint-label">Name</span><span class="blueprint-value">${persona.displayName}</span></div>
-        <div class="blueprint-row"><span class="blueprint-label">Business</span><span class="blueprint-value">${persona.business.split('—')[0].trim()}</span></div>
-        <div class="blueprint-row"><span class="blueprint-label">Location</span><span class="blueprint-value">${persona.location}</span></div>
-        <div class="blueprint-row"><span class="blueprint-label">Style</span><span class="blueprint-value">${persona.style}</span></div>
-        <div class="blueprint-row"><span class="blueprint-label">Product</span><span class="blueprint-value">${persona.product}</span></div>
-      </div>
-
-      <div class="blueprint-champ-zone" data-zone="challenges">
+      <!-- STAGE 1: THE HOOK -->
+      <div class="blueprint-champ-zone" data-zone="challenges" style="margin-bottom: 20px; border-left: 4px solid var(--color-primary); padding-left: 16px;">
         <span class="zone-tag">Challenges</span>
-        <div class="blueprint-section-title" style="border:0;margin:0;padding:0;">Key Challenges</div>
-        <div style="font-size:11px;color:#6b7280;line-height:1.5;margin-top:4px;">${persona.champ.challenges.body}</div>
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          Stage 1: The Hook (First 2 Mins)
+        </h4>
+        
+        <div class="blueprint-champ-zone" data-zone="authority" style="padding: 6px; border-radius: 4px; margin-bottom: 6px;">
+          <span class="zone-tag">Authority</span>
+          <div style="font-size: 12px; margin-bottom: 4px;">
+            <strong>Profile:</strong> ${persona.stage1.profile}
+          </div>
+          <div style="font-size: 12px;">
+            <strong>Buyer Style & Guide:</strong> ${persona.stage1.dialogueGuide}
+          </div>
+        </div>
+
+        <div style="font-size: 12px; margin-bottom: 6px;">
+          <strong>Time Limit:</strong> ${persona.stage1.timeConstraint}
+        </div>
+        <div style="font-size: 12px; margin-bottom: 12px;">
+          <strong>Product Focus:</strong> ${persona.stage1.productFocus}
+        </div>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 6px; font-size: 12px; font-style: italic; border-left: 3px solid #cbd5e1;">
+          <strong>Opening Cue:</strong> "${persona.stage1.openingStatement}"
+        </div>
       </div>
 
-      <div class="blueprint-champ-zone" data-zone="authority">
-        <span class="zone-tag">Authority</span>
-        <div class="blueprint-section-title" style="border:0;margin:0;padding:0;">Decision Authority</div>
-        <div style="font-size:11px;color:#6b7280;line-height:1.5;margin-top:4px;">${persona.champ.authority.body}</div>
-      </div>
-
-      <div class="blueprint-champ-zone" data-zone="money">
+      <!-- STAGE 2: DISCOVERY & ROI GRID -->
+      <div class="blueprint-champ-zone" data-zone="money" style="margin-bottom: 20px; border-left: 4px solid var(--color-success); padding-left: 16px;">
         <span class="zone-tag">Money</span>
-        <div class="blueprint-section-title" style="border:0;margin:0;padding:0;">Budget & Financial Context</div>
-        <div style="font-size:11px;color:#6b7280;line-height:1.5;margin-top:4px;">${persona.champ.money.body}</div>
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--color-success); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          Stage 2: Discovery and ROI Grid (Middle 6 Mins)
+        </h4>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+              <th style="padding: 6px; font-weight: 700;">Customer Need</th>
+              <th style="padding: 6px; font-weight: 700;">Product Feature</th>
+              <th style="padding: 6px; font-weight: 700;">Math and Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${persona.stage2.grid.map(row => `
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 6px; vertical-align: top; width: 33%;"><strong>${row.need.split(':')[0]}</strong>:${row.need.split(':')[1] || ''}</td>
+                <td style="padding: 6px; vertical-align: top; width: 33%;"><strong>${row.feature.split(':')[0]}</strong>:${row.feature.split(':')[1] || ''}</td>
+                <td style="padding: 6px; vertical-align: top; width: 33%; background: #f0fdf4;">${row.impact}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
       </div>
 
-      <div class="blueprint-champ-zone" data-zone="prioritization">
+      <!-- STAGE 3: FRICTION & CLOSE -->
+      <div class="blueprint-champ-zone" data-zone="prioritization" style="border-left: 4px solid var(--color-danger); padding-left: 16px; margin-bottom: 12px;">
         <span class="zone-tag">Priority</span>
-        <div class="blueprint-section-title" style="border:0;margin:0;padding:0;">Prioritization & Timeline</div>
-        <div style="font-size:11px;color:#6b7280;line-height:1.5;margin-top:4px;">${persona.champ.prioritization.body}</div>
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--color-danger); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          Stage 3: Friction and Close (Last 2 Mins)
+        </h4>
+        <div style="font-size: 12px; margin-bottom: 8px;">
+          <strong>Expected Objection:</strong> "${persona.stage3.expectedObjection}"
+        </div>
+        <div style="background: #fff5f5; padding: 12px; border-radius: 6px; font-size: 12px; border-left: 3px solid #fecaca; margin-bottom: 8px;">
+          <strong style="display: block; margin-bottom: 4px; color: var(--color-danger);">Dialogue Path:</strong>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            ${persona.stage3.dialoguePath.map(step => `
+              <li style="margin-bottom: 4px;"><strong>${step.step}</strong> ${step.text}</li>
+            `).join('')}
+          </ul>
+        </div>
+        <div style="font-size: 12px; margin-bottom: 4px;">
+          <strong>Target Commitment:</strong> ${persona.stage3.targetCommitment}
+        </div>
+        <div style="font-size: 12px; font-style: italic; margin-bottom: 8px;">
+          <strong>Closing Cue:</strong> "${persona.stage3.closingStatement}"
+        </div>
+        <div style="background: #fffbeb; padding: 10px; border-radius: 6px; font-size: 11px; border: 1px dashed #fde68a;">
+          <strong style="color: #b45309; display: block; margin-bottom: 4px;">Fails Matrix (0% Score):</strong>
+          <ul style="margin: 0; padding-left: 14px;">
+            ${persona.stage3.fails.map(fail => `
+              <li style="margin-bottom: 2px;">${fail}</li>
+            `).join('')}
+          </ul>
+        </div>
       </div>
     `;
   }
@@ -635,8 +866,7 @@
     const btn = document.getElementById('completeBtn');
     btn.classList.add('unlocked');
     btn.disabled = false;
-    document.getElementById('statusIcon').textContent = '✅';
-    document.getElementById('statusText').textContent = 'All drills passed — ready to proceed!';
+    document.getElementById('statusText').textContent = 'All drills passed: ready to proceed!';
 
     btn.addEventListener('click', handleComplete);
   }
