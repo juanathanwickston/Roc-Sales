@@ -103,4 +103,4 @@ function verifyLtiSignature(req, consumerSecret) {
   return { valid: true };
 }
 
-module.exports = { verifyLtiSignature };
+module.exports = { verifyLtiSignature, rfc3986Encode, buildBaseString };

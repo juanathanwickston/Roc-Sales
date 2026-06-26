@@ -3,6 +3,7 @@
  */
 
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
@@ -95,6 +96,7 @@ const scenarioRoutes = require('./routes/scenarioRoutes');
 const { router: sessionRoutes, adminDashboardHandler } = require('./routes/sessionRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const { verifyLtiSignature } = require('./utils/ltiVerifier');
+const { sendLtiGrade } = require('./utils/ltiOutcomes');
 
 // --- Standalone Auth ---
 // Lightweight token endpoint for standalone mode.
@@ -379,7 +381,219 @@ async function handleLtiLaunch(req, res) {
   res.redirect(`/?${params.toString()}`);
 }
 
+/**
+ * POST /launch-briefing/:moduleId - LTI 1.1 launch for Pre-call Briefing.
+ * Mirrors the simulator launch but redirects to /briefing.html instead of /.
+ * Captures LTI Outcomes params for grade passback on drill completion.
+ */
+app.post('/launch-briefing/:moduleId', authLimiter, express.urlencoded({ extended: false }), async (req, res) => {
+  try {
+    if (!config.LTI_CONSUMER_KEY || !config.LTI_SHARED_SECRET) {
+      return res.status(500).json({ error: 'LTI is not configured on this server' });
+    }
+
+    if (req.body.oauth_consumer_key !== config.LTI_CONSUMER_KEY) {
+      logger.warn('LTI briefing consumer key mismatch');
+      return res.status(401).json({ error: 'Invalid LTI consumer key' });
+    }
+
+    const { valid, error } = verifyLtiSignature(req, config.LTI_SHARED_SECRET);
+    if (!valid) {
+      logger.warn('LTI briefing signature verification failed', { error });
+      return res.status(401).json({ error: 'Invalid LTI launch signature' });
+    }
+
+    await handleBriefingLtiLaunch(req, res);
+  } catch (err) {
+    logger.error('LTI briefing launch handler failed', { error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal error during LTI briefing launch' });
+    }
+  }
+});
+
+async function handleBriefingLtiLaunch(req, res) {
+  const ltiUserId = req.body.lis_person_contact_email_primary
+    || req.body.user_id
+    || '';
+  const userId = sanitizeLaunchUserId(ltiUserId);
+  const moduleId = req.params.moduleId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'LTI launch missing user identity' });
+  }
+  if (!VALID_LTI_MODULES.has(moduleId)) {
+    return res.status(400).json({ error: 'Invalid module ID. Must be module4 or module5.' });
+  }
+
+  // Resolve persona: custom param > Docebo API > local DB
+  let personaId = null;
+
+  // 1. Check for custom LTI parameter
+  const customPersona = req.body.custom_assigned_persona;
+  if (customPersona && VALID_PERSONAS.has(customPersona)) {
+    personaId = customPersona;
+  }
+
+  // 2. Fall back to Docebo API
+  if (!personaId && config.DOCEBO_BASE_URL && config.DOCEBO_CLIENT_ID && config.DOCEBO_CLIENT_SECRET) {
+    const { getAssignedPersona } = require('./services/doceboClient');
+    const email = req.body.lis_person_contact_email_primary || ltiUserId;
+    personaId = await getAssignedPersona(email);
+  }
+
+  // 3. Fall back to local DB
+  if (!personaId) {
+    const result = await db.query(
+      'SELECT persona_id FROM persona_assignments WHERE external_user_id = $1',
+      [userId]
+    );
+    personaId = result.rows.length > 0 ? result.rows[0].persona_id : null;
+  }
+
+  if (!personaId || !VALID_PERSONAS.has(personaId)) {
+    return res.status(404).json({ error: 'No valid persona assigned for this user. Contact your administrator.' });
+  }
+
+  const scenarioId = `${moduleId}_${personaId}`;
+
+  // Build JWT — include LTI Outcomes params if present
+  const tokenPayload = { userId, displayName: userId, role: 'user' };
+
+  // Capture Outcomes params for grade passback (optional — only if LMS sends them)
+  const outcomeServiceUrl = req.body.lis_outcome_service_url || '';
+  const resultSourcedId = req.body.lis_result_sourcedid || '';
+  if (outcomeServiceUrl && resultSourcedId) {
+    tokenPayload.outcomeServiceUrl = outcomeServiceUrl;
+    tokenPayload.resultSourcedId = resultSourcedId;
+  } else {
+    logger.warn('LTI briefing launch missing Outcomes params — grade sync will be skipped', { userId, moduleId });
+  }
+
+  const userToken = config.JWT_SECRET
+    ? jwt.sign(tokenPayload, config.JWT_SECRET, { expiresIn: '24h' })
+    : 'dev-token';
+
+  const params = new URLSearchParams({
+    token: userToken,
+    scenarioId,
+    userId,
+    moduleId,
+  });
+
+  logger.info('LTI briefing launch redirect', { userId, moduleId, personaId, scenarioId });
+  res.redirect(`/briefing.html?${params.toString()}`);
+}
+
+// --- Curriculum API ---
+
+const CURRICULUM_DIR = path.join(__dirname, 'curriculum');
+
+/**
+ * GET /api/curriculum/:scenarioId - Serve curriculum markdown as JSON.
+ * Standalone path avoids the /:id catch-all collision in scenarioRoutes.js.
+ */
+app.get('/api/curriculum/:scenarioId', (req, res) => {
+  const scenarioId = req.params.scenarioId.replace(/[^a-zA-Z0-9_-]/g, '');
+
+  // Validate format: must be moduleId_personaId
+  const parts = scenarioId.split('_');
+  if (parts.length < 3) {
+    return res.status(400).json({ error: 'Invalid scenario ID format' });
+  }
+  const moduleId = parts.slice(0, 1).join('_');
+  if (!VALID_LTI_MODULES.has(moduleId)) {
+    return res.status(400).json({ error: 'Invalid module in scenario ID' });
+  }
+
+  const filePath = path.join(CURRICULUM_DIR, `${scenarioId}.md`);
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.resolve(CURRICULUM_DIR))) {
+    return res.status(400).json({ error: 'Invalid scenario ID' });
+  }
+
+  try {
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Curriculum not found for this scenario' });
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return res.json({ data: { content } });
+  } catch (err) {
+    logger.error('Failed to read curriculum file', { scenarioId, error: err.message });
+    return res.status(500).json({ error: 'Failed to load curriculum' });
+  }
+});
+
+// --- Briefing Completion ---
+
+/**
+ * POST /api/briefing/complete - Record briefing drill completion.
+ * If LTI Outcomes params are in the JWT, sends grade to the LMS.
+ * Fire-and-forget on Outcomes — completion is always saved locally.
+ */
+app.post('/api/briefing/complete', requireAuth, async (req, res) => {
+  const { scenarioId, moduleId } = req.body;
+  const userId = req.user.userId;
+
+  if (!scenarioId || !moduleId) {
+    return res.status(400).json({ error: 'scenarioId and moduleId are required' });
+  }
+
+  // Extract personaId from scenarioId (e.g. 'module4_sam_patel' -> 'sam_patel')
+  const personaId = scenarioId.replace(`${moduleId}_`, '');
+  if (!VALID_PERSONAS.has(personaId)) {
+    return res.status(400).json({ error: 'Invalid persona in scenarioId' });
+  }
+
+  try {
+    // Check if already completed
+    const existing = await db.query(
+      'SELECT id FROM briefing_completions WHERE external_user_id = $1 AND module_id = $2 AND persona_id = $3',
+      [userId, moduleId, personaId]
+    );
+
+    if (existing.rows.length > 0) {
+      logger.info('Briefing already completed', { userId, moduleId, personaId });
+      return res.json({ data: { status: 'already_completed' } });
+    }
+
+    // Attempt LTI Outcomes grade sync (fire-and-forget)
+    let ltiSynced = false;
+    let ltiError = null;
+
+    if (req.user.outcomeServiceUrl && req.user.resultSourcedId) {
+      const result = await sendLtiGrade({
+        outcomeServiceUrl: req.user.outcomeServiceUrl,
+        resultSourcedId: req.user.resultSourcedId,
+        score: 1.0,
+      });
+      ltiSynced = result.success;
+      ltiError = result.error || null;
+    } else {
+      logger.warn('Briefing completion without LTI Outcomes — saving locally only', { userId, moduleId });
+    }
+
+    // Save local completion record
+    await db.query(
+      `INSERT INTO briefing_completions (external_user_id, module_id, persona_id, score, lti_outcome_synced, lti_outcome_error)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (external_user_id, module_id, persona_id)
+       DO UPDATE SET score = $4, lti_outcome_synced = $5, lti_outcome_error = $6, completed_at = NOW()`,
+      [userId, moduleId, personaId, 100.0, ltiSynced, ltiError]
+    );
+
+    logger.info('Briefing completion recorded', { userId, moduleId, personaId, ltiSynced });
+    return res.json({ data: { status: 'completed', ltiSynced } });
+  } catch (err) {
+    logger.error('Briefing completion failed', { userId, moduleId, error: err.message });
+    return res.status(500).json({ error: 'Failed to record briefing completion' });
+  }
+});
+
 // --- Static Files ---
+
+// Serve rep briefing handouts (PDFs and templates)
+app.use('/handouts', express.static(path.join(__dirname, '..', 'docs', 'rep_briefings')));
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -389,7 +603,11 @@ app.use('/api', (req, res) => {
 });
 
 // SPA fallback - serve index.html for all non-API routes
+// Exclude briefing.html which is a standalone page
 app.get('*', (req, res) => {
+  if (req.path === '/briefing.html') {
+    return res.sendFile(path.join(__dirname, '..', 'public', 'briefing.html'));
+  }
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 

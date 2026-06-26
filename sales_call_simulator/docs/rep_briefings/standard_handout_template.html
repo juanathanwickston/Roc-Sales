@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Call Simulation Activity Template</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap');
+
+    @page {
+      size: letter;
+      margin: 0.2in; /* Extremely tight printable margin to allow watermark to sit tightly in the corner */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #111827;
+      background-color: #ffffff;
+      line-height: 1.45;
+      font-size: 13px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Page container: holds original spacious margins (0.5in vertical, 0.65in horizontal) using virtual padding */
+    .page {
+      position: relative;
+      min-height: 10.6in; /* 11in page height - 0.4in vertical page margins */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 0.3in 0.45in; /* 0.2in margin + 0.3in padding = 0.5in top/bottom; 0.2in margin + 0.45in padding = 0.65in left/right */
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    /* Watermark Styles - Root-level fixed layer sitting on top of everything, aligned tightly in the physical bottom-right corner */
+    .watermark {
+      position: fixed;
+      bottom: 0.2in; /* Placed exactly 0.2in from the physical bottom edge */
+      right: 0.2in;  /* Placed exactly 0.2in from the physical right edge */
+      opacity: 0.5;
+      width: 75px;
+      height: auto;
+      pointer-events: none;
+      z-index: 9999; /* Photoshop-like layer on top of all other elements */
+    }
+
+    /* Clean corporate header with strong contrast and fixed alignment */
+    .header {
+      border-bottom: 2px solid #111827;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-title h1 {
+      font-size: 21px;
+      font-weight: 800;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+    }
+
+    .header-title p {
+      font-size: 11.5px;
+      color: #374151;
+      font-weight: 600;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-scenario, .badge-template {
+      border: 2px solid #10b981;
+      background-color: #f0fdf4;
+      color: #047857;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-template {
+      border-color: #111827;
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+
+    /* Clean, highly readable section blocks */
+    .section {
+      margin-bottom: 32px;
+    }
+
+    /* Force section to start on a new page (handled by page container wrapper now) */
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Prevent awkward page breaks inside components */
+    .statement-block, .meta-grid, .row-split, .guideline-container {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .section-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #111827;
+      background-color: #f3f4f6;
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #111827;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Structured Metadata Grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .meta-item {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 12px 14px;
+      background-color: #ffffff;
+    }
+
+    .meta-label {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-value {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* Statement Block */
+    .statement-block {
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #2563eb;
+      border-radius: 4px;
+      padding: 12px 16px;
+      background-color: #f8fafc;
+    }
+
+    .statement-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .statement-text {
+      font-style: italic;
+      color: #1f2937;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    /* Highly legible tables */
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .grid-table th, .grid-table td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    .grid-table th {
+      background-color: #f3f4f6;
+      font-weight: 700;
+      font-size: 9.5px;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .grid-table th span {
+      display: block;
+      font-size: 8.5px;
+      font-weight: 500;
+      color: #4b5563;
+      text-transform: none;
+      margin-top: 3px;
+    }
+
+    .grid-table td {
+      font-size: 12.5px;
+      color: #1f2937;
+    }
+
+    .grid-table td strong {
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    /* Split rows */
+    .row-split {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+    }
+
+    .column-block {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 14px 16px;
+      background-color: #ffffff;
+    }
+
+    .column-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #111827;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
+
+    .detail-item {
+      margin-bottom: 12px;
+    }
+
+    .detail-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-label {
+      font-weight: 700;
+      font-size: 9.5px;
+      text-transform: uppercase;
+      color: #374151;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      display: block;
+    }
+
+    .detail-value {
+      font-size: 12.5px;
+      color: #1f2937;
+    }
+
+    .step-list {
+      margin-top: 6px;
+      padding-left: 16px;
+    }
+
+    .step-list li {
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    .step-list li strong {
+      color: #111827;
+    }
+
+    /* Guidelines / Safety box */
+    .guideline-container {
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #dc2626;
+      border-radius: 4px;
+      padding: 14px 16px;
+      background-color: #fff5f5;
+      margin-bottom: 12px;
+    }
+
+    .guideline-item {
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #7f1d1d;
+      line-height: 1.4;
+    }
+
+    .guideline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .guideline-item strong {
+      color: #991b1b;
+      font-weight: 700;
+    }
+
+    /* Comparison grid */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .comparison-table th, .comparison-table td {
+      border: 1px solid #fee2e2;
+      padding: 8px 12px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .comparison-table th {
+      background-color: #fef2f2;
+      color: #991b1b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 9.5px;
+    }
+
+    .comparison-table td {
+      color: #7f1d1d;
+    }
+
+    /* Self-Check Checklist Styles */
+    .checklist-card {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 24px 28px;
+      background-color: #ffffff;
+      margin-top: 14px;
+    }
+    
+    .checklist-intro {
+      font-size: 13.5px;
+      color: #4b5563;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .checklist-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    
+    .checklist-item {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+    
+    .checklist-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .checklist-checkbox {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 2px solid #4b5563;
+      border-radius: 3px;
+      margin-right: 12px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    
+    .checklist-text {
+      font-size: 13.5px;
+      color: #1f2937;
+    }
+    
+    .score-summary-box {
+      margin-top: 40px;
+      border: 2px dashed #d1d5db;
+      border-radius: 6px;
+      padding: 20px 24px;
+      background-color: #f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <img src="payroc_logo.png" class="watermark" alt="">
+  <div class="container">
+    
+    <div class="page">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-title">
+        <h1>Sales Call Simulation Activity</h1>
+        <p>Trainee Briefing Sheet</p>
+      </div>
+      <div class="badge-template">Generic Template</div>
+    </div>
+
+    <!-- SETUP SECTION -->
+    <div class="section">
+      <div class="section-title">1. Scenario Setup</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Buyer Profile</div>
+          <div class="meta-value">[Prospect Name], [Title], [Business Name] ([Tenure/Years in Business])</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Buyer Style & Dialogue Guide</div>
+          <div class="meta-value">[Communication style adjustments. Dialogue Pace: maintain 50/50 balance, check in every 1-2 sentences]</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Time Constraint</div>
+          <div class="meta-value">[Call limit and schedule context, e.g. rush hours]</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Designated Product</div>
+          <div class="meta-value">[Target product focus]</div>
+        </div>
+      </div>
+
+      <div class="statement-block">
+        <div class="statement-label">Opening Statement</div>
+        <div class="statement-text">
+          "Appreciate the time, [Name]. I know you have [Time Constraint] before [Context], so I will keep this brief. When we spoke last week, you mentioned: [ ] [Need 1], [ ] [Need 2], and [ ] [Need 3]. Is that correct?"
+        </div>
+      </div>
+    </div>
+
+    <!-- VALUE ALIGNMENT SECTION -->
+    <div class="section" style="page-break-inside: avoid; break-inside: avoid;">
+      <div class="section-title">2. Discovery & Value Alignment</div>
+      <table class="grid-table">
+        <thead>
+          <tr>
+            <th style="width: 30%;">Customer Need <span>(When they say...)</span></th>
+            <th style="width: 35%;">Product Feature <span>(We explain...)</span></th>
+            <th style="width: 35%;">Value & Business Impact <span>(Which means...)</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>[Operational Inefficiency]</strong>
+              Walks, counts, or tracking wasting manual labor.
+            </td>
+            <td>
+              <strong>[Automation Feature]</strong>
+              Capability that automates the manual workflows.
+            </td>
+            <td>
+              <strong>[Labor Savings Math]</strong>
+              Saves [X] hours/week, totaling $[Y]/week or $[Z]/year in labor savings.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>[Revenue / Margin Leakage]</strong>
+              Lost rebates, loose counts, or vendor inventory leakage.
+            </td>
+            <td>
+              <strong>[Tracking Feature]</strong>
+              Real-time stock tracking or automated rebate integration.
+            </td>
+            <td>
+              <strong>[Financial Recovery Math]</strong>
+              Recovers $[X]/month in leakage or missed rebate programs.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>[Compliance & Audit Risks]</strong>
+              Licensing audit risks or regulatory warning letters.
+            </td>
+            <td>
+              <strong>[Compliance Controls]</strong>
+              System-guided prompts and verification checks.
+            </td>
+            <td>
+              <strong>[License Safeguard]</strong>
+              Protects EBT/lottery licensing and prevents high-cost regulatory fines.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+        </div> <!-- Close Page 1 -->
+    <div class="page">
+    <!-- OBJECTIONS & CLOSING SECTION -->
+    <div class="section">
+      <div class="section-title">3. Objection Response & Next Steps</div>
+      <div class="row-split">
+        <div class="column-block">
+          <div class="column-title">Objection Response</div>
+          <div class="detail-item">
+            <span class="detail-label">Expected Objection</span>
+            <div class="detail-value">[Common buyer concern, e.g. system switch downtime]</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label" style="color: #2563eb;">Recommended Dialogue Path</span>
+            <ul class="step-list">
+              <li><strong>Step 1 (Cushion):</strong> "[Validate concern]"</li>
+              <li><strong>Step 2 (Explore):</strong> "[Ask clarifying option question]"</li>
+              <li><strong>Step 3 (Solve):</strong> "[Deliver response detail]"</li>
+              <li><strong>Step 4 (Commit):</strong> Pivot back to Next Steps.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="column-block">
+          <div class="column-title">Next Steps</div>
+          <div class="detail-item">
+            <span class="detail-label">Target Commitment</span>
+            <div class="detail-value">Secure a scheduled 15-minute demo.</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label" style="color: #111827;">Closing Statement</span>
+            <div class="detail-value" style="font-style: italic; font-weight: 500;">"Let's schedule a brief 15-minute demo. Would [Option 1] or [Option 2] work best?"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRITICAL GUIDELINES SECTION -->
+    <div class="section">
+      <div class="section-title">4. Critical Guidelines</div>
+      <div class="guideline-container">
+        <div class="guideline-item">
+          <strong>Product Focus:</strong> Pitch the designated software solution ([Product Name]). Pitching standard credit card terminals instead of the designated product is a failure. (Saying "Payroc" is acceptable, but you must focus on the correct product).
+        </div>
+        <div class="guideline-item">
+          <strong>Reference Prior Connection:</strong> Establish continuity by referencing the previous scheduled appointment. Do not open the call as a cold call.
+        </div>
+        <div class="guideline-item">
+          <strong>Avoid Technical Jargon:</strong> Use simple, direct language. Do not reference internal sales framework terminology.
+        </div>
+        <div class="guideline-item">
+          <strong>Objection Validation:</strong> Validate customer objections before responding. Do not argue or become defensive.
+        </div>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">DO THIS</th>
+              <th style="width: 50%;">AVOID THIS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pitch Bodega AI</td>
+              <td>Pitching the wrong product</td>
+            </tr>
+            <tr>
+              <td>Discuss audits, warning letters, and licensing risks</td>
+              <td>Using overly technical card processing or payment routing jargon</td>
+            </tr>
+            <tr>
+              <td>Validate and address objections</td>
+              <td>Arguing, getting defensive, or ignoring customer concerns</td>
+            </tr>
+            <tr>
+              <td>Engage in two-way conversation and checkpoints</td>
+              <td>Monologuing or speaking without checking for agreement from the buyer</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div> <!-- Close Page 2 -->
+    <div class="page">
+      <div class="section">
+        <div class="section-title">5. Trainee Self-Check Checklist</div>
+        <div class="checklist-card">
+          <p class="checklist-intro">
+            [Self-assessment introduction text detailing L&D guidelines and key pitfalls to check].
+          </p>
+          <ul class="checklist-list">
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 1 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 2 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 3 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 4 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 5 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+            <li class="checklist-item">
+              <span class="checklist-checkbox"></span>
+              <span class="checklist-text"><strong>[Checklist Item 6 Title]</strong> [Checklist item description and validation criteria].</span>
+            </li>
+          </ul>
+          
+          <div class="score-summary-box">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: #111827; text-transform: uppercase; letter-spacing: 0.5px;">Simulation Performance Summary</h4>
+              <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">To be completed by the trainee or evaluator after the session.</p>
+            </div>
+            <div style="display: flex; gap: 16px;">
+              <div style="text-align: center; border: 1px solid #d1d5db; background-color: #ffffff; padding: 10px 16px; border-radius: 4px;">
+                <span style="font-size: 10px; font-weight: 700; color: #4b5563; text-transform: uppercase; display: block; margin-bottom: 4px;">Total Score</span>
+                <span style="font-size: 18px; font-weight: 800; color: #111827;">____ / 100</span>
+              </div>
+              <div style="text-align: center; border: 1px solid #d1d5db; background-color: #ffffff; padding: 10px 16px; border-radius: 4px;">
+                <span style="font-size: 10px; font-weight: 700; color: #4b5563; text-transform: uppercase; display: block; margin-bottom: 4px;">Result</span>
+                <span style="font-size: 14px; font-weight: 700; color: #111827;">PASS  /  RETRY</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- Close Page 3 -->
+  </div> <!-- Close Container -->
+</body>
+</html>

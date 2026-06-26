@@ -1,0 +1,894 @@
+<div class="roc-lms-wrap">
+  
+  <!-- Scoped CSS with Font Import -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* ─── RESETS & CONTAINERS SCOPED TO OUR WRAPPER ─── */
+    .roc-lms-wrap {
+      --font-family: 'Inter', sans-serif;
+      --bg-page: #0b0f19;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-card-hover: rgba(255, 255, 255, 0.06);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --color-primary: #4f46e5;      /* Electric Indigo */
+      --color-accent: #00e0b8;       /* Payroc Vivid Teal */
+      --color-accent-dim: rgba(0, 224, 184, 0.15);
+      --color-text-main: #f3f4f6;     /* Off-white */
+      --color-text-muted: #9ca3af;    /* Cool Gray */
+      
+      --color-funnel-suspect: #93c5fd;
+      --color-funnel-lead: #fde047;
+      --color-funnel-prospect: #86efac;
+      
+      --glow-c: 0 0 20px rgba(239, 68, 68, 0.35); /* Challenges - Red */
+      --glow-a: 0 0 20px rgba(59, 130, 246, 0.35); /* Authority - Blue */
+      --glow-m: 0 0 20px rgba(16, 185, 129, 0.35); /* Money - Green */
+      --glow-p: 0 0 20px rgba(245, 158, 11, 0.35);  /* Prioritization - Orange */
+      
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--color-text-main);
+      padding: 32px 16px;
+      line-height: 1.6;
+      border-radius: 12px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    .roc-lms-wrap * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    .roc-lms-wrap .module-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .roc-lms-wrap .module-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .roc-lms-wrap .module-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--color-primary), #312e81);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    
+    .roc-lms-wrap .module-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      background: linear-gradient(135deg, #ffffff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    
+    .roc-lms-wrap .module-header p {
+      font-size: 16px;
+      color: var(--color-text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ─── SPLIT LAYOUT ─── */
+    .roc-lms-wrap .split-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 32px;
+      align-items: start;
+    }
+    
+    @media (max-width: 992px) {
+      .roc-lms-wrap .split-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .roc-lms-wrap .principles-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .roc-lms-wrap .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .roc-lms-wrap .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+    
+    .roc-lms-wrap .card-title svg {
+      color: var(--color-accent);
+      flex-shrink: 0;
+    }
+
+    /* Funnel Stages */
+    .roc-lms-wrap .funnel-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .roc-lms-wrap .funnel-stage {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .roc-lms-wrap .funnel-stage:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateX(4px);
+    }
+    
+    .roc-lms-wrap .funnel-stage.active {
+      background: rgba(79, 70, 229, 0.08);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 15px rgba(79, 70, 229, 0.15);
+    }
+    
+    .roc-lms-wrap .funnel-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .roc-lms-wrap .funnel-stage[data-stage="suspect"] .funnel-indicator { background-color: var(--color-funnel-suspect); }
+    .roc-lms-wrap .funnel-stage[data-stage="lead"] .funnel-indicator { background-color: var(--color-funnel-lead); }
+    .roc-lms-wrap .funnel-stage[data-stage="prospect"] .funnel-indicator { background-color: var(--color-funnel-prospect); }
+    
+    .roc-lms-wrap .funnel-info h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .roc-lms-wrap .funnel-info p {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* CHAMP Framework Selector */
+    .roc-lms-wrap .champ-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .roc-lms-wrap .champ-btn {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 6px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: all var(--transition-fast);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .roc-lms-wrap .champ-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+    
+    .roc-lms-wrap .champ-letter {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    
+    .roc-lms-wrap .champ-label {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    .roc-lms-wrap .champ-btn.active[data-champ="challenges"] { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); color: #fca5a5; box-shadow: 0 0 12px rgba(239, 68, 68, 0.15); }
+    .roc-lms-wrap .champ-btn.active[data-champ="authority"] { border-color: #3b82f6; background: rgba(59, 130, 246, 0.08); color: #93c5fd; box-shadow: 0 0 12px rgba(59, 130, 246, 0.15); }
+    .roc-lms-wrap .champ-btn.active[data-champ="money"] { border-color: #10b981; background: rgba(16, 185, 129, 0.08); color: #6ee7b7; box-shadow: 0 0 12px rgba(16, 185, 129, 0.15); }
+    .roc-lms-wrap .champ-btn.active[data-champ="prioritization"] { border-color: #f59e0b; background: rgba(245, 158, 11, 0.08); color: #fde047; box-shadow: 0 0 12px rgba(245, 158, 11, 0.15); }
+    
+    .roc-lms-wrap .champ-detail-box {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+      display: none;
+      animation: fadeIn var(--transition-fast) forwards;
+    }
+    
+    .roc-lms-wrap .champ-detail-box.active {
+      display: block;
+    }
+    
+    .roc-lms-wrap .champ-detail-header {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .roc-lms-wrap .champ-detail-body {
+      font-size: 13.5px;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+    
+    .roc-lms-wrap .champ-detail-action {
+      background: var(--color-accent-dim);
+      border: 1px solid rgba(0, 224, 184, 0.25);
+      color: var(--color-accent);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .roc-lms-wrap .champ-detail-action svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Customer Focused Split Grid */
+    .roc-lms-wrap .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    
+    @media (max-width: 576px) {
+      .roc-lms-wrap .compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .roc-lms-wrap .compare-box {
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+    }
+    
+    .roc-lms-wrap .compare-box.bad {
+      background: rgba(239, 68, 68, 0.04);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+    
+    .roc-lms-wrap .compare-box.good {
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    
+    .roc-lms-wrap .compare-box h5 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .roc-lms-wrap .compare-box.bad h5 { color: #f87171; }
+    .roc-lms-wrap .compare-box.good h5 { color: #34d399; }
+    
+    .roc-lms-wrap .compare-box p {
+      color: var(--color-text-muted);
+      line-height: 1.4;
+    }
+    
+    .roc-lms-wrap .warn-banner {
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 3px solid #ef4444;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: #fca5a5;
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .roc-lms-wrap .warn-banner svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: #ef4444;
+    }
+
+    /* ─── RIGHT COLUMN: DOCUMENT BLUEPRINT ─── */
+    .roc-lms-wrap .document-column {
+      position: sticky;
+      top: 24px;
+    }
+    
+    .roc-lms-wrap .doc-sticky-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .roc-lms-wrap .handout-mock {
+      background: #ffffff;
+      color: #111827;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      font-size: 11px;
+      line-height: 1.4;
+      border: 3px solid transparent;
+      transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-normal);
+      position: relative;
+    }
+    
+    .roc-lms-wrap .handout-mock [data-highlight] {
+      border: 1.5px dashed transparent;
+      border-radius: 4px;
+      padding: 4px;
+      transition: all var(--transition-normal);
+      position: relative;
+    }
+    
+    .roc-lms-wrap .highlight-label {
+      position: absolute;
+      top: -12px;
+      right: 4px;
+      background: #000;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: all var(--transition-normal);
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    /* Handout Mock Highlights */
+    .roc-lms-wrap .handout-mock.highlight-challenges [data-highlight="challenges"] {
+      border-color: #ef4444;
+      background-color: rgba(239, 68, 68, 0.05);
+      box-shadow: var(--glow-c);
+    }
+    .roc-lms-wrap .handout-mock.highlight-challenges [data-highlight="challenges"] .highlight-label {
+      opacity: 1;
+      transform: translateY(0);
+      background-color: #ef4444;
+    }
+
+    .roc-lms-wrap .handout-mock.highlight-authority [data-highlight="authority"] {
+      border-color: #3b82f6;
+      background-color: rgba(59, 130, 246, 0.05);
+      box-shadow: var(--glow-a);
+    }
+    .roc-lms-wrap .handout-mock.highlight-authority [data-highlight="authority"] .highlight-label {
+      opacity: 1;
+      transform: translateY(0);
+      background-color: #3b82f6;
+    }
+
+    .roc-lms-wrap .handout-mock.highlight-money [data-highlight="money"] {
+      border-color: #10b981;
+      background-color: rgba(16, 185, 129, 0.05);
+      box-shadow: var(--glow-m);
+    }
+    .roc-lms-wrap .handout-mock.highlight-money [data-highlight="money"] .highlight-label {
+      opacity: 1;
+      transform: translateY(0);
+      background-color: #10b981;
+    }
+
+    .roc-lms-wrap .handout-mock.highlight-prioritization [data-highlight="prioritization"] {
+      border-color: #f59e0b;
+      background-color: rgba(245, 158, 11, 0.05);
+      box-shadow: var(--glow-p);
+    }
+    .roc-lms-wrap .handout-mock.highlight-prioritization [data-highlight="prioritization"] .highlight-label {
+      opacity: 1;
+      transform: translateY(0);
+      background-color: #f59e0b;
+    }
+
+    .roc-lms-wrap .handout-mock.highlight-lead [data-highlight="lead"] {
+      border-color: #eab308;
+      background-color: rgba(234, 179, 8, 0.08);
+      box-shadow: 0 0 15px rgba(234, 179, 8, 0.25);
+    }
+    .roc-lms-wrap .handout-mock.highlight-prospect [data-highlight="prospect"] {
+      border-color: #22c55e;
+      background-color: rgba(34, 197, 94, 0.08);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
+    }
+
+    .roc-lms-wrap .doc-header {
+      border-bottom: 2px solid #374151;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .roc-lms-wrap .doc-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.2px;
+      color: #111827;
+    }
+    
+    .roc-lms-wrap .doc-subtitle {
+      font-size: 9px;
+      color: #4b5563;
+      font-weight: 600;
+    }
+    
+    .roc-lms-wrap .doc-section {
+      margin-bottom: 12px;
+    }
+    
+    .roc-lms-wrap .doc-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 2px;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+    
+    .roc-lms-wrap .doc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .roc-lms-wrap .doc-meta-item {
+      margin-bottom: 4px;
+    }
+    
+    .roc-lms-wrap .doc-meta-label {
+      font-weight: 700;
+      color: #4b5563;
+    }
+    
+    .roc-lms-wrap .doc-meta-val {
+      color: #1f2937;
+    }
+    
+    .roc-lms-wrap .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+    }
+    
+    .roc-lms-wrap .doc-table th, .roc-lms-wrap .doc-table td {
+      border: 1px solid #d1d5db;
+      padding: 4px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    
+    .roc-lms-wrap .doc-table th {
+      background-color: #f3f4f6;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    
+    .roc-lms-wrap .doc-table tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    
+    .roc-lms-wrap .doc-help-banner {
+      background-color: #f3f4f6;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 500;
+      color: #4b5563;
+      margin-top: 16px;
+      border: 1px dashed #d1d5db;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <!-- ─── HTML BODY ─── -->
+  <div class="module-container">
+    
+    <!-- HEADER -->
+    <div class="module-header">
+      <span class="module-badge">Module 1 Study Guide</span>
+      <h1>Identifying the Customer & Your Briefing Doc</h1>
+      <p>This module helps you navigate your assigned briefing document so you can identify the customer's needs and set yourself up for success in Module 4.</p>
+    </div>
+
+    <!-- TWO COLUMN LAYOUT -->
+    <div class="split-layout">
+      
+      <!-- LEFT: SALES PRINCIPLES -->
+      <div class="principles-column">
+        
+        <!-- CARD 1: THE SALES FUNNEL -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            1. The Sales Funnel & Your Scenario
+          </div>
+          <p style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 12px;">
+            Your handout defines exactly where your prospect is in the pipeline. Click a stage below to highlight where this status sits on your briefing sheet:
+          </p>
+          
+          <div class="funnel-container">
+            <div class="funnel-stage" data-stage="suspect">
+              <div class="funnel-indicator"></div>
+              <div class="funnel-info">
+                <h4>Suspect</h4>
+                <p>Fits the Ideal Customer Profile (ICP) but has not shown genuine interest.</p>
+              </div>
+            </div>
+            
+            <div class="funnel-stage" data-stage="lead">
+              <div class="funnel-indicator"></div>
+              <div class="funnel-info">
+                <h4>Lead (Start of Call #2 / Module 4)</h4>
+                <p>A suspect who has taken action (e.g. responded to a cold outreach email).</p>
+              </div>
+            </div>
+            
+            <div class="funnel-stage" data-stage="prospect">
+              <div class="funnel-indicator"></div>
+              <div class="funnel-info">
+                <h4>Prospect (Qualified)</h4>
+                <p>A qualified lead. During Call #2, you must verify their challenges and decision authority.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: CHAMP QUALIFICATION FRAMEWORK -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            2. Applying the CHAMP Framework
+          </div>
+          <p style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 16px;">
+            Rather than memorizing theories, use CHAMP to parse your briefing document. <strong>Click a letter below</strong> to map that framework stage to your handout:
+          </p>
+          
+          <div class="champ-selector">
+            <button class="champ-btn" data-champ="challenges">
+              <span class="champ-letter" style="color: #ef4444;">C</span>
+              <span class="champ-label">Challenges</span>
+            </button>
+            <button class="champ-btn" data-champ="authority">
+              <span class="champ-letter" style="color: #3b82f6;">A</span>
+              <span class="champ-label">Authority</span>
+            </button>
+            <button class="champ-btn" data-champ="money">
+              <span class="champ-letter" style="color: #10b981;">M</span>
+              <span class="champ-label">Money</span>
+            </button>
+            <button class="champ-btn" data-champ="prioritization">
+              <span class="champ-letter" style="color: #f59e0b;">P</span>
+              <span class="champ-label">Priority</span>
+            </button>
+          </div>
+
+          <!-- Interactive Detail Boxes -->
+          <div class="champ-detail-box" id-details="challenges">
+            <div class="champ-detail-header" style="color: #fca5a5;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              C — Challenges (The Customer's Pain)
+            </div>
+            <div class="champ-detail-body">
+              Challenges are the core business problems that need solving. On your briefing sheet, check the <strong>"What You Learned in Call 1"</strong> table. These are the manual processes and leakages you will need to summarize during the call to confirm their needs.
+            </div>
+            <div class="champ-detail-action">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <div><strong>In Module 4:</strong> Summarize these challenges during the first 60 seconds. Do not jump straight to pitching product features.</div>
+            </div>
+          </div>
+
+          <div class="champ-detail-box" id-details="authority">
+            <div class="champ-detail-header" style="color: #93c5fd;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              A — Authority (The Decision Maker)
+            </div>
+            <div class="champ-detail-body">
+              This describes who has the buying power and how they make choices. Look at the <strong>"Prospect" and "Personality"</strong> lines in <strong>The Setup</strong> box. Knowing their title (e.g. Owner) and behavioral type helps you respect their position.
+            </div>
+            <div class="champ-detail-action">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <div><strong>In Module 4:</strong> Adjust your pacing. If they are direct/skeptical, skip small talk. Validate their authority by seeking their confirmation at key transition points.</div>
+            </div>
+          </div>
+
+          <div class="champ-detail-box" id-details="money">
+            <div class="champ-detail-header" style="color: #6ee7b7;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              M — Money (Financial Value & Cost)
+            </div>
+            <div class="champ-detail-body">
+              Money relates to the financial leakages and the ROI. Look at the <strong>"The Business Impact"</strong> column in the table. These concrete numbers (e.g., labor costs, EBT warnings) represent the cost of inaction. 
+            </div>
+            <div class="champ-detail-action">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <div><strong>In Module 4:</strong> You must do "The Math" out loud. Use these exact numbers to establish value before introducing any pricing.</div>
+            </div>
+          </div>
+
+          <div class="champ-detail-box" id-details="prioritization">
+            <div class="champ-detail-header" style="color: #fde047;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              P — Prioritization (Urgency & Time)
+            </div>
+            <div class="champ-detail-body">
+              This shows how important this solution is compared to other tasks. Look at the <strong>"The Scenario"</strong> line in <strong>The Setup</strong> box. If the owner has only 10 minutes before their rush starts, solving this pain must save them time immediately.
+            </div>
+            <div class="champ-detail-action">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <div><strong>In Module 4:</strong> Position your solution as an immediate time-saver, and frame the next steps around their specific busy schedule.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: CUSTOMER-FOCUSED vs PRODUCT-FOCUSED -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            3. Customer-Focused Selling
+          </div>
+          <p style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 12px;">
+            The simulation measures if you understand the customer's needs before proposing solutions:
+          </p>
+          
+          <div class="compare-grid">
+            <div class="compare-box bad">
+              <h5>Product-Focused (Fails)</h5>
+              <p>Pitching product features immediately without referencing the previous call or confirming their needs.</p>
+            </div>
+            <div class="compare-box good">
+              <h5>Customer-Focused (Succeeds)</h5>
+              <p>Acknowledge their time, summarize their exact problems from Call 1, confirm they are correct, and then tie features to those needs.</p>
+            </div>
+          </div>
+          
+          <div class="warn-banner">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <div>
+              <strong>Instant Fail Trigger:</strong> Opening the simulation like a cold call is an automatic fail. You must use your briefing sheet to show you remember their business situation from Call 1.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: BRIEFING DOC BLUEPRINT -->
+      <div class="document-column">
+        <div class="doc-sticky-header">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Interactive Handout Blueprint
+        </div>
+        
+        <div class="handout-mock" id="handoutDoc">
+          <div class="doc-header">
+            <div class="doc-title">Tester Brief: [Merchant Name] Simulation (Module 4)</div>
+            <div class="doc-subtitle">ROC Academy - Internal Use Only</div>
+          </div>
+          
+          <div class="doc-section" data-highlight="authority">
+            <div class="highlight-label">Authority Details</div>
+            <div class="doc-section-title">The Setup</div>
+            
+            <div class="doc-grid">
+              <div class="doc-meta-item">
+                <span class="doc-meta-label">The Prospect:</span> 
+                <span class="doc-meta-val">[Owner Name], Owner (11 years in business).</span>
+              </div>
+              <div class="doc-meta-item">
+                <span class="doc-meta-label">Personality:</span> 
+                <span class="doc-meta-val">Analytical, skeptical, and direct. Zero patience for small talk.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-section" data-highlight="prioritization">
+            <div class="highlight-label">Urgency & Timeline</div>
+            <div class="doc-grid">
+              <div class="doc-meta-item">
+                <span class="doc-meta-label">The Scenario:</span> 
+                <span class="doc-meta-val">Call #2. You have exactly 10 minutes before evening rush.</span>
+              </div>
+              <div class="doc-meta-item">
+                <span class="doc-meta-label">The Goal:</span> 
+                <span class="doc-meta-val">Pitch the correct product as the exact solution to problems shared.</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="doc-section" data-highlight="lead">
+            <div class="highlight-label">Funnel status: Lead</div>
+            <div style="border: 1px solid #d1d5db; padding: 6px; border-radius: 4px; background-color: #f9fafb;">
+              <strong>Call Status:</strong> The customer responded to a prospecting email about reducing manual operational errors. They are expecting your call, but have very low patience.
+            </div>
+          </div>
+
+          <div class="doc-section" data-highlight="challenges">
+            <div class="highlight-label">Challenges & Pain Points</div>
+            <div class="doc-section-title">What You Learned in Call 1</div>
+            
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Current Process</th>
+                  <th>Business Impact</th>
+                  <th>Solution Fit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Walks aisles to update prices</td>
+                  <td data-highlight="money">
+                    Wasting ~$9,360/year on labor
+                    <span class="highlight-label">Money: Financial Leak</span>
+                  </td>
+                  <td>Centralized pricing</td>
+                </tr>
+                <tr>
+                  <td>Tracks inventory on spreadsheets</td>
+                  <td>Frequent stockouts and manual errors</td>
+                  <td>Automated inventory</td>
+                </tr>
+                <tr>
+                  <td>Staff makes checkout errors</td>
+                  <td>Revenue leakage & complaints</td>
+                  <td>Centralized pricing sync</td>
+                </tr>
+                <tr>
+                  <td>Got compliance warning letter</td>
+                  <td style="color: #b91c1c; font-weight: 700;">His biggest fear. High compliance risk</td>
+                  <td>Built-in compliance tools</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">The Cheat Sheet</div>
+            <p style="color: #4b5563; font-size: 11px;"><strong>The Opening:</strong> "Hey [Name], appreciate the time. Before we dive in, I want to confirm I have your situation right..."</p>
+            <p style="color: #4b5563; font-size: 11px; margin-top: 4px;"><strong>The Math:</strong> Calculate wasted labor hours and costs out loud...</p>
+          </div>
+
+          <div class="doc-help-banner">
+            Click the Funnel Stages or CHAMP letters on the left to see how to navigate this document.
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+  </div>
+
+  <!-- JavaScript scoped inside wrapper -->
+  <script>
+    (function() {
+      const container = document.querySelector('.roc-lms-wrap');
+      if (!container) return;
+      
+      const doc = container.querySelector('#handoutDoc');
+      const champButtons = container.querySelectorAll('.champ-btn');
+      const detailBoxes = container.querySelectorAll('.champ-detail-box');
+      
+      champButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const champType = btn.getAttribute('data-champ');
+          
+          champButtons.forEach(b => b.classList.remove('active'));
+          detailBoxes.forEach(box => box.classList.remove('active'));
+          
+          doc.className = 'handout-mock';
+          btn.classList.add('active');
+          
+          const targetDetail = container.querySelector(`.champ-detail-box[id-details="${champType}"]`);
+          if (targetDetail) targetDetail.classList.add('active');
+          
+          doc.classList.add(`highlight-${champType}`);
+          
+          if (window.innerWidth < 992) {
+            doc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      });
+      
+      const funnelStages = container.querySelectorAll('.funnel-stage');
+      funnelStages.forEach(stage => {
+        stage.addEventListener('click', () => {
+          const stageType = stage.getAttribute('data-stage');
+          
+          funnelStages.forEach(s => s.classList.remove('active'));
+          champButtons.forEach(b => b.classList.remove('active'));
+          detailBoxes.forEach(box => box.classList.remove('active'));
+          
+          doc.className = 'handout-mock';
+          stage.classList.add('active');
+          
+          if (stageType === 'lead') {
+            doc.classList.add('highlight-lead');
+          } else if (stageType === 'prospect') {
+            doc.classList.add('highlight-prospect');
+          } else if (stageType === 'suspect') {
+            doc.classList.add('highlight-authority');
+          }
+          
+          if (window.innerWidth < 992) {
+            doc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      });
+      
+      // Default to first click
+      if (champButtons[0]) champButtons[0].click();
+    })();
+  </script>
+</div>
