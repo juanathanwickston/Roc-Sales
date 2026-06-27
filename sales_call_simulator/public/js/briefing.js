@@ -49,57 +49,57 @@
     carla_reyes: [
       {
         question: "What is Carla Reyes' primary behavioral style?",
-        options: ['Supporter', 'Controller', 'Doer', 'Talker'],
+        options: ['Controller', 'Doer', 'Supporter', 'Talker'],
         answer: 'Supporter',
       },
       {
         question: 'What is the correct Payroc product to recommend for Studio Collective Salon?',
-        options: ['Roc Terminal+', 'Bodega AI', 'Roc Services', 'Roc Giving'],
+        options: ['Bodega AI', 'Roc Terminal+', 'Roc Services', 'Roc Giving'],
         answer: 'Roc Terminal+',
       },
       {
         question: "What is Carla's biggest underlying fear about changing the salon's checkout system?",
         options: [
-          'Losing her top stylists due to onboarding disruption',
           'Increased processing fees',
           'Losing client data',
           'Regulatory compliance issues',
+          'Losing her top stylists due to onboarding disruption',
         ],
         answer: 'Losing her top stylists due to onboarding disruption',
       },
       {
         question: 'How many independent stylists rent booths at Studio Collective Salon?',
-        options: ['6', '4', '8', '10'],
+        options: ['4', '8', '6', '10'],
         answer: '6',
       },
     ],
     mike_turner: [
       {
         question: "What is Mike Turner's primary behavioral style?",
-        options: ['Doer', 'Supporter', 'Controller', 'Talker'],
+        options: ['Supporter', 'Doer', 'Controller', 'Talker'],
         answer: 'Doer',
       },
       {
         question: 'What is the correct Payroc product to recommend for Precision Plumbing & Drain?',
-        options: ['Roc Services', 'Bodega AI', 'Roc Terminal+', 'Roc Giving'],
+        options: ['Bodega AI', 'Roc Terminal+', 'Roc Services', 'Roc Giving'],
         answer: 'Roc Services',
       },
       {
         question: 'What is the primary cash flow bottleneck that Precision Plumbing faces?',
         options: [
-          'Delayed billing collections taking 2-3 weeks to clear',
           'Manual price updates',
           'Inconsistent donations',
           'Checkout confusion',
+          'Delayed billing collections taking 2-3 weeks to clear',
         ],
         answer: 'Delayed billing collections taking 2-3 weeks to clear',
       },
       {
         question: 'How many trucks and field technicians does Mike manage?',
         options: [
-          '4 trucks and 4 technicians',
-          '6 trucks and 6 technicians',
           '3 trucks and 5 technicians',
+          '6 trucks and 6 technicians',
+          '4 trucks and 4 technicians',
           '8 trucks and 8 technicians',
         ],
         answer: '4 trucks and 4 technicians',
@@ -108,30 +108,30 @@
     david_miller: [
       {
         question: "What is Pastor David Miller's primary behavioral style?",
-        options: ['Talker-Supporter Hybrid', 'Controller', 'Doer', 'Supporter'],
+        options: ['Controller', 'Doer', 'Talker-Supporter Hybrid', 'Supporter'],
         answer: 'Talker-Supporter Hybrid',
       },
       {
         question: 'What is the correct Payroc product/platform to recommend for the church?',
-        options: ['Roc Giving', 'Bodega AI', 'Roc Terminal+', 'Roc Services'],
+        options: ['Bodega AI', 'Roc Giving', 'Roc Terminal+', 'Roc Services'],
         answer: 'Roc Giving',
       },
       {
         question: 'What specific fundraising goal is the church currently trying to achieve?',
         options: [
-          'Repairing the community basketball court for their youth basketball program',
           'Building a new sanctuary',
           'Funding a food pantry',
           'Renovating the parking lot',
+          'Repairing the community basketball court for their youth basketball program',
         ],
         answer: 'Repairing the community basketball court for their youth basketball program',
       },
       {
         question: 'What primary administrative burden is burning out church volunteers?',
         options: [
-          'Manual tracking of cash/checks and generating tax receipts',
           'Scheduling services',
           'Managing social media',
+          'Manual tracking of cash/checks and generating tax receipts',
           'Coordinating transportation',
         ],
         answer: 'Manual tracking of cash/checks and generating tax receipts',
