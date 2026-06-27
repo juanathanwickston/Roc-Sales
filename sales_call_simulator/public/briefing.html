@@ -745,12 +745,17 @@
     .briefing-main.wizard-layout {
       display: flex;
       flex-direction: column;
+      align-items: stretch;
       justify-content: center;
       max-width: 1000px;
       margin: 0 auto;
       min-height: calc(100vh - 136px);
       box-sizing: border-box;
       padding: 24px 32px 90px 32px !important; /* Set bottom padding to 90px to clear the fixed bottom bar */
+    }
+    .briefing-main.wizard-layout .left-panel {
+      width: 100%;
+      box-sizing: border-box;
     }
     .briefing-main.wizard-layout .card {
       padding: 24px 28px;
