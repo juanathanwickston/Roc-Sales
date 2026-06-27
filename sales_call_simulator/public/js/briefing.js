@@ -755,7 +755,7 @@
           </div>
           
           <div style="position: relative; width: 100%; background: #000; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;">
-            <video id="briefingVideo" controls style="width: 100%; height: 100%; object-fit: cover;">
+            <video id="briefingVideo" controls preload="metadata" style="width: 100%; height: 100%; object-fit: cover;">
               <source id="briefingVideoSource" src="${persona.videoUrl}" type="video/mp4">
               Your browser does not support the video tag.
             </video>
@@ -913,9 +913,7 @@
 
     // Bind event listeners for steps
     if (state.currentStep === 1) {
-      // Load research video and toggleable transcript
-      const video = document.getElementById('briefingVideo');
-      if (video) video.load();
+      // Bind toggleable transcript (video auto-loads via preload="metadata")
 
       const transcriptBody = document.getElementById('transcriptBody');
       const toggleBtn = document.getElementById('toggleTranscriptBtn');
