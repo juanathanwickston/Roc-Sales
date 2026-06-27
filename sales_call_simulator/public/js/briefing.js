@@ -797,7 +797,7 @@
       `;
     } else if (state.currentStep === 3) {
       stepHtml = `
-        <div class="handout-snippet" style="max-width: 960px; margin: 0 auto;">
+        <div class="handout-snippet" style="margin: 0 auto;">
           <div class="handout-snippet-header" style="flex-shrink: 0;">
             <span>Playbook & Objection Handling Guidelines</span>
           </div>
