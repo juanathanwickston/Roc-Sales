@@ -743,10 +743,13 @@
 
     /* --- WIZARD LAYOUT ADAPTATIONS --- */
     .briefing-main.wizard-layout {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       max-width: 1000px;
       margin: 0 auto;
-      min-height: auto; /* Let layout size dynamically without empty vertical blocks */
+      min-height: calc(100vh - 136px);
+      box-sizing: border-box;
       padding: 24px 32px 90px 32px !important; /* Set bottom padding to 90px to clear the fixed bottom bar */
     }
     .briefing-main.wizard-layout .card {
