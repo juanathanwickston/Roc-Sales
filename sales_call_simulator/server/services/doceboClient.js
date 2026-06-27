@@ -108,68 +108,111 @@ async function getAccessToken() {
  * Look up a Docebo user by email and return their assigned persona.
  * Returns the persona ID string (e.g. 'sam_patel') or null if not found.
  */
-async function getAssignedPersona(email) {
-  if (!email || typeof email !== 'string') {
+async function getAssignedPersona(emailOrId) {
+  if (!emailOrId || typeof emailOrId !== 'string') {
     return null;
   }
 
-  const masked = maskEmail(email);
+  const isEmail = emailOrId.includes('@');
+  const masked = isEmail ? maskEmail(emailOrId) : '***';
 
   const token = await getAccessToken();
-  const searchUrl = `${config.DOCEBO_BASE_URL}/manage/v1/user`
-    + `?search_text=${encodeURIComponent(email)}&page_size=5`;
+  let user = null;
 
-  logger.info('Docebo user search (debug)', { url: searchUrl.replace(/search_text=[^&]+/, `search_text=${masked}`), email: masked });
+  if (isEmail) {
+    const searchUrl = `${config.DOCEBO_BASE_URL}/manage/v1/user`
+      + `?search_text=${encodeURIComponent(emailOrId)}&page_size=5`;
 
-  const res = await fetch(searchUrl, {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${token}` },
-    signal: AbortSignal.timeout(API_TIMEOUT_MS),
-  });
+    logger.info('Docebo user search (debug)', { url: searchUrl.replace(/search_text=[^&]+/, `search_text=${masked}`), email: masked });
 
-  if (res.status === 401) {
-    clearTokenCache();
-    logger.error('Docebo user search returned 401, token cache cleared', { email: masked });
-    return null;
-  }
+    const res = await fetch(searchUrl, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(API_TIMEOUT_MS),
+    });
 
-  if (!res.ok) {
-    logger.error('Docebo user search failed', { status: res.status, email: masked });
-    return null;
-  }
+    if (res.status === 401) {
+      clearTokenCache();
+      logger.error('Docebo user search returned 401, token cache cleared', { email: masked });
+      return null;
+    }
 
-  const data = await res.json();
+    if (!res.ok) {
+      logger.error('Docebo user search failed', { status: res.status, email: masked });
+      return null;
+    }
 
-  // DEBUG: log raw response keys to verify structure
-  logger.info('Docebo search response (debug)', {
-    hasData: !!data.data,
-    itemCount: data.data && data.data.items ? data.data.items.length : 0,
-    totalCount: data.data && data.data.count,
-    topLevelKeys: Object.keys(data),
-  });
+    const data = await res.json();
 
-  // Validate response structure before accessing nested fields
-  if (!data || typeof data !== 'object') {
-    logger.error('Docebo returned invalid response structure');
-    return null;
-  }
+    // DEBUG: log raw response keys to verify structure
+    logger.info('Docebo search response (debug)', {
+      hasData: !!data.data,
+      itemCount: data.data && data.data.items ? data.data.items.length : 0,
+      totalCount: data.data && data.data.count,
+      topLevelKeys: Object.keys(data),
+    });
 
-  const items = data.data && Array.isArray(data.data.items) ? data.data.items : [];
-  if (items.length === 0) {
-    logger.warn('No Docebo user found', { email: masked });
-    return null;
-  }
+    // Validate response structure before accessing nested fields
+    if (!data || typeof data !== 'object') {
+      logger.error('Docebo returned invalid response structure');
+      return null;
+    }
 
-  // Match by exact email — search_text is a fuzzy match, we need precision
-  const emailLower = email.toLowerCase();
-  const user = items.find((u) => {
-    const userEmail = (u.email || '').toLowerCase();
-    return userEmail === emailLower;
-  });
+    const items = data.data && Array.isArray(data.data.items) ? data.data.items : [];
+    if (items.length === 0) {
+      logger.warn('No Docebo user found', { email: masked });
+      return null;
+    }
 
-  if (!user) {
-    logger.warn('Docebo user not found by exact email match', { email: masked, resultCount: items.length });
-    return null;
+    // Match by exact email — search_text is a fuzzy match, we need precision
+    const emailLower = emailOrId.toLowerCase();
+    user = items.find((u) => {
+      const userEmail = (u.email || '').toLowerCase();
+      return userEmail === emailLower;
+    });
+
+    if (!user) {
+      logger.warn('Docebo user not found by exact email match', { email: masked, resultCount: items.length });
+      return null;
+    }
+  } else {
+    // Direct lookup by User ID, UUID, or Username
+    const getUrl = `${config.DOCEBO_BASE_URL}/manage/v1/user/${encodeURIComponent(emailOrId)}`;
+
+    logger.info('Docebo user direct fetch (debug)', { url: getUrl });
+
+    const res = await fetch(getUrl, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(API_TIMEOUT_MS),
+    });
+
+    if (res.status === 401) {
+      clearTokenCache();
+      logger.error('Docebo user direct fetch returned 401, token cache cleared');
+      return null;
+    }
+
+    if (!res.ok) {
+      logger.error('Docebo user direct fetch failed', { status: res.status });
+      return null;
+    }
+
+    const data = await res.json();
+
+    logger.info('Docebo user direct fetch response (debug)', {
+      hasData: !!data.data,
+      topLevelKeys: Object.keys(data),
+      dataType: data.data ? typeof data.data : 'undefined',
+      dataKeys: data.data ? Object.keys(data.data) : []
+    });
+
+    if (!data || typeof data !== 'object' || !data.data) {
+      logger.error('Docebo returned invalid user response structure');
+      return null;
+    }
+
+    user = data.data;
   }
 
   // DEBUG: log all field_* keys (remove after initial verification)
