@@ -1594,7 +1594,16 @@
       }
 
       state.completed = true;
-      showSuccess();
+
+      // Close the window to return to the LMS
+      window.close();
+
+      // Fallback: if the browser blocks window.close(), show a message
+      setTimeout(() => {
+        btn.textContent = 'Briefing Complete';
+        btn.disabled = true;
+        document.getElementById('statusText').textContent = 'Briefing submitted successfully. You may close this tab to return to the LMS.';
+      }, 500);
     } catch (err) {
       console.error('Completion failed:', err);
       btn.textContent = 'Retry Submission';
