@@ -793,10 +793,8 @@
           </div>
           <div id="champExplorerContent" style="margin-top: 24px;">
             <!-- Populated dynamically via JS -->
-          </div>
         </div>
       `;
-    } else if (state.currentStep === 3) {
     } else if (state.currentStep === 3) {
       stepHtml = `
         <div class="handout-snippet" style="max-width: 960px; margin: 0 auto;">
