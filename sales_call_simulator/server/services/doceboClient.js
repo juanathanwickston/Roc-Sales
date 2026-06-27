@@ -194,7 +194,9 @@ async function getAssignedPersona(emailOrId) {
     }
 
     if (!res.ok) {
-      logger.error('Docebo user direct fetch failed', { status: res.status });
+      let errText = '';
+      try { errText = await res.text(); } catch (e) {}
+      logger.error('Docebo user direct fetch failed', { status: res.status, url: getUrl, errorResponse: errText });
       return null;
     }
 

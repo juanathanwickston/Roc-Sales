@@ -344,6 +344,12 @@ async function handleLtiLaunch(req, res) {
   const userId = sanitizeLaunchUserId(ltiUserId);
   const moduleId = req.params.moduleId;
 
+  logger.info('LTI Launch raw parameters', {
+    hasEmail: !!req.body.lis_person_contact_email_primary,
+    userId: req.body.user_id,
+    extUsername: req.body.ext_user_username,
+  });
+
   if (!userId) {
     return res.status(400).json({ error: 'LTI launch missing user identity' });
   }
