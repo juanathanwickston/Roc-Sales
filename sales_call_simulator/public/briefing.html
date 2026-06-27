@@ -11,7 +11,7 @@
     /* --- DESIGN TOKENS --- */
     :root {
       --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --bg-page: #f8fafc;
+      --bg-page: #f1f5f9;
       --bg-card: #ffffff;
       --bg-card-hover: #f1f5f9;
       --border-color: #e2e8f0;
@@ -34,7 +34,7 @@
 
     /* ─── RESET ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-y: scroll; }
 
     body {
       font-family: var(--font-family);
@@ -79,11 +79,9 @@
     .header-left { display: flex; align-items: center; gap: 16px; }
     .header-logo { height: 32px; opacity: 0.9; }
     .header-divider { width: 1px; height: 28px; background: var(--border-color); }
-    .header-badge {
-      background: #001D4E;
-      color: #fff; font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1.5px;
-      padding: 5px 14px; border-radius: 4px;
+    .header-title {
+      color: #001D4E; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
     }
     .header-persona {
       font-size: 13px; color: var(--color-text-muted);
@@ -146,7 +144,7 @@
       display: flex; align-items: center; gap: 10px;
       color: var(--color-text-main); letter-spacing: -0.3px;
     }
-    .card-title .icon { color: var(--color-primary); font-siz    /* --- OVERVIEW TAB --- */
+    /* --- OVERVIEW TAB --- */
     .persona-profile {
       display: flex;
       align-items: center;
@@ -197,10 +195,12 @@
     .champ-btn:hover { background: #f1f5f9; color: var(--color-text-main); }
     .champ-letter { font-size: 22px; font-weight: 800; line-height: 1; }
     .champ-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
-    .champ-btn.active[data-champ="challenges"] { border-color: #dc2626; background: #fef2f2; color: #b91c1c; box-shadow: var(--glow-c); }
-    .champ-btn.active[data-champ="authority"] { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; box-shadow: var(--glow-a); }
-    .champ-btn.active[data-champ="money"] { border-color: #16a34a; background: #ecfdf5; color: #047857; box-shadow: var(--glow-m); }
-    .champ-btn.active[data-champ="prioritization"] { border-color: #d97706; background: #fffbeb; color: #b45309; box-shadow: var(--glow-p); }
+    .champ-btn.active {
+      border-color: var(--color-primary);
+      background: #f0f7ff;
+      color: var(--color-primary);
+      box-shadow: none !important;
+    }
     .champ-detail { display: none; animation: fadeSlideIn var(--transition-fast) forwards; }
     .champ-detail.active { display: block; }
     .champ-detail-box {
@@ -312,9 +312,13 @@
     .blueprint-panel { position: sticky; top: 80px; }
     .blueprint-card {
       background: #ffffff; color: #0f172a;
-      border-radius: 12px; padding: 0;
+      border-radius: 16px; padding: 0;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.05);
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 
+                  0 20px 25px -5px rgba(0, 0, 0, 0.05), 
+                  0 10px 10px -5px rgba(0, 0, 0, 0.04), 
+                  0 0 0 1px rgba(0, 0, 0, 0.03);
     }
     .blueprint-header {
       background: #001D4E;
@@ -325,37 +329,291 @@
     .blueprint-header img { height: 28px; filter: brightness(0) invert(1); }
     .blueprint-header-text h3 { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: -0.3px; }
     .blueprint-header-text p { color: rgba(255,255,255,0.6); font-size: 11px; }
-    .blueprint-body { padding: 24px; background: #ffffff; }
-    .blueprint-section { margin-bottom: 20px; }
-    .blueprint-section-title {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      color: #64748b; margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .blueprint-row {
-      display: flex; justify-content: space-between;
-      padding: 6px 0; font-size: 12px;
-    }
-    .blueprint-label { color: #64748b; font-weight: 500; }
-    .blueprint-value { color: #0f172a; font-weight: 600; text-align: right; max-width: 55%; }
-
-    /* CHAMP highlight overlays on blueprint */
-    .blueprint-champ-zone {
-      padding: 10px 12px; margin: 8px 0;
-      border-radius: 6px; border: 2px solid transparent;
-      transition: all 0.4s ease;
+    .blueprint-body {
+      padding: 32px 32px 32px 48px; /* Left padding larger to resemble a binded document sheet */
+      background: #ffffff;
       position: relative;
     }
-    .blueprint-champ-zone[data-zone="challenges"].glow { border-color: #dc2626; background: #fef2f2; box-shadow: var(--glow-c); }
-    .blueprint-champ-zone[data-zone="authority"].glow { border-color: #2563eb; background: #eff6ff; box-shadow: var(--glow-a); }
-    .blueprint-champ-zone[data-zone="money"].glow { border-color: #16a34a; background: #ecfdf5; box-shadow: var(--glow-m); }
-    .blueprint-champ-zone[data-zone="prioritization"].glow { border-color: #d97706; background: #fffbeb; box-shadow: var(--glow-p); }
+    /* Subtle vertical left fold line for paper document skeuomorphism */
+    .blueprint-body::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 24px;
+      width: 1px;
+      background: #e2e8f0;
+      pointer-events: none;
+    }
+    /* Printable Handout Styles to match the rep handouts 1:1, scoped under .blueprint-body */
+    .blueprint-body .section {
+      margin-bottom: 24px;
+    }
+    .blueprint-body .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #111827;
+      background-color: #f3f4f6;
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #111827;
+    }
+    .blueprint-body .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .blueprint-body .meta-item {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 12px 14px;
+      background-color: #ffffff;
+    }
+    .blueprint-body .meta-label {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .blueprint-body .meta-value {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .blueprint-body .statement-block {
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #2563eb;
+      border-radius: 4px;
+      padding: 12px 16px;
+      background-color: #f8fafc;
+    }
+    .blueprint-body .statement-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .blueprint-body .statement-text {
+      font-style: italic;
+      color: #1f2937;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .blueprint-body .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .blueprint-body .grid-table th, .blueprint-body .grid-table td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+    .blueprint-body .grid-table th {
+      background-color: #f3f4f6;
+      font-weight: 700;
+      font-size: 9.5px;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .blueprint-body .grid-table th span {
+      display: block;
+      font-size: 8.5px;
+      font-weight: 500;
+      color: #4b5563;
+      text-transform: none;
+      margin-top: 3px;
+    }
+    .blueprint-body .grid-table td {
+      font-size: 12.5px;
+      color: #1f2937;
+    }
+    .blueprint-body .grid-table td strong {
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    .blueprint-body .row-split {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+    }
+    .blueprint-body .column-block {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 14px 16px;
+      background-color: #ffffff;
+    }
+    .blueprint-body .column-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #111827;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
+    .blueprint-body .detail-item {
+      margin-bottom: 12px;
+    }
+    .blueprint-body .detail-label {
+      font-weight: 700;
+      font-size: 9.5px;
+      text-transform: uppercase;
+      color: #374151;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      display: block;
+    }
+    .blueprint-body .detail-value {
+      font-size: 12.5px;
+      color: #1f2937;
+    }
+    .blueprint-body .step-list {
+      margin-top: 6px;
+      padding-left: 16px;
+    }
+    .blueprint-body .step-list li {
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #374151;
+      list-style-type: disc;
+    }
+    .blueprint-body .step-list li strong {
+      color: #111827;
+    }
+    .blueprint-body .guideline-container {
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #dc2626;
+      border-radius: 4px;
+      padding: 14px 16px;
+      background-color: #fff5f5;
+      margin-bottom: 12px;
+    }
+    .blueprint-body .guideline-item {
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #7f1d1d;
+      line-height: 1.4;
+    }
+    .blueprint-body .guideline-item:last-child {
+      margin-bottom: 0;
+    }
+    .blueprint-body .guideline-item strong {
+      color: #991b1b;
+      font-weight: 700;
+    }
+    .blueprint-body .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .blueprint-body .comparison-table th, .blueprint-body .comparison-table td {
+      border: 1px solid #fee2e2;
+      padding: 8px 12px;
+      font-size: 12px;
+      text-align: left;
+    }
+    .blueprint-body .comparison-table th {
+      background-color: #fef2f2;
+      color: #991b1b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 9.5px;
+    }
+    .blueprint-body .comparison-table td {
+      color: #7f1d1d;
+    }
+    .blueprint-body .checklist-card {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 24px 28px;
+      background-color: #ffffff;
+      margin-top: 14px;
+    }
+    .blueprint-body .checklist-intro {
+      font-size: 13.5px;
+      color: #4b5563;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .blueprint-body .checklist-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .blueprint-body .checklist-item {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+    .blueprint-body .checklist-item:last-child {
+      margin-bottom: 0;
+    }
+    .blueprint-body .checklist-checkbox {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 2px solid #4b5563;
+      border-radius: 3px;
+      margin-right: 12px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    .blueprint-body .checklist-text {
+      font-size: 13.5px;
+      color: #1f2937;
+    }
+    .blueprint-body .score-summary-box {
+      margin-top: 40px;
+      border: 2px dashed #d1d5db;
+      border-radius: 6px;
+      padding: 20px 24px;
+      background-color: #f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* CHAMP highlight overlays on blueprint - optimized to preserve layout */
+    .blueprint-champ-zone {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .blueprint-champ-zone.glow {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .blueprint-champ-zone[data-zone="challenges"].glow { outline-color: #dc2626; background-color: #fef2f2; box-shadow: var(--glow-c); }
+    .blueprint-champ-zone[data-zone="authority"].glow { outline-color: #2563eb; background-color: #eff6ff; box-shadow: var(--glow-a); }
+    .blueprint-champ-zone[data-zone="money"].glow { outline-color: #16a34a; background-color: #ecfdf5; box-shadow: var(--glow-m); }
+    .blueprint-champ-zone[data-zone="prioritization"].glow { outline-color: #d97706; background-color: #fffbeb; box-shadow: var(--glow-p); }
+    
     .zone-tag {
-      display: none; position: absolute; top: -8px; right: 12px;
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.8px; padding: 2px 8px; border-radius: 4px;
+      display: none;
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      z-index: 10;
     }
     .blueprint-champ-zone.glow .zone-tag { display: inline-block; }
     .blueprint-champ-zone[data-zone="challenges"] .zone-tag { background: #dc2626; color: #fff; }
@@ -386,12 +644,14 @@
       transition: all var(--transition-normal);
     }
     .complete-btn.unlocked {
-      background: linear-gradient(135deg, var(--color-primary), #001D4E);
-      border-color: rgba(0, 81, 194, 0.5);
+      background: var(--color-primary);
+      border-color: var(--color-primary);
       color: #fff; cursor: pointer;
       box-shadow: 0 4px 20px rgba(0, 81, 194, 0.2);
     }
     .complete-btn.unlocked:hover {
+      background: #0041a3;
+      border-color: #0041a3;
       transform: translateY(-2px);
       box-shadow: 0 8px 30px rgba(0, 81, 194, 0.3);
     }
@@ -450,6 +710,15 @@
       .briefing-header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
       .briefing-main { padding: 20px 16px; }
       .bottom-bar { padding: 12px 16px; }
+      .wizard-hud { margin: 0 16px; }
+    }
+    @media (max-width: 768px) {
+      .wizard-hud {
+        margin: 8px 0;
+        max-width: 100%;
+        order: 3;
+        flex: 0 0 100%;
+      }
     }
     @media (max-width: 640px) {
       .champ-selector { grid-template-columns: repeat(2, 1fr); }
@@ -471,6 +740,264 @@
     .error-icon { font-size: 48px; }
     .error-title { font-size: 20px; font-weight: 700; color: var(--color-text-main); }
     .error-message { font-size: 14px; color: var(--color-text-muted); text-align: center; max-width: 400px; }
+
+    /* --- WIZARD LAYOUT ADAPTATIONS --- */
+    .briefing-main.wizard-layout {
+      grid-template-columns: 1fr;
+      max-width: 1000px;
+      margin: 0 auto;
+      min-height: auto; /* Let layout size dynamically without empty vertical blocks */
+      padding: 24px 32px 90px 32px !important; /* Set bottom padding to 90px to clear the fixed bottom bar */
+    }
+    .briefing-main.wizard-layout .card {
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .briefing-main.wizard-layout .card-title {
+      margin-bottom: 16px;
+    }
+    .briefing-main.wizard-layout .blueprint-panel {
+      display: none;
+    }
+    .briefing-main.wizard-layout .tab-nav {
+      display: none; /* Hide tab buttons in wizard layout */
+    }
+    .briefing-main.wizard-layout .tab-content,
+    .briefing-main.wizard-layout #tab-dossier,
+    .briefing-main.wizard-layout #tab-playbook,
+    .briefing-main.wizard-layout #tab-drills {
+      display: none !important; /* Hide original tab content blocks */
+    }
+
+    /* --- WIZARD PROGRESS HUD --- */
+    .wizard-hud {
+      display: none;
+      flex: 1;
+      max-width: 520px;
+      margin: 0 32px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+    .wizard-mode .briefing-header {
+      padding: 12px 32px; /* Reduce header height slightly in wizard mode */
+    }
+    .wizard-mode .wizard-hud {
+      display: block;
+    }
+    .hud-steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+    .hud-steps::before {
+      content: '';
+      position: absolute;
+      top: 10px; left: 0; right: 0;
+      height: 2px;
+      background: #e2e8f0;
+      z-index: 1;
+    }
+    .hud-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+      z-index: 2;
+      background: #ffffff;
+      padding: 0 12px;
+    }
+    .hud-step-circle {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px; font-weight: 700;
+      color: #64748b;
+      transition: all var(--transition-fast);
+    }
+    .hud-step.active .hud-step-circle {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+    .hud-step.completed .hud-step-circle {
+      border-color: var(--color-success);
+      background: var(--color-success);
+      color: #ffffff;
+    }
+    .hud-step-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .hud-step.active .hud-step-label {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+    .hud-step.completed .hud-step-label {
+      color: var(--color-success);
+    }
+
+    /* --- WIZARD NAVIGATION --- */
+    .header-wizard-nav {
+      display: none !important;
+    }
+    .wizard-mode .header-wizard-nav {
+      display: flex !important;
+      align-items: center;
+      gap: 16px;
+    }
+    .wizard-mode .header-persona {
+      display: none !important;
+    }
+    .nav-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: var(--font-family);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--color-text-muted);
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: #f8fafc;
+      color: var(--color-text-main);
+      border-color: #cbd5e1;
+    }
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .nav-btn.btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      border-color: var(--color-primary);
+    }
+    .nav-btn.btn-primary:hover:not(:disabled) {
+      background: #0044a3;
+      border-color: #0044a3;
+      color: #ffffff;
+    }
+
+    /* --- SKEUOMORPHIC HANDOUT SNIPPETS (CLEANED) --- */
+    .handout-snippet {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-top: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .handout-snippet-header {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+    }
+    .handout-snippet-body {
+      padding: 20px;
+    }
+    .handout-snippet-badge {
+      font-size: 9px;
+      font-weight: 700;
+      background: var(--color-primary);
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* --- CHAMP EXPLORER SINGLE COLUMN --- */
+    .champ-explorer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .champ-pillar-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .champ-detail-section {
+      margin-bottom: 16px;
+    }
+    .champ-detail-section:last-child {
+      margin-bottom: 0;
+    }
+    .champ-strategy-box {
+      background: #f0f7ff;
+      border-left: 4px solid var(--color-primary);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-top: 16px;
+    }
+
+    .explorer-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+    .explorer-value {
+      font-size: 13px;
+      color: var(--color-text-main);
+      line-height: 1.5;
+    }
+    .explorer-guide-box {
+      border-top: 1px solid var(--border-color);
+      padding-top: 12px;
+      margin-top: auto;
+    }
+    .explorer-flow-step {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .explorer-flow-step:last-child {
+      margin-bottom: 0;
+    }
+    .explorer-flow-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .badge-need { background: #fef2f2; color: #b91c1c; }
+    .badge-feature { background: #eff6ff; color: #1d4ed8; }
+    .badge-impact { background: #ecfdf5; color: #047857; }
   </style>
 </head>
 <body>
@@ -495,19 +1022,53 @@
       <div class="header-left">
         <img src="/payroc-logo.png" alt="Payroc" class="header-logo">
         <div class="header-divider"></div>
-        <span class="header-badge">Briefing Dashboard</span>
+        <span class="header-title">Pre-Call Briefing</span>
+      </div>
+      <!-- WIZARD PROGRESS HUD (Sam Patel only) -->
+      <div class="wizard-hud" id="wizardHud">
+        <div class="hud-steps">
+          <div class="hud-step active" data-step="1">
+            <span class="hud-step-circle">1</span>
+            <span class="hud-step-label">Overview</span>
+          </div>
+          <div class="hud-step" data-step="2">
+            <span class="hud-step-circle">2</span>
+            <span class="hud-step-label">CHAMP Mapping</span>
+          </div>
+          <div class="hud-step" data-step="3">
+            <span class="hud-step-circle">3</span>
+            <span class="hud-step-label">Objection Prep</span>
+          </div>
+          <div class="hud-step" data-step="4">
+            <span class="hud-step-circle">4</span>
+            <span class="hud-step-label">Quiz Check</span>
+          </div>
+        </div>
       </div>
       <div class="header-persona">
         <span class="persona-dot"></span>
         <span id="headerPersonaName">Loading...</span>
       </div>
+      <!-- HEADER WIZARD NAVIGATION (Sam Patel only) -->
+      <div class="header-wizard-nav" id="headerWizardNav">
+        <button class="nav-btn" id="wizardBackBtn">← Back</button>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span class="header-wizard-warning" id="headerWizardWarning" style="display: none; font-size: 11px; color: var(--color-warning); font-weight: 600; white-space: nowrap;"></span>
+          <button class="nav-btn btn-primary" id="wizardNextBtn">Next Step →</button>
+        </div>
+      </div>
     </header>
 
     <!-- Main Content -->
-    <main class="briefing-main">
+    <main class="briefing-main" id="briefingMain">
 
       <!-- LEFT PANEL -->
       <div class="left-panel">
+
+        <!-- WIZARD CONTAINER (Sam Patel only) -->
+        <div id="wizardContainer" style="display: none;">
+          <!-- Dynamically populated by JS -->
+        </div>
 
         <!-- Tabs -->
         <nav class="tab-nav" role="tablist">
@@ -524,20 +1085,8 @@
 
         <!-- TAB 1: OVERVIEW -->
         <div class="tab-content active" id="tab-dossier">
-          <div class="card">
-            <div class="persona-profile">
-              <div class="persona-avatar" id="personaAvatar">?</div>
-              <div class="persona-meta">
-                <h2 id="personaFullName">Loading...</h2>
-                <p id="personaBusiness">Loading...</p>
-                <div class="behavioral-badge" id="behavioralBadge">
-                  <span id="behavioralStyle">Loading...</span>
-                </div>
-              </div>
-            </div>
-            <div class="info-grid" id="infoGrid">
-              <!-- Populated by JS -->
-            </div>
+          <div id="dossierCardContainer">
+            <!-- Populated dynamically via JS -->
           </div>
 
           <div class="card">
@@ -609,7 +1158,7 @@
     <!-- Bottom Bar -->
     <div class="bottom-bar">
       <div class="bar-status">
-        <span id="statusText">Complete all drills to proceed</span>
+        <span id="statusText">Complete the knowledge check to proceed</span>
       </div>
       <button class="complete-btn" id="completeBtn" disabled>
         Complete Briefing and Proceed
@@ -621,13 +1170,13 @@
       <div class="confetti-container" id="confettiContainer"></div>
       <div class="success-check">✓</div>
       <div class="success-title">Briefing Complete</div>
-      <div class="success-subtitle">You have demonstrated readiness on all key persona details. You are cleared for the live simulation.</div>
+      <div class="success-subtitle">You have demonstrated readiness on all key persona details. Your completion has been successfully recorded.</div>
       <div class="success-timestamp" id="successTimestamp"></div>
-      <button class="enter-sim-btn" id="enterSimBtn">Enter Simulation Room</button>
+      <button class="enter-sim-btn" id="enterSimBtn">Return to Dashboard</button>
     </div>
 
   </div>
 
-  <script src="/js/briefing.js"></script>
+  <script src="/js/briefing.js?v=1.0.1"></script>
 </body>
 </html>
