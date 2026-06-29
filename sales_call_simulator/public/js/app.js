@@ -177,6 +177,10 @@ const app = {
         courseId: params.get('courseId'),
         moduleId: params.get('moduleId'),
         returnUrl: params.get('returnUrl'),
+        // CALIBRATION ROLLOUT: scoring is hidden from trainees unless the
+        // backend explicitly sends showScoring=1. Defaults to false (hidden)
+        // when the param is absent, so a misconfiguration fails safe.
+        showScoring: params.get('showScoring') === '1',
       };
 
       // Activate LMS kiosk mode — hides dashboard, nav, and escape buttons
@@ -492,8 +496,61 @@ const app = {
 
   /**
    * Called when a call ends - trigger backend processing and poll for results.
+   *
+   * CALIBRATION ROLLOUT: When an LMS-launched trainee has scoring suppressed
+   * (showScoring flag off), we still fire the backend /process POST so grading
+   * runs and persists for manual review, but we skip the debrief/scorecard UI
+   * and show a completion screen instead. Direct logins and launches with
+   * showScoring=1 see the full debrief flow unchanged.
    */
   async onCallEnded(callData) {
+    // Determine whether to suppress the scorecard for this trainee.
+    // Only suppress for LMS launches when the showScoring flag is off.
+    const isLmsLaunch = document.body.classList.contains('lms-launch');
+    const suppressScoring = isLmsLaunch && !(this.launchContext && this.launchContext.showScoring);
+
+    // --- No session ID: nothing to grade server-side ---
+    if (!callData.sessionId) {
+      if (suppressScoring) {
+        this.showCompletionScreen();
+        return;
+      }
+      if (typeof resetDebriefForLiveCall === 'function') resetDebriefForLiveCall();
+      this.showScreen('debrief');
+      const sName = this.currentScenario ? this.currentScenario.name : 'Sales Call Simulation';
+      const sNameEl = document.getElementById('debrief-scenario-name');
+      if (sNameEl) sNameEl.textContent = sName;
+      document.getElementById('debrief-loading').style.display = 'flex';
+      document.getElementById('debrief-content').style.display = 'none';
+      scoring.renderManualDebrief(callData, this.currentScenario);
+      return;
+    }
+
+    const token = localStorage.getItem('roc_token');
+
+    // ALWAYS trigger backend grading, regardless of whether we display it.
+    // This is the core requirement of the calibration period: scoring must
+    // run and persist so facilitators can review and tune it manually.
+    const processPromise = fetch(`/api/sessions/${callData.sessionId}/process`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+    });
+
+    // --- Suppressed path: fire-and-forget grading, show completion screen ---
+    if (suppressScoring) {
+      // Surface grading failures to the console so missing calibration data
+      // points are diagnosable. Do NOT block the completion screen on this.
+      processPromise.catch(function(err) {
+        console.error('Grading trigger failed for session', callData.sessionId, err);
+      });
+      this.showCompletionScreen();
+      return;
+    }
+
+    // --- Normal scoring flow (unchanged behavior) ---
     // Reset debrief to live-call mode (hide back button, show Try Another/Retry, hide tabs)
     if (typeof resetDebriefForLiveCall === 'function') resetDebriefForLiveCall();
 
@@ -506,22 +563,8 @@ const app = {
     document.getElementById('debrief-loading').style.display = 'flex';
     document.getElementById('debrief-content').style.display = 'none';
 
-    if (!callData.sessionId) {
-      // No session - fall back to manual debrief
-      scoring.renderManualDebrief(callData, this.currentScenario);
-      return;
-    }
-
     try {
-      // Trigger backend processing (fire-and-forget on server side)
-      const token = localStorage.getItem('roc_token');
-      const triggerRes = await fetch(`/api/sessions/${callData.sessionId}/process`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-      });
+      const triggerRes = await processPromise;
 
       if (!triggerRes.ok) {
 
@@ -562,6 +605,103 @@ const app = {
 
       toast('Automated scoring unavailable — showing self-assessment', 'info');
       scoring.renderManualDebrief(callData, this.currentScenario);
+    }
+  },
+
+  /**
+   * Display the post-call completion screen for trainees during the
+   * calibration rollout (scoring hidden). Handles auto-return to the LMS
+   * when a returnUrl is present, with a safe fallback otherwise.
+   */
+  showCompletionScreen() {
+    // Cancel any in-flight poll from a prior session.
+    this._pollAborted = true;
+
+    const returnUrl = this.launchContext &&
+      typeof this.launchContext.returnUrl === 'string' &&
+      this.launchContext.returnUrl.length > 0
+        ? this.launchContext.returnUrl
+        : null;
+
+    const hasReturn = !!returnUrl;
+    const REDIRECT_SECONDS = 5;
+
+    // Reuse a #screen-complete element if present; otherwise create one.
+    let screen = document.getElementById('screen-complete');
+    if (!screen) {
+      screen = document.createElement('div');
+      screen.id = 'screen-complete';
+      screen.className = 'screen';
+      const host = document.querySelector('.app-container') || document.body;
+      host.appendChild(screen);
+    }
+
+    screen.innerHTML =
+      '<div class="complete-card" style="max-width:480px;margin:10vh auto;text-align:center;' +
+      'padding:32px;background:var(--bg-card,#fff);border-radius:var(--rs,8px);' +
+      'box-shadow:var(--shadow-card-hover);font-family:var(--font,\'Open Sans\',sans-serif);">' +
+        '<div style="font-size:48px;color:var(--green,#19A070);margin-bottom:16px;">\u2713</div>' +
+        '<h2 style="color:var(--text-primary,#001D4E);margin:0 0 12px;">Simulation Complete</h2>' +
+        '<p style="color:var(--text-secondary,#4A5568);line-height:1.5;margin:0 0 24px;">' +
+          'Your conversation has been submitted and is being reviewed. ' +
+          'Detailed feedback will be available in a future update.' +
+        '</p>' +
+        (hasReturn
+          ? '<p id="complete-countdown" style="color:var(--text-secondary,#4A5568);font-size:var(--fs-sm,13px);margin:0 0 16px;">' +
+              'Returning to your course in ' + REDIRECT_SECONDS + ' seconds\u2026</p>'
+          : '') +
+        '<button id="btn-complete-exit" type="button" ' +
+          'style="padding:10px 24px;border:none;border-radius:var(--rs,6px);' +
+          'background:var(--blue,#0051C2);color:#fff;font-size:var(--fs,14px);cursor:pointer;">' +
+          (hasReturn ? 'Return to Course Now' : 'Close') +
+        '</button>' +
+      '</div>';
+
+    // Activate the screen.
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    screen.classList.add('active');
+    this.currentScreen = 'complete';
+
+    const exitBtn = document.getElementById('btn-complete-exit');
+    let countdownTimer = null;
+    let redirectTimer = null;
+
+    const doExit = function() {
+      if (countdownTimer) clearInterval(countdownTimer);
+      if (redirectTimer) clearTimeout(redirectTimer);
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        // window.close() only works for script-opened windows and will
+        // no-op inside an LMS iframe. Provide explicit guidance instead.
+        window.close();
+        const cd = document.getElementById('complete-countdown');
+        if (cd) cd.remove();
+        const card = screen.querySelector('.complete-card');
+        if (card && !document.getElementById('complete-close-note')) {
+          const note = document.createElement('p');
+          note.id = 'complete-close-note';
+          note.textContent = 'You may now close this tab.';
+          note.style.cssText = 'color:var(--text-secondary,#4A5568);font-size:13px;margin-top:16px;';
+          card.appendChild(note);
+        }
+      }
+    };
+
+    if (exitBtn) exitBtn.addEventListener('click', doExit);
+
+    // Auto-redirect only when a valid return URL is available.
+    if (hasReturn) {
+      let remaining = REDIRECT_SECONDS;
+      const cdEl = document.getElementById('complete-countdown');
+      countdownTimer = setInterval(function() {
+        remaining -= 1;
+        if (cdEl && remaining > 0) {
+          cdEl.textContent = 'Returning to your course in ' + remaining +
+            ' second' + (remaining === 1 ? '' : 's') + '\u2026';
+        }
+      }, 1000);
+      redirectTimer = setTimeout(doExit, REDIRECT_SECONDS * 1000);
     }
   },
 

@@ -220,18 +220,99 @@ function signUserToken(userId, displayName, role) {
 }
 
 /**
+ * Feature flag for the calibration rollout.
+ * Default is false, meaning LMS-launched trainees do NOT see scoring unless
+ * SHOW_SCORING_TO_TRAINEES=true is explicitly set in the environment.
+ */
+function shouldShowScoringToTrainees() {
+  return process.env.SHOW_SCORING_TO_TRAINEES === 'true';
+}
+
+/**
+ * Build an allowlist of valid LMS return URL hosts.
+ *
+ * Recommended production env:
+ *   DOCEBO_BASE_URL=https://yourtenant.docebosaas.com
+ *
+ * Optional additional env for multiple tenants/domains:
+ *   LTI_RETURN_URL_ALLOWED_HOSTS=yourtenant.docebosaas.com,learn.yourcompany.com
+ */
+function getAllowedReturnHosts() {
+  const hosts = new Set();
+
+  if (config.DOCEBO_BASE_URL) {
+    try {
+      hosts.add(new URL(config.DOCEBO_BASE_URL).hostname.toLowerCase());
+    } catch (err) {
+      logger.warn('Invalid DOCEBO_BASE_URL configured; returnUrl allowlist skipped for this value', {
+        value: config.DOCEBO_BASE_URL,
+      });
+    }
+  }
+
+  if (process.env.LTI_RETURN_URL_ALLOWED_HOSTS) {
+    process.env.LTI_RETURN_URL_ALLOWED_HOSTS
+      .split(',')
+      .map(host => host.trim().toLowerCase())
+      .filter(Boolean)
+      .forEach(host => hosts.add(host));
+  }
+
+  return hosts;
+}
+
+/**
+ * Validate and sanitize LMS return URLs before passing them to the browser.
+ * Prevents open redirects by only allowing HTTPS URLs on configured LMS hosts.
+ */
+function sanitizeReturnUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+
+  try {
+    const parsed = new URL(rawUrl);
+    const allowedHosts = getAllowedReturnHosts();
+
+    if (parsed.protocol !== 'https:') {
+      logger.warn('Rejected non-HTTPS LTI returnUrl', { hostname: parsed.hostname });
+      return '';
+    }
+
+    if (!allowedHosts.has(parsed.hostname.toLowerCase())) {
+      logger.warn('Rejected LTI returnUrl host not in allowlist', {
+        hostname: parsed.hostname,
+        allowedHosts: Array.from(allowedHosts),
+      });
+      return '';
+    }
+
+    return parsed.toString();
+  } catch (err) {
+    logger.warn('Rejected malformed LTI returnUrl');
+    return '';
+  }
+}
+
+/**
  * Build redirect query params for launch routes.
- * Includes the signed token and all optional LMS context fields.
+ * Includes the signed token, optional LMS context fields, scoring visibility
+ * flag, and a sanitized LMS return URL when available.
  */
 function buildLaunchRedirectParams(token, context) {
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     token,
     scenarioId: context.scenarioId,
     userId: context.userId,
+    showScoring: shouldShowScoringToTrainees() ? '1' : '0',
     ...(context.courseId && { courseId: context.courseId }),
     ...(context.moduleId && { moduleId: context.moduleId }),
-    ...(context.returnUrl && { returnUrl: context.returnUrl }),
   });
+
+  const safeReturnUrl = sanitizeReturnUrl(context.returnUrl);
+  if (safeReturnUrl) {
+    params.set('returnUrl', safeReturnUrl);
+  }
+
+  return params;
 }
 
 /**
@@ -372,12 +453,27 @@ async function handleLtiLaunch(req, res) {
 
   const scenarioId = `${moduleId}_${personaId}`;
 
+  const returnUrl = req.body.launch_presentation_return_url || '';
+  const courseId = req.body.context_id || '';
+
   const userToken = signUserToken(userId, userId, 'user');
   const params = buildLaunchRedirectParams(userToken, {
-    scenarioId, userId, moduleId,
+    scenarioId,
+    userId,
+    moduleId,
+    courseId,
+    returnUrl,
   });
 
-  logger.info('LTI launch redirect', { userId, moduleId, personaId, scenarioId });
+  logger.info('LTI launch redirect', {
+    userId,
+    moduleId,
+    personaId,
+    scenarioId,
+    hasReturnUrl: !!returnUrl,
+    showScoring: shouldShowScoringToTrainees(),
+  });
+
   res.redirect(`/?${params.toString()}`);
 }
 
@@ -474,14 +570,23 @@ async function handleBriefingLtiLaunch(req, res) {
     ? jwt.sign(tokenPayload, config.JWT_SECRET, { expiresIn: '24h' })
     : 'dev-token';
 
-  const params = new URLSearchParams({
-    token: userToken,
+  const returnUrl = req.body.launch_presentation_return_url || '';
+
+  const params = buildLaunchRedirectParams(userToken, {
     scenarioId,
     userId,
     moduleId,
+    returnUrl,
   });
 
-  logger.info('LTI briefing launch redirect', { userId, moduleId, personaId, scenarioId });
+  logger.info('LTI briefing launch redirect', {
+    userId,
+    moduleId,
+    personaId,
+    scenarioId,
+    hasReturnUrl: !!returnUrl,
+  });
+
   res.redirect(`/briefing.html?${params.toString()}`);
 }
 
