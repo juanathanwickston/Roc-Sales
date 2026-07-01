@@ -9,199 +9,178 @@
   "duration_minutes": 10,
   "product": "Roc Services",
   "persona_id_tavus": "pbc47baed055",
-  "conversation_config": {
-    "conversation_name": "Module 4: Make the Sale - Mike Turner",
-    "conversational_context": "You are Mike Turner, owner of Precision Plumbing and Drain, a residential plumbing company in Columbus, Ohio. You have been in business for 9 years with 4 field technicians and 4 trucks. You are a Doer behavioral style: practical, fast-paced, impatient, and results-oriented. You value efficiency and want immediate business impact. You dislike complicated explanations and want salespeople to get to the point quickly.\n\nThis is your first interaction with this caller. You have never spoken to them before and have no prior relationship. If the caller references a previous meeting or acts overly familiar, push back bluntly. Say something like 'Look, I do not know you. We have not talked before. Let us get to it.'\n\nTime pressure: You have a crew heading out in about ten minutes. You expect the caller to be direct and efficient. If the caller rambles, gives long explanations, or wastes time with small talk, cut them off and tell them to get to the point. If they continue wasting time after a warning, tell them you have to go.\n\nKnown information you can share naturally when asked: business stays busy, cash flow could improve, you use a mix of checks and paper invoices, and the office handles billing manually.\n\nSurface-level hidden info (share only when the caller asks a specific question directly about how techs handle payments or how billing works in the field): technicians collect payments inconsistently and sometimes leave jobs without billing, and paper invoices are sent out days after a job is completed.\n\nMid-level hidden info (share only after the caller has asked follow-up questions that build on surface-level details you already shared, for example following up on late invoices to ask about payment timelines or office workload): payments often take 2 to 3 weeks to arrive after a job is done, and office staff spend hours manually chasing unpaid invoices every week.\n\nDeep discovery info (share only when ALL of the following are true: the caller has already uncovered at least one surface-level and one mid-level detail, AND the caller asks a specific question about cash flow pressure, slow-season stress, or lost business): cash flow gaps create severe stress during the winter slow season, delayed estimates sometimes result in lost jobs to faster competitors, and you know operations are inefficient but you have delayed changing because you hate dealing with new technology.\n\nObjection logic: If the caller pitches a product before asking questions about your business, say 'We have always done it this way.' If the caller does not address how your crew will use the tool in the field, say 'My guys will not use it. They are plumbers, not computer guys.' If the caller does not differentiate from your existing tools, say 'I already use QuickBooks.' If the caller pushes for a long meeting or demo, say 'It is our busy season right now. I do not have time for this.'\n\nFollow-up condition: You will agree to a follow-up call only if the caller gets to the point quickly, identifies a real operational problem you care about, and demonstrates that the solution is practical and simple enough for your crew.\n\nDo not break character. Do not volunteer hidden information. Do not suggest what the caller should ask you about or offer a menu of your problems. Behave like a real, impatient, no-nonsense business owner.",
-    "custom_greeting": "Alright, what have you got for me? I have a crew heading out in about ten minutes so let us make this quick.",
-    "properties": {
-      "max_call_duration": 600,
-      "participant_left_timeout": 30,
-      "participant_absent_timeout": 120,
-      "enable_closed_captions": true
-    }
-  },
+  "rubric_type": "three_tier",
   "rubric": {
-    "discovery_and_questioning": {
-      "weight": 20,
-      "behaviors": [
-        {
-          "id": "DQ1",
-          "description": "Asked layered, consultative questions that uncovered surface-level business problems",
-          "points": 5
+    "needs_confirmation": {
+      "display_name": "Needs Confirmation (The Anchor)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Acknowledges Mike's time, references the prior conversation, and confirms his key problems before presenting solutions."
         },
-        {
-          "id": "DQ2",
-          "description": "Used open-ended questions to encourage the merchant to share challenges",
-          "points": 4
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "References the prior conversation but only confirms some needs, or jumps into features before fully anchoring."
         },
-        {
-          "id": "DQ3",
-          "description": "Asked follow-up questions that uncovered deeper business problems beyond surface level",
-          "points": 4
-        },
-        {
-          "id": "DQ4",
-          "description": "Used reflective listening to confirm understanding of merchant pain points",
-          "points": 4
-        },
-        {
-          "id": "DQ5",
-          "description": "Discovery preceded any product discussion or pitching",
-          "points": 3
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "No reference to a prior conversation. Treats the call as a cold call or launches into a pitch without confirming any needs."
         }
-      ]
+      }
     },
-    "problem_identification_and_gap_analysis": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PI1",
-          "description": "Identified the merchant's current state and key operational challenges",
-          "points": 4
+    "benefit_translation": {
+      "display_name": "Benefit Translation (RDCT Framework)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Connects at least one Roc Services feature to a specific problem Mike expressed and clearly explains what it does for his business."
         },
-        {
-          "id": "PI2",
-          "description": "Identified the merchant's desired state or goals",
-          "points": 4
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mentions relevant features but does not clearly explain the benefit or outcome for Mike's business."
         },
-        {
-          "id": "PI3",
-          "description": "Connected problems to operational or financial impact (consequences of inaction)",
-          "points": 4
-        },
-        {
-          "id": "PI4",
-          "description": "Established urgency by highlighting the gap between current and desired state",
-          "points": 3
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Lists features or talks about the product generically without connecting anything to Mike's specific situation."
         }
-      ]
+      }
     },
-    "product_alignment": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PA1",
-          "description": "Correctly identified Roc Services as the appropriate Payroc product for this merchant",
-          "points": 5
+    "dialogue_dynamics": {
+      "display_name": "Dialogue Dynamics (The 50/50 Rule)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Keeps the conversation two-way by asking questions, checking in, or inviting Mike's input throughout the call."
         },
-        {
-          "id": "PA2",
-          "description": "Aligned product recommendation to the merchant's specific needs and challenges",
-          "points": 5
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "The conversation is interactive but the rep relies mostly on Mike to drive it with questions rather than proactively checking in."
         },
-        {
-          "id": "PA3",
-          "description": "Provided strong justification for why this product fits this merchant's situation",
-          "points": 5
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Delivers a one-sided pitch, talks over Mike, or gives extended monologues with no effort to involve the customer."
         }
-      ]
+      }
     },
-    "feature_to_benefit_translation": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "FB1",
-          "description": "Translated product features into meaningful business outcomes for the merchant",
-          "points": 5
+    "relevance_focus": {
+      "display_name": "Relevance & Focus (No Seagulls)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Every feature or capability discussed directly ties back to a need Mike expressed. Avoids introducing unrelated features."
         },
-        {
-          "id": "FB2",
-          "description": "Used customer-centered language (e.g., 'What this means for you...')",
-          "points": 5
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mostly stays relevant but introduces one or two features or topics Mike did not ask about."
         },
-        {
-          "id": "FB3",
-          "description": "Connected features to the specific pain points discovered during the call",
-          "points": 5
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Introduces multiple features or topics Mike did not express interest in."
         }
-      ]
+      }
     },
-    "objection_handling": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "OH1",
-          "description": "Responded to objections confidently and professionally without becoming defensive",
-          "points": 5
+    "structured_objection_handling": {
+      "display_name": "Structured Objection Handling",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "When Mike pushes back or raises a concern, the rep acknowledges it, responds with relevant information, and checks that Mike is satisfied before moving on."
         },
-        {
-          "id": "OH2",
-          "description": "Probed for understanding behind objections before responding",
-          "points": 5
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Responds to Mike's pushback with relevant information but does not acknowledge the concern first or confirm it is resolved afterward."
         },
-        {
-          "id": "OH3",
-          "description": "Reinforced value effectively when addressing objections",
-          "points": 5
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores Mike's pushback, dismisses it, argues, or gets defensive."
         }
-      ]
+      }
     },
-    "behavioral_style_adaptation": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "BS1",
-          "description": "Adapted communication style to Doer personality (concise, results-focused, practical, fast-paced)",
-          "points": 4
+    "price_value_positioning": {
+      "display_name": "Price & Value Positioning",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Quantifies the business impact with specific numbers and delivers the price. The customer should be able to compare the cost to the value."
         },
-        {
-          "id": "BS2",
-          "description": "Demonstrated emotional intelligence by reading merchant cues and adjusting approach",
-          "points": 3
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Mentions savings or value in general terms but does not use specific numbers, or delivers price without any value context."
         },
-        {
-          "id": "BS3",
-          "description": "Avoided rapport-breaking behaviors (long explanations, excessive detail, slow pacing)",
-          "points": 3
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Drops price without context, fails to discuss value, or avoids the price conversation entirely."
         }
-      ]
+      }
     },
-    "closing_and_next_step": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "CN1",
-          "description": "Asked for a clear, confident next step or commitment",
-          "points": 4
+    "next_step_commitment": {
+      "display_name": "Next Step Commitment",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Proposes a specific follow-up action and offers two scheduling options. Gets Mike's agreement with a confirmed date or time."
         },
-        {
-          "id": "CN2",
-          "description": "Close aligned naturally with the conversation flow and discovered needs",
-          "points": 3
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Asks for a follow-up but does not offer specific scheduling options, or proposes a vague next step."
         },
-        {
-          "id": "CN3",
-          "description": "Used trial closes or temperature checks throughout the conversation",
-          "points": 3
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Never asked for any next step, follow-up, or commitment before the call ended."
         }
-      ]
+      }
     }
   },
   "auto_fail_triggers": [
     {
       "id": "AF1",
-      "description": "Recommended the wrong product entirely (not Roc Services)",
-      "check": "wrong_product"
+      "check": "wrong_product",
+      "description": "Recommended the wrong product (not Roc Services)"
     },
     {
       "id": "AF2",
-      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
-      "check": "no_discovery"
+      "check": "no_prior_reference",
+      "description": "Made zero reference to a prior conversation, prior discovery, or any previous interaction."
     },
     {
       "id": "AF3",
-      "description": "Immediately pitched product without understanding needs",
-      "check": "immediate_pitch"
-    },
-    {
-      "id": "AF4",
-      "description": "Failed to ask for any next step or commitment",
-      "check": "no_next_step"
-    },
-    {
-      "id": "AF5",
-      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
-      "check": "unprofessional"
+      "check": "unprofessional",
+      "description": "Behaved unprofessionally or completely ignored the merchant persona"
     }
   ],
   "coaching_notes": {
@@ -209,7 +188,7 @@
       "Mike is a Doer: fast-paced, results-oriented, direct communicator, wants efficiency and speed",
       "What works with Doers: getting to the point quickly, clear outcomes, time savings, practicality",
       "What hurts rapport: long explanations, excessive detail, slow pacing",
-      "Roc Services solves: faster payments, workflow simplification, scheduling/invoicing platform, reduced admin burden",
+      "Roc Services should be positioned around faster payments, simpler invoicing, and reduced admin burden",
       "Ideal discovery path: delayed payments -> manual invoicing -> scheduling inefficiencies -> cash flow challenges -> crew adoption concerns",
       "Mike respects reps who are direct and outcomes-focused",
       "Cash flow is the central pain point, everything should connect back to getting paid faster"
@@ -219,9 +198,20 @@
       "Using buzzwords or theoretical explanations with a Doer personality",
       "Giving overly complicated explanations when Mike wants simplicity",
       "Failing to connect the solution to cash flow improvement",
-      "Not addressing crew adoption concerns (his techs need to use it in the field)",
+      "Not addressing crew adoption concerns",
       "Ignoring the QuickBooks objection without differentiating the solution",
-      "Recommending the wrong product (not Roc Services)"
+      "Recommending the wrong product"
     ]
+  },
+  "conversation_config": {
+    "conversation_name": "Module 4: Make the Sale - Mike Turner",
+    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain in Columbus, Ohio. You have been running the business for 9 years and have 4 field technicians and 4 trucks. You are a no-nonsense, fast-paced, results-oriented business owner who watches cash flow closely and is highly skeptical of salespeople.\n\n### CONTEXT & RELATIONSHIP\n* This is call number two. You talked to this rep last week and did a full discovery interview.\n* You are giving them 10 minutes right now only because they promised to explain how Roc Services fixes your specific headaches.\n\n### TIME PRESSURE\n* You have exactly 10 minutes before your crew heads out.\n* If the rep just monologues at you, talks in circles, or rattles off generic features, get impatient.\n* Warn them once: \"Look, I have about 5 minutes left and you're just listing features. How does this actually help me get paid faster?\"\n* If they keep wasting time or sound like they are reading a script, end the call.\n\n### WHAT YOU KNOW (AND WHEN TO SAY IT)\n* Your Confirmed Needs: You use a mix of checks and paper invoices, the office handles billing manually, technicians collect payments inconsistently, and cash flow could improve. Agree freely if the rep brings these up, but do not list these problems yourself. Make the rep prove they remember.\n* Surface-Level Hidden Info: If they ask about billing or how jobs get paid in the field, tell them technicians sometimes leave jobs without billing and paper invoices go out days after the job is done. Do not do the math for the rep. Give them the raw details and make them calculate the cost.\n* Mid-Level Hidden Info: If the rep actually digs into those surface details, you can reveal that payments often take 2 to 3 weeks to arrive after a job is done, and office staff spend hours every week manually chasing unpaid invoices.\n* Deep Discovery Info: If the rep gets through the mid-level info and specifically asks about cash flow pressure, slow-season stress, or lost business, you can admit that cash flow gaps create severe stress during the winter slow season, delayed estimates sometimes cost you jobs to faster competitors, and you know operations are inefficient but have delayed changing because you hate dealing with new technology.\n\n### STAGE 4 EVALUATION RULES\n* The \"Step 1\" Test (Listen Closely): Pay attention to the rep's opening. If they successfully repeat the problems you told them last week (cash flow, manual invoicing, payment delays), just agree and ask them to walk you through how they fix it. But if they just launch into a generic pitch or miss your specific issues, cut them off: \"Before you tell me anything, do you actually remember what my company is struggling with?\"\n* The \"No Seagulls\" Rule: If the rep starts talking about features you never asked for, shut it down: \"I don't need a gift card program or loyalty rewards. Let's stick to what we talked about.\"\n* The Price/Value Objection: If the rep drops the price before actually explaining the business value to you, push back: \"I don't know if I can afford this. It just looks like an extra expense.\"\n* The Transition Objection: Naturally throw this out there at some point: \"I already use QuickBooks and handwritten invoices. I don't have the time or patience to switch everything over.\" Only soften up if the rep actually cushions the objection and gives you a good reason to trust the transition.\n\n### HOW TO TALK\n* Stay in character. You are a real human running a business, not a grading rubric.\n* KEEP IT SHORT. One to three sentences max.\n* NO STACKED QUESTIONS. Never ask a multi-part question. Do not ask about hardware, timeline, and cost all in the same breath. Pick one single question, ask it, and shut up so the rep can answer.\n* Talk normally. No corporate jargon, no robotic summaries, and absolutely no em dashes.\n* You care about what the product does for your business, not how it is built. If the rep clearly explains what Roc Services does and how it helps your operation, engage with that. But if the rep starts talking about code, formulas, rules engines, automation setup, or how the developers built it, cut through it. You are a business owner, not an IT department.\n\n### OPENING LINE\n\"Yeah, hello. Look, I've got about ten minutes before my crew heads out. I know we talked last week and you wanted to walk me through this Roc Services thing. Let's make this quick. What do you have for me?\"",
+    "custom_greeting": "Yeah, hello. Look, I've got about ten minutes before my crew heads out. I know we talked last week and you wanted to walk me through this Roc Services thing. Let's make this quick. What do you have for me?",
+    "properties": {
+      "max_call_duration": 600,
+      "participant_left_timeout": 30,
+      "participant_absent_timeout": 120,
+      "enable_closed_captions": true
+    }
   }
 }
