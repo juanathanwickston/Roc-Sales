@@ -582,46 +582,59 @@ const callManager = {
     }
 
     // If scenario has no coaching_notes, show a minimal fallback
-    if (!scenario || !scenario.coaching_notes) {
+    if (!scenario) {
       bodyEl.innerHTML = '<p style="padding:12px;color:var(--text-muted);">Call guide not available for this scenario.</p>';
       scoringEl.innerHTML = '';
       return;
     }
 
+    // Generic content for all scenarios (not persona-specific)
+    var keyConcepts = [
+      'This is call number two. The buyer already told you their problems. Prove you were listening.',
+      'Start by confirming what they shared last time before you present anything.',
+      'Connect every product feature to a specific problem the buyer told you about.',
+      'Use their words, not yours. If they said "checkout is a mess," say "checkout" not "point of sale optimization."',
+      'Ask questions. The buyer should be talking more than you are.',
+      'Earn the next step. Propose a specific follow-up and offer two times.'
+    ];
+    var commonMistakes = [
+      'Treating this like a cold call or starting with a generic pitch',
+      'Talking about features the buyer never mentioned needing',
+      'Dropping the price before the buyer understands what they are getting',
+      'Ignoring or rushing past objections instead of addressing them directly',
+      'Ending the call without asking for a clear next step',
+      'Doing the math for the buyer instead of letting them see the numbers themselves'
+    ];
+
     let html = '';
-    const notes = scenario.coaching_notes;
 
     // Key concepts section (open by default)
-    if (notes.key_concepts && notes.key_concepts.length > 0) {
-      const conceptId = 'guide-concepts';
-      html += '<div class="guide-section open">';
-      html += '<button class="guide-section-btn" aria-expanded="true" aria-controls="' + conceptId + '">';
-      html += '<span class="guide-section-title">Key Concepts</span>';
-      html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
-      html += '</button>';
-      html += '<div class="guide-section-content" id="' + conceptId + '">';
-      html += '<div class="guide-section-inner"><ul>';
-      for (let i = 0; i < notes.key_concepts.length; i++) {
-        html += '<li>' + esc(notes.key_concepts[i]) + '</li>';
-      }
-      html += '</ul></div></div></div>';
+    var conceptId = 'guide-concepts';
+    html += '<div class="guide-section open">';
+    html += '<button class="guide-section-btn" aria-expanded="true" aria-controls="' + conceptId + '">';
+    html += '<span class="guide-section-title">Key Concepts</span>';
+    html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
+    html += '</button>';
+    html += '<div class="guide-section-content" id="' + conceptId + '">';
+    html += '<div class="guide-section-inner"><ul>';
+    for (let i = 0; i < keyConcepts.length; i++) {
+      html += '<li>' + esc(keyConcepts[i]) + '</li>';
     }
+    html += '</ul></div></div></div>';
 
     // Common mistakes section
-    if (notes.common_mistakes && notes.common_mistakes.length > 0) {
-      const mistakesId = 'guide-mistakes';
-      html += '<div class="guide-section">';
-      html += '<button class="guide-section-btn" aria-expanded="false" aria-controls="' + mistakesId + '">';
-      html += '<span class="guide-section-title">Areas to Avoid</span>';
-      html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
-      html += '</button>';
-      html += '<div class="guide-section-content" id="' + mistakesId + '">';
-      html += '<div class="guide-section-inner guide-mistake"><ul>';
-      for (let j = 0; j < notes.common_mistakes.length; j++) {
-        html += '<li>' + esc(notes.common_mistakes[j]) + '</li>';
-      }
-      html += '</ul></div></div></div>';
+    var mistakesId = 'guide-mistakes';
+    html += '<div class="guide-section">';
+    html += '<button class="guide-section-btn" aria-expanded="false" aria-controls="' + mistakesId + '">';
+    html += '<span class="guide-section-title">Areas to Avoid</span>';
+    html += '<span class="guide-chevron" aria-hidden="true">▶</span>';
+    html += '</button>';
+    html += '<div class="guide-section-content" id="' + mistakesId + '">';
+    html += '<div class="guide-section-inner guide-mistake"><ul>';
+    for (let j = 0; j < commonMistakes.length; j++) {
+      html += '<li>' + esc(commonMistakes[j]) + '</li>';
     }
+    html += '</ul></div></div></div>';
 
     bodyEl.innerHTML = html;
 
