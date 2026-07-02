@@ -250,7 +250,9 @@
       border-bottom: 1px solid rgba(0,0,0,0.06);
       flex-shrink: 0;
       z-index: var(--z-sticky);
+      position: relative;
     }
+    .call-topbar-center { position: absolute; left: 50%; transform: translateX(-50%); }
     .call-topbar-left { display: flex; align-items: center; gap: 12px; }
     .call-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-fail); animation: blink 2s infinite; }
     @keyframes blink { 50% { opacity: .3; } }
@@ -378,7 +380,7 @@
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: 50%;
-      color: var(--text-dark);
+      color: #FFFFFF;
       cursor: pointer;
       font-family: inherit;
       transition: all .2s;
