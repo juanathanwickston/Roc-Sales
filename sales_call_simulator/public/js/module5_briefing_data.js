@@ -227,7 +227,7 @@
         { label: 'Respond', color: '#16a34a', quote: 'Connect the investment to the approximately $9,360 per year spent on manual pricing work. Reinforce the added value of fewer pricing errors, better inventory visibility, fewer stockouts, tobacco rebate opportunities, and lower compliance risk.', desc: '' },
         { label: 'Confirm', color: '#d97706', quote: '\u201cIf the numbers make sense and we can handle the transition without disrupting the store, would you be comfortable moving forward with the application?\u201d', desc: '' },
       ],
-      transcript: 'That demonstration gave me a much clearer picture of how Bodega AI could help the store. I can see the value in reducing the manual pricing work, improving inventory control, and lowering some of the compliance risk. What I still need to understand is whether the savings justify the investment and whether the transition can happen without disrupting the business.',
+      transcript: 'That was a solid demo. I can see how Bodega AI could save us a lot of time on pricing, give me a better handle on inventory, and reduce some of the compliance risk. My concern is making sure the return is there and that changing systems does not create problems for the store. If the numbers make sense and the transition can be handled smoothly, I am interested. Walk me through what moving forward would look like.',
       info: [
         { label: 'Industry', value: 'Convenience Store' },
         { label: 'Product Fit', value: 'Bodega AI' },
@@ -259,7 +259,7 @@
         { label: 'Respond', color: '#16a34a', quote: 'Explain that each stylist can be set up separately, the daily checkout process is simple, and the team can be supported through training and setup. Connect the change to less front-desk confusion, cleaner reporting, separate stylist deposits, and a better client experience.', desc: '' },
         { label: 'Confirm', color: '#d97706', quote: '\u201cIf we can keep the setup simple and make sure the stylists are supported, would you feel comfortable moving forward with Roc Terminal+?\u201d', desc: '' },
       ],
-      transcript: 'That demonstration helped me see how Roc Terminal+ could make checkout easier for our clients, reduce the confusion at the front desk, and keep each stylist\u2019s payments separate. I also liked how it could simplify the reporting at the end of the day. My main concern is making sure the team feels comfortable with the change and does not feel like a new system is being forced on them.',
+      transcript: 'That demonstration helped me see how Roc Terminal+ could make checkout easier for our clients, reduce the confusion at the front desk, and keep each stylist’s payments separate. I also liked how it could simplify the reporting at the end of the day. My main concern is making sure the team feels comfortable with the change and does not feel like a new system is being forced on them.',
       info: [
         { label: 'Industry', value: 'Beauty Salon' },
         { label: 'Product Fit', value: 'Roc Terminal+' },
@@ -291,7 +291,7 @@
         { label: 'Respond', color: '#16a34a', quote: 'Bring Mike back to the simple field process shown in the demonstration. The technician opens the job, sends the invoice, and collects payment before leaving. The office receives the information without retyping paperwork. Answer any cost, training, or setup question directly.', desc: '' },
         { label: 'Confirm', color: '#d97706', quote: '\u201cIf we can keep this simple for your technicians, would you be comfortable moving forward with the setup?\u201d', desc: '' },
       ],
-      transcript: 'That demo made the value pretty clear. I can see how Roc Services could help my technicians invoice and collect before they leave the job, while cutting down the paperwork in the office. My main concern is whether the guys will actually use it without feeling like it slows them down or makes their day more complicated.',
+      transcript: 'That was straightforward. I can see how Roc Services would help my guys invoice on the spot, collect before they leave the job, and cut down the paperwork in the office. My only concern is whether the techs will actually use it without complaining that it is too complicated. If the setup is simple and they can learn it quickly, I am ready to talk about getting this started.',
       info: [
         { label: 'Industry', value: 'Plumbing Services' },
         { label: 'Product Fit', value: 'Roc Services' },
