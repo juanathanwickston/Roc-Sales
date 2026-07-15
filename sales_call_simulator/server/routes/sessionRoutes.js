@@ -15,6 +15,7 @@ const { COURSE_MODULES, PERSONA_DISPLAY_NAMES, PERSONA_FIRST_NAMES } = require('
 const { sendSuccess, sendError } = require('../utils/response');
 const logger = require('../utils/logger');
 const { getScenario, SCENARIOS_DIR } = require('../services/scenarioLoader');
+const { getFallbackSummary } = require('../utils/continuityHelper');
 
 const router = express.Router();
 
@@ -236,43 +237,49 @@ router.post('/', requireAuth, async (req, res) => {
     let relationshipSummary = null;
     let relationshipSummaryJson = null;
 
-    // Module 5 prerequisite checks
+    // Load Module 4 continuity context for Module 5
     if (moduleId === 'module5' && personaId) {
-      // Check mastery of Module 4 for this persona
-      const masteryResult = await db.query(
-        `SELECT mastery_score FROM module_masteries
-         WHERE external_user_id = $1 AND module_id = 'module4' AND persona_id = $2`,
-         [externalUserId, personaId]
-      );
-
-      if (masteryResult.rows.length === 0) {
-        return sendError(res, req, 403, 'Module 4 mastery required before starting Module 5 for this persona.');
-      }
-
-      // Retrieve the most recent passing Module 4 session's relationship summary
       const summaryResult = await db.query(
         `SELECT s.relationship_summary, s.relationship_summary_json
          FROM simulation_sessions s
-         INNER JOIN session_scores sc ON sc.session_id = s.id
          WHERE s.external_user_id = $1
            AND s.module_id = 'module4'
            AND s.persona_id = $2
            AND s.status = 'completed'
-           AND s.relationship_summary IS NOT NULL
-           AND s.relationship_summary != ''
-           AND sc.final_score >= 80
-           AND sc.overall_verdict = 'pass'
          ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
          LIMIT 1`,
          [externalUserId, personaId]
       );
 
-      if (summaryResult.rows.length === 0) {
-        return sendError(res, req, 422, 'No relationship summary found from a passing Module 4 session for this persona.');
+      let useFallback = true;
+
+      if (summaryResult.rows.length > 0) {
+        const dbSummary = summaryResult.rows[0].relationship_summary;
+        const dbSummaryJson = summaryResult.rows[0].relationship_summary_json;
+
+        if (dbSummary && dbSummary.trim() !== '') {
+          useFallback = false;
+          relationshipSummary = dbSummary;
+
+          const fallback = getFallbackSummary(personaId);
+          relationshipSummaryJson =
+            dbSummaryJson && typeof dbSummaryJson === 'object'
+              ? dbSummaryJson
+              : fallback?.relationship_summary_json || {
+                  discovered_facts: [],
+                  operational_pain_points: [],
+                  merchant_confirmed_details: [],
+                };
+        }
       }
 
-      relationshipSummary = summaryResult.rows[0].relationship_summary;
-      relationshipSummaryJson = summaryResult.rows[0].relationship_summary_json;
+      if (useFallback) {
+        const fallback = getFallbackSummary(personaId);
+        if (fallback) {
+          relationshipSummary = fallback.relationship_summary;
+          relationshipSummaryJson = fallback.relationship_summary_json;
+        }
+      }
     }
 
     const result = await db.query(
