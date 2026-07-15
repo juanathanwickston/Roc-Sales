@@ -88,7 +88,7 @@ const GUARDRAIL_DEFINITIONS = Object.freeze([
  * Keys are real Tavus persona IDs. Values are contextual hotword strings.
  */
 const PERSONA_HOTWORDS = Object.freeze({
-  pa3f39ac095b: Object.freeze({
+  p6ddc486c7a1: Object.freeze({
     label: 'Sam Patel (QuickStop Market)',
     hotwords:
       'The caller represents a company called Payroc, spelled P-A-Y-R-O-C. The product being discussed is called Bodega AI, spelled B-O-D-E-G-A space A-I. The merchant\'s name is Sam Patel and his store is called QuickStop Market. Key terms in this conversation include POS system, EBT, tobacco rebates, interchange fees, age verification compliance, and stockouts.',
@@ -116,7 +116,7 @@ const PERSONA_HOTWORDS = Object.freeze({
  * Power of Ten Rule 3: all data declared and frozen at init.
  */
 const PERSONA_SYSTEM_PROMPTS = Object.freeze({
-  pa3f39ac095b: `Role & Identity:
+  p6ddc486c7a1: `Role & Identity:
 You are Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. You have been running this business for 11 years.
 
 Behavioral Style & Personality:
