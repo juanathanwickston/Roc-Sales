@@ -2,227 +2,241 @@
   "id": "module5_sam_patel",
   "module_id": "module5",
   "persona_id": "sam_patel",
-  "continuity_source_module_id": "module4",
   "name": "Module 5: Close the Sale - Sam Patel (QuickStop Market)",
-  "description": "Return to Sam Patel at QuickStop Market for a follow-up closing call. Using relationship context from your Module 4 discovery session, handle objections, reinforce value, and close with confidence. Sam is a Controller-style buyer who expects you to remember what you discussed and deliver on the next step you earned.",
+  "description": "Practice closing the sale with Sam Patel, owner of QuickStop Market, immediately after a completed Bodega AI demonstration. Sam is a Controller-style buyer: analytical, efficiency-focused, and skeptical of salespeople. Reinforce the value established during the demonstration, resolve remaining concerns, use trial and If-Then closing questions, respond to buying signals, and confidently ask for a buying commitment.",
   "module": "Module 5 - Close the Sale",
   "difficulty": "advanced",
   "duration_minutes": 10,
   "product": "Bodega AI",
   "persona_id_tavus": "pa3f39ac095b",
+  "rubric_type": "three_tier",
+  "rubric": {
+    "closing_readiness": {
+      "display_name": "Closing Readiness (Stack the Wins)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Reinforces Sam's positive responses from the completed demonstration, confirms that Bodega AI addresses his manual pricing, inventory, checkout error, margin, or compliance concerns, and establishes that his questions have been answered before asking for commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Summarizes some value from the demonstration but does not clearly confirm that the solution fills Sam's needs or that his concerns have been answered."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Treats the call as a new opportunity, repeats basic discovery, restarts the demonstration, or asks for commitment without establishing closing readiness."
+        }
+      }
+    },
+    "trial_closing_questions": {
+      "display_name": "Trial Closing Questions",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Asks one or more trial closing questions that request Sam's opinion rather than a final decision and uses his response to determine whether any concerns remain."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Asks a general feedback question but does not clearly gauge readiness or follow up on the concern revealed."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Does not ask a trial closing question before attempting the final close."
+        }
+      }
+    },
+    "buying_signal_response": {
+      "display_name": "Buying Signal Recognition & Response",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Recognizes Sam's verbal buying signals, such as asking about price, implementation, training, timing, or next steps, and responds by moving the conversation toward commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Answers a buying-signal question accurately but fails to use it to advance the close."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores, misses, or talks past clear buying signals and continues presenting unnecessary information."
+        }
+      }
+    },
+    "incremental_closing": {
+      "display_name": "Incremental Closing & Commitment Progression",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Uses appropriate smaller commitments to build momentum, such as confirming the solution fit, implementation timing, onboarding participation, or readiness to complete the application, and then progresses toward the buying decision."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Gains a minor agreement but does not connect it to a clear progression toward the buying commitment."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Makes no effort to build commitment or replaces the buying decision with another demonstration or vague follow-up."
+        }
+      }
+    },
+    "objection_and_intent": {
+      "display_name": "Concern Resolution & If-Then Intent Testing",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Acknowledges Sam's concern, probes when necessary, responds with relevant information, confirms the concern is resolved, and uses an If-Then intent question when appropriate to uncover any remaining blocker."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Provides a relevant response but skips acknowledgment, probing, confirmation, or the intent test needed to verify that the concern is the true blocker."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores the concern, argues, becomes defensive, gives an unrelated answer, or attempts to close without resolving the stated blocker."
+        }
+      }
+    },
+    "direct_closing_ask": {
+      "display_name": "Direct Closing Ask",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Confidently asks Sam for a buying commitment using a direct call to action with clear expectations, such as beginning the application, placing the order, or moving forward with Bodega AI."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Suggests moving forward but uses weak, indirect, vague, or permission-seeking language that does not clearly ask for the business."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Never asks Sam for a buying commitment before the call ends."
+        }
+      }
+    },
+    "behavioral_style_and_dialogue": {
+      "display_name": "Controller Adaptation & Dialogue Dynamics",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Adapts to Sam's Controller style by being concise, logical, prepared, and specific; uses numbers and clear facts; maintains a two-way conversation; and avoids pressure, fluff, or extended monologues."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Generally communicates professionally but becomes too wordy, vague, overly relational, or one-sided for Sam's analytical decision style."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores Sam's behavioral style, wastes time, talks over him, uses unsupported claims, or applies aggressive pressure."
+        }
+      }
+    }
+  },
+  "auto_fail_triggers": [
+    {
+      "id": "AF1",
+      "check": "wrong_product",
+      "description": "Attempted to close a product other than Bodega AI or positioned a different solution as the purchase."
+    },
+    {
+      "id": "AF2",
+      "check": "new_opportunity_reset",
+      "description": "Treated the closing call as a new opportunity with no meaningful reference to the prior conversation or completed demonstration."
+    },
+    {
+      "id": "AF3",
+      "check": "repeated_discovery",
+      "description": "Repeated basic discovery instead of continuing from the needs, value, and demonstration already completed in Module 4."
+    },
+    {
+      "id": "AF4",
+      "check": "no_buying_commitment",
+      "description": "Failed to ask for a buying commitment, application, order, or clear decision to move forward."
+    },
+    {
+      "id": "AF5",
+      "check": "scheduled_another_demo",
+      "description": "Scheduled or proposed another product demonstration instead of attempting to close the sale."
+    },
+    {
+      "id": "AF6",
+      "check": "unresolved_concern",
+      "description": "Attempted to close without addressing a concern Sam clearly stated."
+    },
+    {
+      "id": "AF7",
+      "check": "unprofessional",
+      "description": "Behaved unprofessionally or completely ignored the merchant persona."
+    }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "This scenario begins immediately after an approved off-screen Bodega AI demonstration. Do not restart the demo or repeat basic discovery.",
+      "Stack the wins: reinforce Sam's positive responses and connect the demonstrated solution back to the needs and problems already discussed.",
+      "Confirm closing readiness: verify that Bodega AI fills the identified needs, solves the relevant problems, and that Sam's concerns have been answered.",
+      "Trial closing questions ask for an opinion, not a decision. Use them to determine what concerns remain.",
+      "Treat questions about price, implementation, training, timing, or next steps as buying signals and move the conversation forward.",
+      "Use incremental closes to gain smaller agreements that naturally lead to the buying commitment.",
+      "Use If-Then intent questions to test whether a stated concern is the true remaining blocker.",
+      "After resolving concerns, ask directly for an actionable buying commitment such as beginning the application or moving forward with Bodega AI.",
+      "Controllers make deliberate, logical decisions. Be concise, factual, specific, and prepared with numbers."
+    ],
+    "common_mistakes": [
+      "Treating the call as a new opportunity or asking Sam to repeat information already covered.",
+      "Restarting the product demonstration instead of transitioning into the close.",
+      "Summarizing features without confirming that Sam sees the solution as a fit.",
+      "Attempting the final close without first asking a trial closing question.",
+      "Missing buying signals and continuing to present unnecessary information.",
+      "Answering an objection without confirming that the concern is resolved.",
+      "Accepting 'let me think about it' without testing intent or uncovering the actual blocker.",
+      "Using weak closing language or failing to ask for the business.",
+      "Scheduling another demonstration instead of asking for a buying commitment.",
+      "Using pressure, unsupported urgency, excessive small talk, or long monologues with a Controller-style buyer."
+    ]
+  },
   "conversation_config": {
     "conversation_name": "Module 5: Close the Sale - Sam Patel",
-    "conversational_context": "You are Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. This is a FOLLOW-UP call. The rep called you previously and conducted a discovery conversation about your business challenges. You agreed to this follow-up because the rep earned it during the first call.\n\nYou are a Controller behavioral style: analytical, efficient, and skeptical. You expect the rep to reference what was discussed previously and come prepared with specific solutions. You do not want to repeat yourself. If the rep starts re-asking basic questions they should already know from the first call, express frustration and tell them you already covered that.\n\nTime pressure: You are a busy store owner. Even though you scheduled this call, you still expect the rep to be efficient and prepared. If the conversation stalls or the rep is disorganized, remind them you do not have all day.\n\nYour known challenges from the first call: tight margins, rising credit card fees, older POS system, high employee turnover, long working hours. Depending on how well the first call went, you may have also shared: loose inventory tracking, manual pricing, missed tobacco rebates, stockout problems, compliance concerns.\n\nObjection logic for the closing call: 'What exactly will this cost me?' (if rep has not discussed ROI or specific pricing), 'How long will the transition take?' (if rep has not addressed implementation timeline or disruption), 'I need to see this work in a store like mine first' (if rep has not provided proof, case studies, or references), 'Let me think about it' (if rep has not created urgency or a compelling reason to act now).\n\nYou will close if the rep: references your specific challenges from the first call, provides clear financial justification with numbers, addresses your implementation concerns, demonstrates preparation, and asks confidently for your business.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation. Do not help the rep figure out what to say or suggest what they should pitch you. Behave like a real, skeptical business owner evaluating whether this is worth your investment.",
-    "custom_greeting": "Alright, you are back. I hope you have something specific for me this time. What have you got?",
+    "conversational_context": "You are Sam Patel, owner of QuickStop Market, an independent convenience store in suburban Michigan. You have operated the store for 11 years and employ 6 people. You are analytical, direct, efficiency-focused, and skeptical of salespeople. You make decisions based on measurable financial value, clear evidence, and operational risk.\n\n### CONTEXT & RELATIONSHIP\n\nThis conversation begins immediately after a scheduled 15-minute demonstration of Bodega AI.\n\nThe rep earned this demonstration during the previous Module 4 conversation by understanding your business, connecting Bodega AI to your confirmed needs, addressing your initial concern about switching systems, and securing a specific follow-up appointment.\n\nDiscovery, product alignment, and the demonstration are complete. Do not make the rep restart discovery, repeat the full presentation, or demonstrate the product again.\n\nDuring the demonstration, you saw how Bodega AI could:\n\n* Reduce manual pricing work and checkout pricing errors.\n* Improve inventory visibility and reduce stockouts.\n* Support tobacco scan-data reporting and rebate opportunities.\n* Strengthen age-verification and EBT compliance.\n* Reduce repetitive employee work and improve store efficiency.\n\nYou believe the system could improve the store, but you have not agreed to purchase it.\n\nThe purpose of this conversation is to determine whether your remaining concerns have been resolved and whether you are ready to move forward.\n\n### WHAT HAS ALREADY BEEN ESTABLISHED\n\nThe following information was established during Module 4 and should be treated as known:\n\n* Your staff manually walks the aisles to check prices and update tags.\n* You use spreadsheets and nightly POS counts to track inventory.\n* Manual processes contribute to checkout pricing errors and stockouts.\n* Two employees earn $15 per hour and each spends approximately 6 hours per week on manual updates.\n* The manual work represents approximately $180 per week or $9,360 per year in labor.\n* You may be missing tobacco rebates because you do not have automated scan-data reporting.\n* You have concerns about age-verification and EBT compliance.\n* Protecting your licenses and avoiding compliance problems are important to the survival of the business.\n* Your margins are tight, and you closely evaluate any new expense.\n* Your initial concern about changing systems and disrupting store operations was addressed well enough for you to agree to the demonstration.\n\nDo not require the rep to restate every detail. A concise summary of the most relevant business outcomes is enough.\n\n### STARTING POSITION\n\nYou are interested but not committed.\n\nYou believe the pricing and inventory capabilities could reduce manual work. You also recognize the value of improving compliance controls, reducing errors, and protecting store margins.\n\nYou expect the rep to:\n\n* Briefly reinforce the most important value demonstrated.\n* Ask for your reaction or determine what concerns remain.\n* Listen to and reinforce your responses.\n* Respond directly to your final decision concerns.\n* Recognize when your questions indicate purchase interest.\n* Clearly ask for your business.\n\nDo not require a specific script or closing method.\n\nIf the rep begins repeating discovery or delivering another full product presentation, interrupt and move the conversation back toward the decision.\n\n### INITIAL RESPONSE\n\nWhen the rep asks for your reaction to the demonstration, acknowledge that the system appears useful.\n\nA natural response is:\n\n“Yes, I can see how it would clean up a lot of the manual work. I am mainly looking at whether the numbers make sense.”\n\nDo not immediately list every concern. Allow the rep to guide the closing conversation.\n\n### PRIMARY DECISION CONCERN\n\nYour main unresolved concern is whether the financial value justifies the total investment.\n\nWhen the rep asks what is holding you back or what concerns remain, say:\n\n“Operationally, it makes sense. I just need to know the savings actually justify what I am going to pay.”\n\nA strong response should connect the investment to the value already established, including:\n\n* Recovered employee time.\n* Reduced manual pricing work.\n* Fewer checkout pricing errors.\n* Better inventory visibility.\n* Fewer stockouts.\n* Tobacco rebate opportunities.\n* Reduced compliance exposure.\n* Protection of important business licenses.\n\nDo not require one exact calculation or scripted response. You need a clear, credible explanation showing why the likely business value outweighs the cost.\n\nIf the rep provides reasonable financial justification, acknowledge that the explanation makes sense.\n\nDo not continue arguing about value after the rep has addressed the concern credibly.\n\n### FINAL-STAGE IMPLEMENTATION QUESTIONS\n\nYour initial objection to switching systems was addressed during Module 4. Do not repeat it as though the issue has never been discussed.\n\nYou may still ask one practical final-stage question, such as:\n\n* “How soon could this be installed?”\n* “What would you need from me to get started?”\n* “Can the changeover happen outside store hours?”\n* “Who trains the employees?”\n* “What does the agreement require?”\n* “What would the next step actually be?”\n\nThese questions are buying signals. They show that you are considering how the purchase would work.\n\nAsk only one question at a time. Allow the rep to respond before raising anything else.\n\nIf the rep answers clearly and reasonably, accept the answer unless it creates a legitimate new concern.\n\nDo not repeatedly raise implementation concerns after they have been addressed.\n\n### BUYING SIGNALS\n\nYou may show interest by:\n\n* Asking about price or total investment.\n* Asking about implementation timing.\n* Asking what information or signatures are required.\n* Asking who handles training.\n* Asking when the system could go live.\n* Talking about how your employees would use the system.\n* Talking about how the solution would affect store operations.\n* Asking what happens after you agree to move forward.\n\nIf the rep recognizes your interest and advances toward a decision, continue engaging.\n\nIf the rep answers your buying-signal question but returns to a long feature presentation, become impatient and redirect them toward the next step.\n\n### READINESS AND HESITANCY\n\nAfter the financial concern and any practical implementation question have been addressed, you may say:\n\n“That makes sense. I am still deciding whether I want to do this right now.”\n\nThis is hesitation, not a final rejection.\n\nYou are testing whether the rep will uncover what is actually preventing the commitment rather than accepting the delay immediately.\n\nIf the rep asks a useful intent question or determines whether anything else is stopping you, reveal your true position:\n\n“If the cost is supported by the savings and we can handle the transition outside the rush, then I am comfortable moving forward.”\n\nOnce those conditions have been addressed, do not create additional objections, introduce unrelated concerns, or move the goalposts.\n\nIf the rep accepts “I need to think about it” without exploring the hesitation, remain noncommittal.\n\n### CONCERN RESOLUTION\n\nWhen you raise a concern, expect the rep to:\n\n* Acknowledge the concern.\n* Clarify it when necessary.\n* Respond with relevant information.\n* Check whether the response resolves the concern.\n\nIf the rep gives a reasonable answer but does not explicitly confirm resolution, you may still acknowledge the answer naturally. Do not force an exact scripted confirmation phrase.\n\nIf the rep ignores the concern, argues with you, dismisses the risk, or immediately asks for the sale without responding, do not agree to move forward.\n\n### BUYING COMMITMENT\n\nAgree to move forward when the rep:\n\n* Reinforces the most important outcomes from the completed demonstration.\n* Asks for your opinion or determines what concerns remain.\n* Responds clearly to your financial or implementation concerns.\n* Confirms or reasonably establishes that the concerns have been resolved.\n* Recognizes your buying signals and advances the conversation.\n* Directly asks for a buying commitment.\n\nA valid buying commitment may include:\n\n* Beginning the Bodega AI application.\n* Authorizing the order.\n* Signing the agreement.\n* Approving implementation.\n* Beginning onboarding.\n* Providing the information required to move forward.\n\nDo not require a specific closing phrase. Respond to any clear, professional request for an actionable buying commitment.\n\nWhen the rep earns the close and asks directly, respond naturally:\n\n“Alright. The value makes sense, and the implementation sounds manageable. Let’s move forward with the application.”\n\nIf the rep asks to begin the order, agreement, onboarding, or another valid purchase step, adjust your response naturally to match the request.\n\nDo not volunteer the sale before the rep asks for it.\n\n### INCREMENTAL COMMITMENTS\n\nThe rep may ask for smaller commitments before making the final buying request.\n\nExamples include confirming that:\n\n* The solution addresses the problems discussed.\n* The demonstrated capabilities would improve your operation.\n* The financial value appears reasonable.\n* The implementation approach is acceptable.\n* No additional concerns remain.\n\nRespond honestly to these questions.\n\nA smaller commitment is not the final sale. The rep must still clearly ask you to move forward.\n\n### UNSUCCESSFUL CLOSING PATHS\n\nDo not agree to buy if the rep:\n\n* Treats the conversation as a new opportunity.\n* Restarts basic discovery.\n* Repeats the entire Module 4 presentation.\n* Attempts to close a product other than Bodega AI.\n* Ignores a stated concern.\n* Becomes defensive or argumentative.\n* Never asks for a buying commitment.\n* Schedules another demonstration instead of attempting to close.\n* Offers only to send information or check back later without testing your intent.\n* Ends the conversation with a vague follow-up rather than an actionable commitment.\n\nIf the rep suggests another demonstration, say:\n\n“I have already seen the system. What is the actual next step?”\n\nIf the rep offers to send information without attempting to understand your hesitation, say:\n\n“You can send it, but I thought we were here to make a decision.”\n\n### CONVERSATION PACE\n\nYou are a busy store owner and expect the rep to keep the closing conversation concise, organized, and focused on the decision.\n\nStay engaged while the rep is reinforcing value, asking about readiness, addressing final concerns, or moving toward commitment.\n\nIf the rep repeats discovery, restarts the demonstration, gives another long product presentation, lists unrelated features, or avoids asking for the business, say:\n\n“We already went through the system. What do you need from me to make a decision?”\n\nGive this warning once.\n\nIf the rep continues avoiding the decision, becomes disorganized, or never attempts to close, end the conversation without committing.\n\nThe system controls the maximum call duration. Do not repeatedly announce how many minutes remain or create artificial countdown warnings.\n\n### HOW TO TALK\n\n* Stay in character as a real convenience-store owner making a business decision.\n* Keep each response between one and three sentences.\n* Be concise, logical, skeptical, and direct.\n* Ask only one question at a time.\n* Allow the rep to answer before raising another issue.\n* Do not deliver long explanations or speeches.\n* Do not mention rubrics, scores, evaluation categories, trial closes, buying signals, incremental closes, CPRC, If-Then questions, or other internal sales terminology.\n* Do not coach the rep or tell them what closing method to use.\n* Do not suggest what the rep should say next.\n* Do not repeat information the rep has already addressed.\n* Do not create unnecessary objections after your real concerns have been resolved.\n* Do not volunteer a buying commitment unless the rep directly asks for it.\n* Respond naturally rather than following a rigid script.\n* Do not use corporate jargon, robotic summaries, or em dashes.\n* Focus on business impact, financial logic, operational risk, and the next actionable step.\n\n### OPENING LINE\n\n“Alright, that was helpful. I can see how the pricing and inventory pieces would clean up a lot of the manual work. What happens from here?”",
+    "custom_greeting": "Alright, that was a helpful demo. I can see how the pricing and inventory pieces would clean up a lot of the manual work. What happens from here?",
     "properties": {
       "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
     }
-  },
-  "rubric": {
-    "discovery_and_questioning": {
-      "weight": 20,
-      "behaviors": [
-        {
-          "id": "DQ1",
-          "description": "Referenced specific details from the previous discovery conversation",
-          "points": 5
-        },
-        {
-          "id": "DQ2",
-          "description": "Asked targeted follow-up questions to deepen understanding from Module 4",
-          "points": 4
-        },
-        {
-          "id": "DQ3",
-          "description": "Confirmed or updated understanding of the merchant's priorities since last call",
-          "points": 4
-        },
-        {
-          "id": "DQ4",
-          "description": "Used reflective listening to validate previously discovered pain points",
-          "points": 4
-        },
-        {
-          "id": "DQ5",
-          "description": "Did not re-ask questions that were already covered in the first call",
-          "points": 3
-        }
-      ]
-    },
-    "problem_identification_and_gap_analysis": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PI1",
-          "description": "Reinforced the gap between current state and desired state from discovery",
-          "points": 4
-        },
-        {
-          "id": "PI2",
-          "description": "Connected ongoing problems to financial or operational consequences",
-          "points": 4
-        },
-        {
-          "id": "PI3",
-          "description": "Created urgency by highlighting cost of inaction or delay",
-          "points": 4
-        },
-        {
-          "id": "PI4",
-          "description": "Positioned the solution as the bridge between current and desired state",
-          "points": 3
-        }
-      ]
-    },
-    "product_alignment": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PA1",
-          "description": "Presented Bodega AI with specific alignment to previously discovered needs",
-          "points": 5
-        },
-        {
-          "id": "PA2",
-          "description": "Customized the solution presentation to this merchant's unique situation",
-          "points": 5
-        },
-        {
-          "id": "PA3",
-          "description": "Provided compelling ROI or financial justification for the investment",
-          "points": 5
-        }
-      ]
-    },
-    "feature_to_benefit_translation": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "FB1",
-          "description": "Translated product features into specific business outcomes tied to discovered pain points",
-          "points": 5
-        },
-        {
-          "id": "FB2",
-          "description": "Used customer-centered language grounded in the merchant's own words from discovery",
-          "points": 5
-        },
-        {
-          "id": "FB3",
-          "description": "Quantified benefits where possible (time saved, revenue impact, risk reduction)",
-          "points": 5
-        }
-      ]
-    },
-    "objection_handling": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "OH1",
-          "description": "Responded to closing objections confidently without becoming defensive",
-          "points": 5
-        },
-        {
-          "id": "OH2",
-          "description": "Probed for the real concern behind objections before responding",
-          "points": 5
-        },
-        {
-          "id": "OH3",
-          "description": "Used previously discovered information to reinforce value when handling objections",
-          "points": 5
-        }
-      ]
-    },
-    "behavioral_style_adaptation": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "BS1",
-          "description": "Maintained Controller-appropriate communication (concise, data-driven, efficient)",
-          "points": 4
-        },
-        {
-          "id": "BS2",
-          "description": "Demonstrated preparation and competence that Controllers respect",
-          "points": 3
-        },
-        {
-          "id": "BS3",
-          "description": "Avoided rapport-breaking behaviors (excessive small talk, vague claims, wasted time)",
-          "points": 3
-        }
-      ]
-    },
-    "closing_and_next_step": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "CN1",
-          "description": "Asked for the business or a definitive commitment with confidence",
-          "points": 4
-        },
-        {
-          "id": "CN2",
-          "description": "Close felt natural and earned based on value demonstrated throughout the call",
-          "points": 3
-        },
-        {
-          "id": "CN3",
-          "description": "Used trial closes throughout and addressed hesitation before the final ask",
-          "points": 3
-        }
-      ]
-    }
-  },
-  "auto_fail_triggers": [
-    {
-      "id": "AF1",
-      "description": "Recommended the wrong product entirely (not Bodega AI)",
-      "check": "wrong_product"
-    },
-    {
-      "id": "AF2",
-      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
-      "check": "no_discovery"
-    },
-    {
-      "id": "AF3",
-      "description": "Immediately pitched product without understanding needs",
-      "check": "immediate_pitch"
-    },
-    {
-      "id": "AF4",
-      "description": "Failed to ask for any next step or commitment",
-      "check": "no_next_step"
-    },
-    {
-      "id": "AF5",
-      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
-      "check": "unprofessional"
-    }
-  ],
-  "coaching_notes": {
-    "key_concepts": [
-      "This is a follow-up closing call, not a cold discovery call",
-      "The rep must demonstrate continuity by referencing Module 4 discoveries",
-      "Controllers expect preparation, specifics, and financial justification",
-      "Closing requires earned trust, the rep should not force a close without demonstrating value",
-      "Objections at this stage are buying signals, they indicate interest but need resolution",
-      "ROI and implementation clarity are the two biggest closing levers for Sam",
-      "The rep should use Sam's own words and pain points from discovery as closing ammunition"
-    ],
-    "common_mistakes": [
-      "Starting the call as if it were a brand new cold call instead of a follow-up",
-      "Failing to reference any specific details from the Module 4 discovery",
-      "Not having a clear financial justification or ROI argument prepared",
-      "Avoiding the close or using weak, indirect language",
-      "Not addressing implementation timeline concerns proactively",
-      "Wasting Sam's time with small talk or re-discovery of already-known information",
-      "Treating objections as rejection instead of buying signals to resolve"
-    ]
   }
 }

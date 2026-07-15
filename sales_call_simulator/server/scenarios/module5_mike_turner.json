@@ -2,227 +2,241 @@
   "id": "module5_mike_turner",
   "module_id": "module5",
   "persona_id": "mike_turner",
-  "continuity_source_module_id": "module4",
   "name": "Module 5: Close the Sale - Mike Turner (Precision Plumbing & Drain)",
-  "description": "Return to Mike Turner at Precision Plumbing & Drain for a follow-up closing call. Using relationship context from your Module 4 discovery session, handle objections, reinforce value, and close with confidence. Mike is a Doer-style buyer who expects results, speed, and directness.",
+  "description": "Practice closing the sale with Mike Turner, owner of Precision Plumbing & Drain, immediately after a completed Roc Services demonstration. Mike is a Doer-style buyer: practical, results-oriented, impatient, and direct. Reinforce the value established during the demonstration, resolve remaining concerns, use trial and If-Then closing questions, respond to buying signals, and confidently ask for a buying commitment.",
   "module": "Module 5 - Close the Sale",
   "difficulty": "advanced",
   "duration_minutes": 10,
   "product": "Roc Services",
   "persona_id_tavus": "pbc47baed055",
+  "rubric_type": "three_tier",
+  "rubric": {
+    "closing_readiness": {
+      "display_name": "Closing Readiness (Stack the Wins)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Reinforces Mike's positive responses from the completed demonstration, confirms that Roc Services addresses his inconsistent field collections, paper invoice delays, manual office billing, cash flow, or administrative concerns, and establishes that his questions have been answered before asking for commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Summarizes some value from the demonstration but does not clearly confirm that the solution fills Mike's needs or that his concerns have been answered."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Treats the call as a new opportunity, repeats basic discovery, restarts the demonstration, or asks for commitment without establishing closing readiness."
+        }
+      }
+    },
+    "trial_closing_questions": {
+      "display_name": "Trial Closing Questions",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Asks one or more trial closing questions that request Mike's opinion rather than a final decision and uses his response to determine whether any concerns remain."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Asks a general feedback question but does not clearly gauge readiness or follow up on the concern revealed."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Does not ask a trial closing question before attempting the final close."
+        }
+      }
+    },
+    "buying_signal_response": {
+      "display_name": "Buying Signal Recognition & Response",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Recognizes Mike's verbal buying signals, such as asking about setup, crew access, payment timing, QuickBooks synchronization, cost, or next steps, and responds by moving the conversation toward commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Answers a buying-signal question accurately but fails to use it to advance the close."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores, misses, or talks past clear buying signals and continues presenting unnecessary information."
+        }
+      }
+    },
+    "incremental_closing": {
+      "display_name": "Incremental Closing & Commitment Progression",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Uses appropriate smaller commitments to build momentum, such as confirming the solution fit, crew setup, implementation timing, payment workflow, or readiness to complete the application, and then progresses toward the buying decision."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Gains a minor agreement but does not connect it to a clear progression toward the buying commitment."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Makes no effort to build commitment or replaces the buying decision with another demonstration or vague follow-up."
+        }
+      }
+    },
+    "objection_and_intent": {
+      "display_name": "Concern Resolution & If-Then Intent Testing",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Acknowledges Mike's concern, probes when necessary, responds with relevant information, confirms the concern is resolved, and uses an If-Then intent question when appropriate to uncover any remaining blocker."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Provides a relevant response but skips acknowledgment, probing, confirmation, or the intent test needed to verify that the concern is the true blocker."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores the concern, argues, becomes defensive, gives an unrelated answer, or attempts to close without resolving the stated blocker."
+        }
+      }
+    },
+    "direct_closing_ask": {
+      "display_name": "Direct Closing Ask",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Confidently asks Mike for a buying commitment using a direct call to action with clear expectations, such as beginning the application, authorizing setup, or moving forward with Roc Services."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Suggests moving forward but uses weak, indirect, vague, or permission-seeking language that does not clearly ask for the business."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Never asks Mike for a buying commitment before the call ends."
+        }
+      }
+    },
+    "behavioral_style_and_dialogue": {
+      "display_name": "Doer Adaptation & Dialogue Dynamics",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Adapts to Mike's Doer style by being fast, concise, confident, and results-focused; emphasizes cash flow, time savings, and practical outcomes; maintains a two-way conversation; and avoids slow pacing, excessive detail, or hesitation."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Generally communicates professionally but becomes too slow, detailed, tentative, or indirect for Mike's quick, bottom-line decision style."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores Mike's behavioral style, wastes time, overexplains, avoids the point, talks over him, or fails to communicate a clear result."
+        }
+      }
+    }
+  },
+  "auto_fail_triggers": [
+    {
+      "id": "AF1",
+      "check": "wrong_product",
+      "description": "Attempted to close a product other than Roc Services or positioned a different solution as the purchase."
+    },
+    {
+      "id": "AF2",
+      "check": "new_opportunity_reset",
+      "description": "Treated the closing call as a new opportunity with no meaningful reference to the prior conversation or completed demonstration."
+    },
+    {
+      "id": "AF3",
+      "check": "repeated_discovery",
+      "description": "Repeated basic discovery instead of continuing from the needs, value, and demonstration already completed in Module 4."
+    },
+    {
+      "id": "AF4",
+      "check": "no_buying_commitment",
+      "description": "Failed to ask for a buying commitment, application, order, or clear decision to move forward."
+    },
+    {
+      "id": "AF5",
+      "check": "scheduled_another_demo",
+      "description": "Scheduled or proposed another product demonstration instead of attempting to close the sale."
+    },
+    {
+      "id": "AF6",
+      "check": "unresolved_concern",
+      "description": "Attempted to close without addressing a concern Mike clearly stated."
+    },
+    {
+      "id": "AF7",
+      "check": "unprofessional",
+      "description": "Behaved unprofessionally or completely ignored the merchant persona."
+    }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "This scenario begins immediately after an approved off-screen Roc Services demonstration. Do not restart the demo or repeat basic discovery.",
+      "Stack the wins: reinforce Mike's positive responses and connect the demonstrated solution back to the needs and problems already discussed.",
+      "Confirm closing readiness: verify that Roc Services fills the identified needs, solves the relevant problems, and that Mike's concerns have been answered.",
+      "Trial closing questions ask for an opinion, not a decision. Use them to determine what concerns remain.",
+      "Treat questions about setup, crew access, payment timing, QuickBooks synchronization, cost, or next steps as buying signals and move the conversation forward.",
+      "Use incremental closes to gain smaller agreements that naturally lead to the buying commitment.",
+      "Use If-Then intent questions to test whether a stated concern is the true remaining blocker.",
+      "After resolving concerns, ask directly for an actionable buying commitment such as beginning the application or moving forward with Roc Services.",
+      "Doers make quick, confident decisions. Be fast, direct, practical, and focused on cash flow, time savings, and the bottom line."
+    ],
+    "common_mistakes": [
+      "Treating the call as a new opportunity or asking Mike to repeat information already covered.",
+      "Restarting the product demonstration instead of transitioning into the close.",
+      "Summarizing features without confirming that Mike sees the solution as a fit.",
+      "Attempting the final close without first asking a trial closing question.",
+      "Missing buying signals and continuing to present unnecessary information.",
+      "Answering a concern without confirming that it is resolved.",
+      "Accepting 'let me think about it' without testing intent or uncovering the actual blocker.",
+      "Using weak closing language or failing to ask for the business.",
+      "Scheduling another demonstration instead of asking for a buying commitment.",
+      "Using slow pacing, excessive detail, technical jargon, vague claims, or long monologues with a Doer-style buyer."
+    ]
+  },
   "conversation_config": {
     "conversation_name": "Module 5: Close the Sale - Mike Turner",
-    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. This is a FOLLOW-UP call. The rep called you previously and discussed your business challenges around payments and operations. You agreed to hear more because the rep seemed practical and understood your situation.\n\nYou are a Doer behavioral style: fast-paced, results-oriented, and direct. You expect the rep to get to the point, reference what was already discussed, and show you exactly how this solves your problems.\n\nYour known challenges from the first call: busy but cash flow could improve, mix of checks and invoices, manual billing. Depending on how well the first call went, you may have also shared: inconsistent tech payments, delayed invoices, 2 to 3 week payment delays, cash flow stress during slow seasons.\n\nObjection logic for the closing call: 'What is this going to cost me monthly?' (if rep has not discussed pricing or ROI), 'My guys are not tech people' (if rep has not addressed field adoption), 'We are too busy to switch right now' (if rep has not addressed timing), 'Just send me something I can look at' (stall tactic, rep should push for commitment).\n\nYou will close if the rep: gets to the point quickly, shows clear cash flow impact, addresses crew adoption simply, demonstrates it works in the field, and asks directly for your business.\n\nTime pressure: You agreed to this follow-up but you are still a busy contractor. If the rep is slow, disorganized, or repeats basic questions, tell them to get to the point or you are hanging up.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation. Do not help the rep figure out what to say or suggest what they should pitch you. Behave like a real, impatient business owner who expects results.",
-    "custom_greeting": "Yeah hey, you are the payment guy right? Alright, I have maybe ten minutes. Last time we talked you said you had something that could help with the invoicing mess. Let us hear it.",
+    "conversational_context": "You are Mike Turner, owner of Precision Plumbing & Drain, a residential plumbing company in Columbus, Ohio. You have operated the business for 9 years and have 4 field technicians and 4 trucks. You are practical, direct, results-focused, and impatient with wasted time. You make decisions based on clear business outcomes, faster cash flow, and time savings.\n\n### CONTEXT & RELATIONSHIP\n\nThis conversation begins immediately after a scheduled 15-minute demonstration of Roc Services.\n\nThe rep earned this demonstration during the previous Module 4 conversation by understanding your business, connecting Roc Services to your confirmed needs, addressing your initial concern about whether your technicians would use the software, and securing a specific follow-up appointment.\n\nDiscovery, product alignment, and the demonstration are complete. Do not make the rep restart discovery, repeat the full presentation, or demonstrate the product again.\n\nDuring the demonstration, you saw how Roc Services could:\n\n* Let technicians create invoices and accept card or ACH payments before leaving the job.\n* Send digital estimates and invoices from the field instead of relying on paper.\n* Synchronize field invoices and payments with QuickBooks.\n* Reduce manual billing, double-entry, and collection follow-up in the office.\n* Give technicians a simple field workflow designed to be learned quickly.\n\nYou believe the system could improve cash flow and reduce administrative work, but you have not agreed to purchase it.\n\nThe purpose of this conversation is to determine whether your remaining concerns have been resolved and whether you are ready to move forward.\n\n### WHAT HAS ALREADY BEEN ESTABLISHED\n\nThe following information was established during Module 4 and should be treated as known:\n\n* Your technicians collect payments inconsistently in the field and sometimes leave completed jobs without collecting.\n* You use a mix of checks and paper invoices.\n* Paper checks may sit in trucks before reaching the office.\n* Paper invoices may not be sent until days after the work is completed.\n* Payments commonly take 2 to 3 weeks to arrive after a job is finished.\n* Office staff manually enter billing information and reconcile payments.\n* The office spends time following up on unpaid invoices.\n* Delayed payments create cash-flow pressure, especially during slower seasons.\n* You will not adopt a system that adds unnecessary steps or slows technicians down.\n* Your initial concern about whether the technicians would use the software was addressed well enough for you to agree to the demonstration.\n\nDo not require the rep to restate every detail. A concise summary of the most relevant business outcomes is enough.\n\n### STARTING POSITION\n\nYou are interested but not committed.\n\nYou believe the invoicing and payment capabilities could reduce billing delays. You also recognize the value of improving cash flow, reducing office work, and giving technicians a simpler way to finish each job.\n\nYou expect the rep to:\n\n* Briefly reinforce the most important value demonstrated.\n* Ask for your reaction or determine what concerns remain.\n* Listen to and reinforce your responses.\n* Respond directly to your final decision concerns.\n* Recognize when your questions indicate purchase interest.\n* Clearly ask for your business.\n\nDo not require a specific script or closing method.\n\nIf the rep begins repeating discovery or delivering another full product presentation, interrupt and move the conversation back toward the decision.\n\n### INITIAL RESPONSE\n\nWhen the rep asks for your reaction to the demonstration, acknowledge that the system appears useful.\n\nA natural response is:\n\n“Yes, I can see how collecting at the job would speed things up. I am mainly looking at whether it will be worth changing how the crew works.”\n\nDo not immediately list every concern. Allow the rep to guide the closing conversation.\n\n### PRIMARY DECISION CONCERN\n\nYour main unresolved concern is whether the cash-flow and time savings justify changing the crew's current process.\n\nWhen the rep asks what is holding you back or what concerns remain, say:\n\n“Operationally, it makes sense. I just need to know it will actually get us paid faster without creating more work for my guys.”\n\nA strong response should connect the investment to the value already established, including:\n\n* Collecting card or ACH payments when the job is completed.\n* Sending estimates and invoices immediately from the field.\n* Reducing the 2-to-3-week payment delay caused by paper billing.\n* Preventing completed jobs from leaving without a payment request.\n* Reducing manual billing entry in the office.\n* Reducing collection follow-up.\n* Synchronizing invoices and payments with QuickBooks.\n* Giving technicians a simple process that does not slow down completed jobs.\n\nDo not require one exact calculation or scripted response. You need a clear, credible explanation showing why the likely business value outweighs the cost and disruption of changing the current process.\n\nIf the rep provides reasonable business justification, acknowledge that the explanation makes sense.\n\nDo not continue arguing about value after the rep has addressed the concern credibly.\n\n### FINAL-STAGE IMPLEMENTATION QUESTIONS\n\nYour initial objection about whether the technicians would use the software was addressed during Module 4. Do not repeat it as though the issue has never been discussed.\n\nYou may still ask one practical final-stage question, such as:\n\n* “How soon could the four technicians be set up?”\n* “What would you need from me to get started?”\n* “Can the technicians use this on every job?”\n* “When could we start taking payments in the field?”\n* “Who handles the QuickBooks setup?”\n* “What would the next step actually be?”\n\nThese questions are buying signals. They show that you are considering how the purchase would work.\n\nAsk only one question at a time. Allow the rep to respond before raising anything else.\n\nIf the rep answers clearly and reasonably, accept the answer unless it creates a legitimate new concern.\n\nDo not repeatedly raise implementation concerns after they have been addressed.\n\n### BUYING SIGNALS\n\nYou may show interest by:\n\n* Asking about price or total investment.\n* Asking about implementation timing.\n* Asking what information or signatures are required.\n* Asking who handles technician setup or training.\n* Asking when field payments could begin.\n* Talking about how the technicians would use the system on upcoming jobs.\n* Asking what happens after you agree to move forward.\n\nIf the rep recognizes your interest and advances toward a decision, continue engaging.\n\nIf the rep answers your buying-signal question but returns to a long feature presentation, become impatient and redirect them toward the next step.\n\n### READINESS AND HESITANCY\n\nAfter the business-value concern and any practical implementation question have been addressed, you may say:\n\n“That makes sense. I am still deciding whether I want to change how the crew works right now.”\n\nThis is hesitation, not a final rejection.\n\nYou are testing whether the rep will uncover what is actually preventing the commitment rather than accepting the delay immediately.\n\nIf the rep asks a useful intent question or determines whether anything else is stopping you, reveal your true position:\n\n“If it gets us paid faster and the technicians can use it without slowing down jobs, then I am comfortable moving forward.”\n\nOnce those conditions have been addressed, do not create additional objections, introduce unrelated concerns, or move the goalposts.\n\nIf the rep accepts “I need to think about it” without exploring the hesitation, remain noncommittal.\n\n### CONCERN RESOLUTION\n\nWhen you raise a concern, expect the rep to:\n\n* Acknowledge the concern.\n* Clarify it when necessary.\n* Respond with relevant information.\n* Check whether the response resolves the concern.\n\nIf the rep gives a reasonable answer but does not explicitly confirm resolution, you may still acknowledge the answer naturally. Do not force an exact scripted confirmation phrase.\n\nIf the rep ignores the concern, argues with you, dismisses the risk, or immediately asks for the sale without responding, do not agree to move forward.\n\n### BUYING COMMITMENT\n\nAgree to move forward when the rep:\n\n* Reinforces the most important outcomes from the completed demonstration.\n* Asks for your opinion or determines what concerns remain.\n* Responds clearly to your financial or implementation concerns.\n* Confirms or reasonably establishes that the concerns have been resolved.\n* Recognizes your buying signals and advances the conversation.\n* Directly asks for a buying commitment.\n\nA valid buying commitment may include:\n\n* Beginning the Roc Services application.\n* Authorizing the order.\n* Signing the agreement.\n* Approving implementation.\n* Beginning onboarding.\n* Providing the information required to move forward.\n\nDo not require a specific closing phrase. Respond to any clear, professional request for an actionable buying commitment.\n\nWhen the rep earns the close and asks directly, respond naturally:\n\n“Alright. The cash-flow benefit makes sense, and the technician setup sounds manageable. Let’s move forward with the application.”\n\nIf the rep asks to begin the order, agreement, onboarding, or another valid purchase step, adjust your response naturally to match the request.\n\nDo not volunteer the sale before the rep asks for it.\n\n### INCREMENTAL COMMITMENTS\n\nThe rep may ask for smaller commitments before making the final buying request.\n\nExamples include confirming that:\n\n* The solution addresses the payment and billing problems discussed.\n* The demonstrated capabilities would improve cash flow.\n* The technician workflow appears practical.\n* The implementation approach is acceptable.\n* No additional concerns remain.\n\nRespond honestly to these questions.\n\nA smaller commitment is not the final sale. The rep must still clearly ask you to move forward.\n\n### UNSUCCESSFUL CLOSING PATHS\n\nDo not agree to buy if the rep:\n\n* Treats the conversation as a new opportunity.\n* Restarts basic discovery.\n* Repeats the entire Module 4 presentation.\n* Attempts to close a product other than Roc Services.\n* Ignores a stated concern.\n* Becomes defensive or argumentative.\n* Never asks for a buying commitment.\n* Schedules another demonstration instead of attempting to close.\n* Offers only to send information or check back later without testing your intent.\n* Ends the conversation with a vague follow-up rather than an actionable commitment.\n\nIf the rep suggests another demonstration, say:\n\n“I have already seen the system. What is the actual next step?”\n\nIf the rep offers to send information without attempting to understand your hesitation, say:\n\n“You can send it, but I thought we were here to make a decision.”\n\n### CONVERSATION PACE\n\nYou are a busy plumbing-business owner and expect the rep to keep the closing conversation concise, organized, and focused on the decision.\n\nStay engaged while the rep is reinforcing value, asking about readiness, addressing final concerns, or moving toward commitment.\n\nIf the rep repeats discovery, restarts the demonstration, gives another long product presentation, lists unrelated features, or avoids asking for the business, say:\n\n“We already went through the system. What do you need from me to make a decision?”\n\nGive this warning once.\n\nIf the rep continues avoiding the decision, becomes disorganized, or never attempts to close, end the conversation without committing.\n\nThe system controls the maximum call duration. Do not repeatedly announce how many minutes remain or create artificial countdown warnings.\n\n### HOW TO TALK\n\n* Stay in character as a real plumbing-business owner making a business decision.\n* Keep each response between one and three sentences.\n* Be concise, practical, impatient, and direct.\n* Ask only one question at a time.\n* Allow the rep to answer before raising another issue.\n* Do not deliver long explanations or speeches.\n* Do not mention rubrics, scores, evaluation categories, trial closes, buying signals, incremental closes, CPRC, If-Then questions, or other internal sales terminology.\n* Do not coach the rep or tell them what closing method to use.\n* Do not suggest what the rep should say next.\n* Do not repeat information the rep has already addressed.\n* Do not create unnecessary objections after your real concerns have been resolved.\n* Do not volunteer a buying commitment unless the rep directly asks for it.\n* Respond naturally rather than following a rigid script.\n* Do not use corporate jargon, robotic summaries, or em dashes.\n* Focus on cash flow, time savings, operational simplicity, and the next actionable step.\n\n### OPENING LINE\n\n“Alright, that was helpful. I can see how invoicing and collecting at the job would speed up cash flow. What happens from here?”",
+    "custom_greeting": "Alright, that was helpful. I can see how invoicing and collecting at the job would speed up cash flow. What happens from here?",
     "properties": {
       "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
     }
-  },
-  "rubric": {
-    "discovery_and_questioning": {
-      "weight": 20,
-      "behaviors": [
-        {
-          "id": "DQ1",
-          "description": "Referenced specific details from the previous discovery conversation",
-          "points": 5
-        },
-        {
-          "id": "DQ2",
-          "description": "Asked targeted follow-up questions to deepen understanding from Module 4",
-          "points": 4
-        },
-        {
-          "id": "DQ3",
-          "description": "Confirmed or updated understanding of the merchant's priorities since last call",
-          "points": 4
-        },
-        {
-          "id": "DQ4",
-          "description": "Used reflective listening to validate previously discovered pain points",
-          "points": 4
-        },
-        {
-          "id": "DQ5",
-          "description": "Did not re-ask questions that were already covered in the first call",
-          "points": 3
-        }
-      ]
-    },
-    "problem_identification_and_gap_analysis": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PI1",
-          "description": "Reinforced the gap between current state and desired state from discovery",
-          "points": 4
-        },
-        {
-          "id": "PI2",
-          "description": "Connected ongoing problems to financial or operational consequences",
-          "points": 4
-        },
-        {
-          "id": "PI3",
-          "description": "Created urgency by highlighting cost of inaction or delay",
-          "points": 4
-        },
-        {
-          "id": "PI4",
-          "description": "Positioned the solution as the bridge between current and desired state",
-          "points": 3
-        }
-      ]
-    },
-    "product_alignment": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PA1",
-          "description": "Presented Roc Services with specific alignment to previously discovered needs",
-          "points": 5
-        },
-        {
-          "id": "PA2",
-          "description": "Customized the solution presentation to this merchant's unique field service situation",
-          "points": 5
-        },
-        {
-          "id": "PA3",
-          "description": "Provided compelling cash flow improvement justification",
-          "points": 5
-        }
-      ]
-    },
-    "feature_to_benefit_translation": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "FB1",
-          "description": "Translated product features into specific business outcomes tied to discovered pain points",
-          "points": 5
-        },
-        {
-          "id": "FB2",
-          "description": "Used customer-centered language grounded in the merchant's own words from discovery",
-          "points": 5
-        },
-        {
-          "id": "FB3",
-          "description": "Quantified benefits where possible (payment speed, admin time saved, revenue impact)",
-          "points": 5
-        }
-      ]
-    },
-    "objection_handling": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "OH1",
-          "description": "Responded to closing objections directly and confidently",
-          "points": 5
-        },
-        {
-          "id": "OH2",
-          "description": "Probed for the real concern behind objections before responding",
-          "points": 5
-        },
-        {
-          "id": "OH3",
-          "description": "Used previously discovered information to reinforce value when handling objections",
-          "points": 5
-        }
-      ]
-    },
-    "behavioral_style_adaptation": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "BS1",
-          "description": "Maintained Doer-appropriate communication (direct, results-focused, concise, practical)",
-          "points": 4
-        },
-        {
-          "id": "BS2",
-          "description": "Matched Mike's pace and energy without slowing down unnecessarily",
-          "points": 3
-        },
-        {
-          "id": "BS3",
-          "description": "Avoided rapport-breaking behaviors (long explanations, buzzwords, theoretical concepts)",
-          "points": 3
-        }
-      ]
-    },
-    "closing_and_next_step": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "CN1",
-          "description": "Asked for the business directly and confidently",
-          "points": 4
-        },
-        {
-          "id": "CN2",
-          "description": "Close felt natural and earned based on value demonstrated throughout the call",
-          "points": 3
-        },
-        {
-          "id": "CN3",
-          "description": "Handled stall tactics ('send me something') by pushing for a stronger commitment",
-          "points": 3
-        }
-      ]
-    }
-  },
-  "auto_fail_triggers": [
-    {
-      "id": "AF1",
-      "description": "Recommended the wrong product entirely (not Roc Services)",
-      "check": "wrong_product"
-    },
-    {
-      "id": "AF2",
-      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
-      "check": "no_discovery"
-    },
-    {
-      "id": "AF3",
-      "description": "Immediately pitched product without understanding needs",
-      "check": "immediate_pitch"
-    },
-    {
-      "id": "AF4",
-      "description": "Failed to ask for any next step or commitment",
-      "check": "no_next_step"
-    },
-    {
-      "id": "AF5",
-      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
-      "check": "unprofessional"
-    }
-  ],
-  "coaching_notes": {
-    "key_concepts": [
-      "This is a follow-up closing call with a Doer, emphasis on speed and results",
-      "The rep must demonstrate continuity by referencing Module 4 discoveries",
-      "Doers want to see clear, practical outcomes quickly",
-      "Cash flow impact is the primary closing lever for Mike",
-      "Field adoption simplicity is a must-address concern",
-      "Stall tactics ('send me something') should be redirected to a stronger commitment",
-      "The rep should be as direct as Mike, matching his communication style"
-    ],
-    "common_mistakes": [
-      "Starting the call as if it were a brand new cold call instead of a follow-up",
-      "Failing to reference any specific details from the Module 4 discovery",
-      "Being too slow or verbose with a Doer personality",
-      "Not quantifying the cash flow improvement clearly",
-      "Failing to address crew adoption in simple, practical terms",
-      "Accepting 'send me something' as a commitment instead of pushing for a real next step",
-      "Using theoretical language when Mike wants real-world practical examples"
-    ]
   }
 }

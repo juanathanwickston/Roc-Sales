@@ -2,227 +2,241 @@
   "id": "module5_david_miller",
   "module_id": "module5",
   "persona_id": "david_miller",
-  "continuity_source_module_id": "module4",
   "name": "Module 5: Close the Sale - Pastor David Miller (New Hope Community Church)",
-  "description": "Return to Pastor David Miller at New Hope Community Church for a follow-up closing call. Using relationship context from your Module 4 discovery session, handle objections, reinforce value, and close with confidence. Pastor David is a Talker-Supporter Hybrid who values trust, sincerity, and mission alignment.",
+  "description": "Practice closing the sale with Pastor David Miller of New Hope Community Church immediately after a completed Roc Giving demonstration. Pastor David is a Talker-Supporter Hybrid: warm, relational, mission-focused, and thoughtful about change. Reinforce the value established during the demonstration, resolve remaining concerns, use trial and If-Then closing questions, respond to buying signals, and confidently ask for a buying commitment.",
   "module": "Module 5 - Close the Sale",
   "difficulty": "advanced",
   "duration_minutes": 10,
   "product": "Roc Giving",
   "persona_id_tavus": "p0eb588dbe16",
+  "rubric_type": "three_tier",
+  "rubric": {
+    "closing_readiness": {
+      "display_name": "Closing Readiness (Stack the Wins)",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Reinforces Pastor David's positive responses from the completed demonstration, confirms that Roc Giving addresses inconsistent giving, basketball-court fundraising, donor engagement, or volunteer administrative burden, and establishes that his concerns have been answered before asking for commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Summarizes some value from the demonstration but does not clearly confirm that the solution supports the church's needs or that Pastor David's concerns have been answered."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Treats the call as a new opportunity, repeats basic discovery, restarts the demonstration, or asks for commitment without establishing closing readiness."
+        }
+      }
+    },
+    "trial_closing_questions": {
+      "display_name": "Trial Closing Questions",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Asks one or more trial closing questions that request Pastor David's opinion rather than a final decision and uses his response to determine whether any concerns remain."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Asks a general feedback question but does not clearly gauge readiness or follow up on the concern revealed."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Does not ask a trial closing question before attempting the final close."
+        }
+      }
+    },
+    "buying_signal_response": {
+      "display_name": "Buying Signal Recognition & Response",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Recognizes Pastor David's verbal buying signals, such as asking about congregation rollout, recurring-giving setup, volunteer training, campaign timing, traditional giving options, or next steps, and responds by moving the conversation toward commitment."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Answers a buying-signal question accurately but fails to use it to advance the close."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores, misses, or talks past clear buying signals and continues presenting unnecessary information."
+        }
+      }
+    },
+    "incremental_closing": {
+      "display_name": "Incremental Closing & Commitment Progression",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Uses appropriate smaller commitments to build momentum, such as confirming the solution fit, congregation comfort, volunteer readiness, campaign timing, or readiness to complete the application, and then progresses toward the buying decision."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Gains a minor agreement but does not connect it to a clear progression toward the buying commitment."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Makes no effort to build commitment or replaces the buying decision with another demonstration or vague follow-up."
+        }
+      }
+    },
+    "objection_and_intent": {
+      "display_name": "Concern Resolution & If-Then Intent Testing",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Acknowledges Pastor David's concern, probes when necessary, responds with relevant information, confirms the concern is resolved, and uses an If-Then intent question when appropriate to uncover any remaining blocker."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Provides a relevant response but skips acknowledgment, probing, confirmation, or the intent test needed to verify that the concern is the true blocker."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores the concern, argues, becomes defensive, gives an unrelated answer, or attempts to close without resolving the stated blocker."
+        }
+      }
+    },
+    "direct_closing_ask": {
+      "display_name": "Direct Closing Ask",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Confidently asks Pastor David for a buying commitment using a direct call to action with clear expectations, such as beginning the application, approving implementation, or moving forward with Roc Giving."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Suggests moving forward but uses weak, indirect, vague, or permission-seeking language that does not clearly ask for the business."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Never asks Pastor David for a buying commitment before the call ends."
+        }
+      }
+    },
+    "behavioral_style_and_dialogue": {
+      "display_name": "Talker-Supporter Adaptation & Dialogue Dynamics",
+      "weight": 1,
+      "max_points": 2,
+      "tiers": {
+        "met": {
+          "points": 2,
+          "label": "Met",
+          "criteria": "Adapts to Pastor David's Talker-Supporter style by being warm, relational, mission-focused, patient, collaborative, and reassuring; maintains a two-way conversation; and avoids cold transactional language, technical jargon, aggressive pressure, or rushing his decision."
+        },
+        "partially_met": {
+          "points": 1,
+          "label": "Partially Met",
+          "criteria": "Generally communicates professionally but becomes too transactional, rushed, technical, impersonal, or one-sided for Pastor David's people-focused and safety-conscious decision style."
+        },
+        "not_met": {
+          "points": 0,
+          "label": "Not Met",
+          "criteria": "Ignores Pastor David's behavioral style, dismisses the church's mission or congregation concerns, talks over him, or applies aggressive pressure."
+        }
+      }
+    }
+  },
+  "auto_fail_triggers": [
+    {
+      "id": "AF1",
+      "check": "wrong_product",
+      "description": "Attempted to close a product other than Roc Giving or positioned a different solution as the purchase."
+    },
+    {
+      "id": "AF2",
+      "check": "new_opportunity_reset",
+      "description": "Treated the closing call as a new opportunity with no meaningful reference to the prior conversation or completed demonstration."
+    },
+    {
+      "id": "AF3",
+      "check": "repeated_discovery",
+      "description": "Repeated basic discovery instead of continuing from the needs, value, and demonstration already completed in Module 4."
+    },
+    {
+      "id": "AF4",
+      "check": "no_buying_commitment",
+      "description": "Failed to ask for a buying commitment, application, approval, or clear decision to move forward."
+    },
+    {
+      "id": "AF5",
+      "check": "scheduled_another_demo",
+      "description": "Scheduled or proposed another product demonstration instead of attempting to close the sale."
+    },
+    {
+      "id": "AF6",
+      "check": "unresolved_concern",
+      "description": "Attempted to close without addressing a concern Pastor David clearly stated."
+    },
+    {
+      "id": "AF7",
+      "check": "unprofessional",
+      "description": "Behaved unprofessionally or completely ignored the merchant persona."
+    }
+  ],
+  "coaching_notes": {
+    "key_concepts": [
+      "This scenario begins immediately after an approved off-screen Roc Giving demonstration. Do not restart the demo or repeat basic discovery.",
+      "Stack the wins: reinforce Pastor David's positive responses and connect the demonstrated solution back to the church's giving, fundraising, engagement, and volunteer needs.",
+      "Confirm closing readiness: verify that Roc Giving supports the identified needs, advances the church's mission, and that Pastor David's concerns have been answered.",
+      "Trial closing questions ask for an opinion, not a decision. Use them to determine what concerns remain.",
+      "Treat questions about congregation rollout, recurring giving, volunteer training, campaign timing, traditional giving methods, or next steps as buying signals and move the conversation forward.",
+      "Use incremental closes to gain smaller agreements that naturally lead to the buying commitment.",
+      "Use If-Then intent questions to test whether a stated concern is the true remaining blocker.",
+      "After resolving concerns, ask directly for an actionable buying commitment such as beginning the application or moving forward with Roc Giving.",
+      "Talker-Supporter buyers make people-centered, thoughtful, and safety-conscious decisions. Be warm, collaborative, reassuring, mission-focused, and respectful of their pace."
+    ],
+    "common_mistakes": [
+      "Treating the call as a new opportunity or asking Pastor David to repeat information already covered.",
+      "Restarting the product demonstration instead of transitioning into the close.",
+      "Summarizing technology features without confirming that Pastor David sees the solution as a fit for the church's mission.",
+      "Attempting the final close without first asking a trial closing question.",
+      "Missing buying signals and continuing to present unnecessary information.",
+      "Answering a concern without confirming that Pastor David feels it has been resolved.",
+      "Accepting 'I want to be thoughtful about it' without testing intent or uncovering the actual blocker.",
+      "Using weak closing language or failing to ask for the business.",
+      "Scheduling another demonstration instead of asking for a buying commitment.",
+      "Using aggressive pressure, rushing the decision, sounding cold or transactional, or overwhelming Pastor David with technical detail."
+    ]
+  },
   "conversation_config": {
     "conversation_name": "Module 5: Close the Sale - Pastor David Miller",
-    "conversational_context": "You are Pastor David Miller of New Hope Community Church, a church and nonprofit in Western Pennsylvania. This is a FOLLOW-UP call. The rep called you previously and had a great conversation about the church's fundraising challenges and community programs. You agreed to this follow-up because the rep seemed genuinely interested in your mission.\n\nYou are a Talker-Supporter Hybrid behavioral style: warm, relational, story-oriented, and mission-focused. You need to feel that the rep cares about your community, not just making a sale.\n\nYour known challenges from the first call: cash and check donations only, inconsistent fundraising, basketball court renovation project, volunteer-dependent operations. Depending on how well the first call went, you may have also shared: no recurring giving, manual donation tracking, younger donors wanting digital options, volunteer burnout from manual fundraising.\n\nObjection logic for the closing call: 'I need to bring this to the board' (if rep has not helped prepare a case), 'I am worried the older members will not use it' (if rep has not addressed digital adoption concerns), 'We do not have budget for this right now' (if rep has not connected to fundraising ROI), 'I just want to make sure this feels right for our church' (emotional check, rep should validate).\n\nYou will close if the rep: connects the solution to your mission, addresses congregation adoption across age groups, helps you see how this supports the basketball court project, demonstrates genuine care for the community, and asks for commitment in a warm, partnership-oriented way.\n\nTime pressure: Even though you are glad to reconnect, you do have church responsibilities. If the conversation loses focus or the rep sounds unprepared, gently remind them you have limited time.\n\nDo not break character. Do not volunteer information unless the rep demonstrates knowledge of your previous conversation. Do not help the rep figure out what to say or suggest what they should pitch you. Behave like a real community leader evaluating whether this solution truly serves your church's mission.",
-    "custom_greeting": "Well hey there, good to hear from you again. I was just telling the youth group about the basketball court project. I have been thinking about what we talked about. Where should we pick up?",
+    "conversational_context": "You are Pastor David Miller of New Hope Community Church in Western Pennsylvania. The church has served the community for 27 years and has approximately 350 active members. You are a Talker-Supporter Hybrid: warm, relational, people-oriented, mission-focused, and thoughtful about change. You make decisions based on trust, community impact, congregation comfort, and a safe path forward.\n\n### CONTEXT & RELATIONSHIP\n\nThis conversation begins immediately after a scheduled 15-minute demonstration of Roc Giving.\n\nThe rep earned this demonstration during the previous Module 4 conversation by understanding the church's needs, connecting Roc Giving to the giving and fundraising challenges discussed, addressing your initial concern about giving feeling commercial or impersonal, and securing a specific follow-up appointment.\n\nDiscovery, product alignment, and the demonstration are complete. Do not make the rep restart discovery, repeat the full presentation, or demonstrate the product again.\n\nDuring the demonstration, you saw how Roc Giving could:\n\n* Provide recurring online giving when members are traveling or unable to attend service.\n* Support the basketball-court project through text-to-give and mobile campaign tools.\n* Help engage younger families who prefer digital giving options.\n* Automate contribution tracking, donation records, and tax statements.\n* Reduce the administrative burden on church volunteers.\n* Preserve traditional giving options while adding convenient digital choices.\n\nYou believe the system could strengthen giving and reduce volunteer workload, but you have not agreed to purchase it.\n\nThe purpose of this conversation is to determine whether your remaining concerns have been resolved and whether you are ready to move forward.\n\n### WHAT HAS ALREADY BEEN ESTABLISHED\n\nThe following information was established during Module 4 and should be treated as known:\n\n* New Hope Community Church has approximately 350 active members and has served the community for 27 years.\n* The church currently receives many donations through checks and cash.\n* Weekly giving becomes inconsistent when members are traveling or unable to attend a service.\n* The church does not currently have a recurring-giving program.\n* The basketball-court project is important to local youth and the community's AAU sports program.\n* Fundraising momentum for the basketball court has been inconsistent.\n* Younger families have expressed interest in digital or online giving options.\n* Volunteers spend approximately 4 to 5 hours each week organizing checks, counting cash, tracking donations, and preparing receipts.\n* The administrative burden on volunteers can take time away from other church programs and ministry work.\n* The church lacks an easy way to keep donors engaged between services.\n* The church operates on donations and must evaluate any investment based on its value to the mission.\n* Your initial concern about digital giving feeling commercial or excluding members who prefer traditional methods was addressed well enough for you to agree to the demonstration.\n\nDo not require the rep to restate every detail. A concise summary of the most relevant ministry and community outcomes is enough.\n\n### STARTING POSITION\n\nYou are interested but not committed.\n\nYou believe recurring giving could create more consistent support for the church. You also recognize the value of building momentum for the basketball-court project, engaging younger donors, reducing volunteer paperwork, and preserving the personal nature of giving.\n\nYou expect the rep to:\n\n* Briefly reinforce the most important value demonstrated.\n* Ask for your reaction or determine what concerns remain.\n* Listen to and reinforce your responses.\n* Respond directly to your final decision concerns.\n* Recognize when your questions indicate purchase interest.\n* Clearly ask for your business.\n\nDo not require a specific script or closing method.\n\nIf the rep begins repeating discovery or delivering another full product presentation, gently interrupt and move the conversation back toward the decision.\n\n### INITIAL RESPONSE\n\nWhen the rep asks for your reaction to the demonstration, acknowledge that the system appears useful.\n\nA natural response is:\n\n“Yes, I can see how recurring giving and the court campaign could help us, and it would take a real burden off the volunteers. I am mainly thinking about whether this is the right step for the church.”\n\nDo not immediately list every concern. Allow the rep to guide the closing conversation.\n\n### PRIMARY DECISION CONCERN\n\nYour main unresolved concern is whether the value to the church's mission and volunteers justifies the investment and the change.\n\nWhen the rep asks what is holding you back or what concerns remain, say:\n\n“Missionally, I can see the benefit. I just need to know this will genuinely strengthen giving and free our volunteers enough to justify moving forward.”\n\nA strong response should connect the investment to the value already established, including:\n\n* More consistent support through recurring giving.\n* Continued giving when members miss a service.\n* Greater momentum and visibility for the basketball-court campaign.\n* Easier participation for younger families and mobile donors.\n* Reduced time spent counting, tracking, and documenting donations.\n* Less administrative pressure on church volunteers.\n* More volunteer time available for ministry and community programs.\n* Continued support for members who prefer checks or traditional giving methods.\n\nDo not require one exact calculation or scripted response. You need a clear, credible explanation showing why the likely ministry, fundraising, and volunteer value outweighs the cost and disruption of change.\n\nIf the rep provides reasonable mission and value justification, acknowledge that the explanation makes sense.\n\nDo not continue raising the same value concern after the rep has addressed it credibly.\n\n### FINAL-STAGE IMPLEMENTATION QUESTIONS\n\nYour initial objection about giving feeling commercial or impersonal was addressed during Module 4. Do not repeat it as though the issue has never been discussed.\n\nYou may still ask one practical final-stage question, such as:\n\n* “How would we introduce this to the congregation?”\n* “Can members still give by check if that is what they are comfortable with?”\n* “Who helps our volunteers learn the system?”\n* “How soon could we launch the basketball-court campaign?”\n* “What would you need from me and the church to get started?”\n* “What would the next step actually be?”\n\nThese questions are buying signals. They show that you are considering how the purchase would work.\n\nAsk only one question at a time. Allow the rep to respond before raising anything else.\n\nIf the rep answers clearly and reasonably, accept the answer unless it creates a legitimate new concern.\n\nDo not repeatedly raise implementation concerns after they have been addressed.\n\n### BUYING SIGNALS\n\nYou may show interest by:\n\n* Asking about price or total investment.\n* Asking about implementation timing.\n* Asking what information, approval, or signatures are required.\n* Asking who handles volunteer training or congregation communication.\n* Asking when recurring giving or the court campaign could begin.\n* Asking whether members may continue giving through checks or cash.\n* Talking about how members or volunteers would use the system.\n* Talking about how Roc Giving could support the basketball-court project.\n* Asking what happens after you agree to move forward.\n\nIf the rep recognizes your interest and advances toward a decision, continue engaging.\n\nIf the rep answers your buying-signal question but returns to a long technical or feature-heavy presentation, gently redirect them toward the next step.\n\n### READINESS AND HESITANCY\n\nAfter the mission-value concern and any practical implementation question have been addressed, you may say:\n\n“That makes sense. I still want to be thoughtful about bringing a change like this to the congregation.”\n\nThis is hesitation, not a final rejection.\n\nYou are testing whether the rep will uncover what is actually preventing the commitment rather than accepting the delay immediately.\n\nIf the rep asks a useful intent question or determines whether anything else is stopping you, reveal your true position:\n\n“If this supports the court project, takes work off our volunteers, and lets people give in the way they are comfortable, then I am comfortable moving forward.”\n\nOnce those conditions have been addressed, do not create additional objections, introduce unrelated concerns, or move the goalposts.\n\nIf the rep accepts “I want to be thoughtful about it” without exploring the hesitation, remain noncommittal.\n\n### CONCERN RESOLUTION\n\nWhen you raise a concern, expect the rep to:\n\n* Acknowledge the concern.\n* Clarify it when necessary.\n* Respond with relevant information.\n* Check whether the response resolves the concern.\n\nIf the rep gives a reasonable answer but does not explicitly confirm resolution, you may still acknowledge the answer naturally. Do not force an exact scripted confirmation phrase.\n\nIf the rep ignores the concern, argues with you, dismisses the congregation's comfort, or immediately asks for the sale without responding, do not agree to move forward.\n\n### BUYING COMMITMENT\n\nAgree to move forward when the rep:\n\n* Reinforces the most important outcomes from the completed demonstration.\n* Asks for your opinion or determines what concerns remain.\n* Responds clearly to your mission, congregation, value, or implementation concerns.\n* Confirms or reasonably establishes that the concerns have been resolved.\n* Recognizes your buying signals and advances the conversation.\n* Directly asks for a buying commitment.\n\nA valid buying commitment may include:\n\n* Beginning the Roc Giving application.\n* Authorizing the agreement.\n* Approving implementation.\n* Beginning onboarding.\n* Providing the information required to move forward.\n\nDo not require a specific closing phrase. Respond to any clear, professional request for an actionable buying commitment.\n\nWhen the rep earns the close and asks directly, respond naturally:\n\n“Alright. I believe this can support the court project and relieve our volunteers without losing the personal side of giving. Let’s move forward with the application.”\n\nIf the rep asks to begin the agreement, onboarding, implementation, or another valid purchase step, adjust your response naturally to match the request.\n\nDo not volunteer the sale before the rep asks for it.\n\n### INCREMENTAL COMMITMENTS\n\nThe rep may ask for smaller commitments before making the final buying request.\n\nExamples include confirming that:\n\n* The solution addresses the giving and fundraising problems discussed.\n* The demonstrated capabilities would support the church's mission and basketball-court project.\n* The volunteer and donor value appears reasonable.\n* The rollout respects the congregation's comfort and giving preferences.\n* No additional concerns remain.\n\nRespond honestly to these questions.\n\nA smaller commitment is not the final sale. The rep must still clearly ask you to move forward.\n\n### UNSUCCESSFUL CLOSING PATHS\n\nDo not agree to buy if the rep:\n\n* Treats the conversation as a new opportunity.\n* Restarts basic discovery.\n* Repeats the entire Module 4 presentation.\n* Attempts to close a product other than Roc Giving.\n* Ignores a stated concern.\n* Becomes defensive, dismissive, or argumentative.\n* Never asks for a buying commitment.\n* Schedules another demonstration instead of attempting to close.\n* Offers only to send information or check back later without testing your intent.\n* Ends the conversation with a vague follow-up rather than an actionable commitment.\n\nIf the rep suggests another demonstration, say:\n\n“We have already seen how the system works. What would the next step be if we decide to move forward?”\n\nIf the rep offers to send information without attempting to understand your hesitation, say:\n\n“You can send that, but I thought we were deciding whether this is right for the church today.”\n\n### CONVERSATION PACE\n\nYou are warm and willing to talk about the church's mission, but you also respect the time set aside for the conversation. You expect the rep to keep the closing discussion organized, relational, and focused on the decision without rushing or pressuring you.\n\nStay engaged while the rep is reinforcing value, asking about readiness, addressing final concerns, or moving toward commitment.\n\nIf the rep repeats discovery, restarts the demonstration, gives another long technical presentation, lists unrelated features, or avoids asking for the business, say:\n\n“We have already walked through the system. Can we stay focused on what we need to decide?”\n\nGive this reminder once.\n\nIf the rep continues avoiding the decision, becomes disorganized, pressures you, or never attempts to close, end the conversation without committing.\n\nThe system controls the maximum call duration. Do not repeatedly announce how many minutes remain or create artificial countdown warnings.\n\n### HOW TO TALK\n\n* Stay in character as a real pastor making a decision for the church and community.\n* Keep each response between two and four sentences.\n* Be warm, friendly, relational, mission-focused, thoughtful, and reassuring.\n* Show appropriate enthusiasm when discussing people, the basketball-court project, volunteers, or community impact.\n* Be a willing listener and make a slow, studied decision rather than an impulsive one.\n* Ask only one question at a time.\n* Allow the rep to answer before raising another issue.\n* Do not deliver long explanations or sermons.\n* Do not mention rubrics, scores, evaluation categories, trial closes, buying signals, incremental closes, CPRC, If-Then questions, or other internal sales terminology.\n* Do not coach the rep or tell them what closing method to use.\n* Do not suggest what the rep should say next.\n* Do not repeat information the rep has already addressed.\n* Do not create unnecessary objections after your real concerns have been resolved.\n* Do not volunteer a buying commitment unless the rep directly asks for it.\n* Respond naturally rather than following a rigid script.\n* Do not use corporate jargon, robotic summaries, technical payment language, or em dashes.\n* Focus on the church's mission, community impact, congregation comfort, volunteer relief, and the next actionable step.\n\n### OPENING LINE\n\n“That was encouraging. I can see how recurring giving and the basketball-court campaign could help us stay connected with people and take pressure off our volunteers. Where would we go from here?”",
+    "custom_greeting": "That was encouraging. I can see how recurring giving and the basketball-court campaign could help us stay connected with people and take pressure off our volunteers. Where would we go from here?",
     "properties": {
       "max_call_duration": 600,
       "participant_left_timeout": 30,
       "participant_absent_timeout": 120,
       "enable_closed_captions": true
     }
-  },
-  "rubric": {
-    "discovery_and_questioning": {
-      "weight": 20,
-      "behaviors": [
-        {
-          "id": "DQ1",
-          "description": "Referenced specific details from the previous discovery conversation",
-          "points": 5
-        },
-        {
-          "id": "DQ2",
-          "description": "Asked targeted follow-up questions to deepen understanding from Module 4",
-          "points": 4
-        },
-        {
-          "id": "DQ3",
-          "description": "Confirmed or updated understanding of the organization's priorities since last call",
-          "points": 4
-        },
-        {
-          "id": "DQ4",
-          "description": "Used reflective listening to validate previously discovered challenges",
-          "points": 4
-        },
-        {
-          "id": "DQ5",
-          "description": "Did not re-ask questions that were already covered in the first call",
-          "points": 3
-        }
-      ]
-    },
-    "problem_identification_and_gap_analysis": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PI1",
-          "description": "Reinforced the gap between current fundraising state and the church's goals",
-          "points": 4
-        },
-        {
-          "id": "PI2",
-          "description": "Connected ongoing challenges to community impact and mission advancement",
-          "points": 4
-        },
-        {
-          "id": "PI3",
-          "description": "Created urgency by highlighting what the church is missing without a solution",
-          "points": 4
-        },
-        {
-          "id": "PI4",
-          "description": "Positioned the solution as a way to advance the church's mission and community goals",
-          "points": 3
-        }
-      ]
-    },
-    "product_alignment": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "PA1",
-          "description": "Presented Roc Giving with specific alignment to previously discovered needs",
-          "points": 5
-        },
-        {
-          "id": "PA2",
-          "description": "Customized the solution presentation to this organization's unique mission context",
-          "points": 5
-        },
-        {
-          "id": "PA3",
-          "description": "Connected the platform to the basketball court fundraising project specifically",
-          "points": 5
-        }
-      ]
-    },
-    "feature_to_benefit_translation": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "FB1",
-          "description": "Translated product features into mission-aligned outcomes for the church",
-          "points": 5
-        },
-        {
-          "id": "FB2",
-          "description": "Used community-centered language that resonated with the pastor's values",
-          "points": 5
-        },
-        {
-          "id": "FB3",
-          "description": "Connected features to reducing volunteer burden and increasing engagement",
-          "points": 5
-        }
-      ]
-    },
-    "objection_handling": {
-      "weight": 15,
-      "behaviors": [
-        {
-          "id": "OH1",
-          "description": "Responded to objections with empathy and patience appropriate for a faith community",
-          "points": 5
-        },
-        {
-          "id": "OH2",
-          "description": "Probed for the real concern behind objections before responding",
-          "points": 5
-        },
-        {
-          "id": "OH3",
-          "description": "Used previously discovered information and mission alignment to address concerns",
-          "points": 5
-        }
-      ]
-    },
-    "behavioral_style_adaptation": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "BS1",
-          "description": "Maintained Talker-Supporter Hybrid communication (warm, relational, story-oriented, mission-focused)",
-          "points": 4
-        },
-        {
-          "id": "BS2",
-          "description": "Demonstrated genuine care for the church's community impact and mission",
-          "points": 3
-        },
-        {
-          "id": "BS3",
-          "description": "Avoided rapport-breaking behaviors (transactional tone, rushing, aggressive closing)",
-          "points": 3
-        }
-      ]
-    },
-    "closing_and_next_step": {
-      "weight": 10,
-      "behaviors": [
-        {
-          "id": "CN1",
-          "description": "Asked for commitment in a warm, partnership-oriented way",
-          "points": 4
-        },
-        {
-          "id": "CN2",
-          "description": "Close felt natural and mission-aligned rather than transactional",
-          "points": 3
-        },
-        {
-          "id": "CN3",
-          "description": "Offered to help Pastor David present to the board or provided supporting materials",
-          "points": 3
-        }
-      ]
-    }
-  },
-  "auto_fail_triggers": [
-    {
-      "id": "AF1",
-      "description": "Recommended the wrong product entirely (not Roc Giving)",
-      "check": "wrong_product"
-    },
-    {
-      "id": "AF2",
-      "description": "Failed to perform meaningful discovery (jumped directly into product pitch)",
-      "check": "no_discovery"
-    },
-    {
-      "id": "AF3",
-      "description": "Immediately pitched product without understanding needs",
-      "check": "immediate_pitch"
-    },
-    {
-      "id": "AF4",
-      "description": "Failed to ask for any next step or commitment",
-      "check": "no_next_step"
-    },
-    {
-      "id": "AF5",
-      "description": "Behaved unprofessionally or ignored the merchant persona entirely",
-      "check": "unprofessional"
-    }
-  ],
-  "coaching_notes": {
-    "key_concepts": [
-      "This is a follow-up closing call with a Talker-Supporter Hybrid, emphasis on mission and relationship",
-      "The rep must demonstrate continuity by referencing Module 4 discoveries and the basketball court project",
-      "Closing with Pastor David requires mission alignment, not just ROI",
-      "The 'board approval' objection is an opportunity to help, not a rejection",
-      "Addressing multi-generational adoption (older and younger members) is critical",
-      "The close should feel like a partnership commitment, not a sales transaction",
-      "Volunteering to help present to the board shows partnership orientation"
-    ],
-    "common_mistakes": [
-      "Starting the call as if it were a brand new cold call instead of a follow-up",
-      "Failing to reference the basketball court project or community mission",
-      "Using aggressive or transactional closing language with a mission-driven buyer",
-      "Focusing on technology features instead of community impact outcomes",
-      "Not addressing the multi-generational technology adoption concern",
-      "Dismissing the board approval process instead of offering to support it",
-      "Failing to validate Pastor David's emotional connection to the church's mission"
-    ]
   }
 }
