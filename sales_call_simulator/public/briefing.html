@@ -964,6 +964,10 @@
     .badge-need { background: #fef2f2; color: #b91c1c; }
     .badge-feature { background: #eff6ff; color: #1d4ed8; }
     .badge-impact { background: #ecfdf5; color: #047857; }
+
+    .champ-selector.module5-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   </style>
 </head>
 <body>
@@ -1060,6 +1064,48 @@
 
   </div>
 
-  <script src="/js/briefing.js?v=1.0.1"></script>
+  <script>
+    (function () {
+      'use strict';
+      
+      function handleLoadError() {
+        const loading = document.getElementById('loadingScreen');
+        if (loading) loading.style.display = 'none';
+        const errorScreen = document.getElementById('errorScreen');
+        if (errorScreen) {
+          errorScreen.style.display = 'flex';
+          const errorMsg = document.getElementById('errorMessage');
+          if (errorMsg) errorMsg.textContent = 'Failed to load briefing resources. Please try relaunching from the LMS.';
+        }
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const moduleId = params.get('moduleId');
+      
+      if (moduleId !== 'module4' && moduleId !== 'module5') {
+        const loading = document.getElementById('loadingScreen');
+        if (loading) loading.style.display = 'none';
+        const errorScreen = document.getElementById('errorScreen');
+        if (errorScreen) {
+          errorScreen.style.display = 'flex';
+          const errorMsg = document.getElementById('errorMessage');
+          if (errorMsg) errorMsg.textContent = 'Invalid or missing module parameter. Please relaunch from the LMS.';
+        }
+        return;
+      }
+
+      const dataScript = document.createElement('script');
+      dataScript.src = '/js/' + moduleId + '_briefing_data.js?v=1.0.2';
+      dataScript.onerror = handleLoadError;
+      document.head.appendChild(dataScript);
+
+      const mainScript = document.createElement('script');
+      mainScript.src = '/js/briefing.js?v=1.0.2';
+      mainScript.onerror = handleLoadError;
+      dataScript.onload = function () {
+        document.head.appendChild(mainScript);
+      };
+    })();
+  </script>
 </body>
 </html>

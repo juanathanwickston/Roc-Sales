@@ -1,0 +1,750 @@
+/**
+ * module4_briefing_data.js: Module 4 Pre-Call Briefing Data
+ * Verbatim extraction of DRILL_QUESTIONS, PERSONA_DATA, and CHAMP_EXPLORER_CONTENT
+ * from briefing.js. No values, keys, or content changed.
+ */
+
+(function () {
+  'use strict';
+
+  // ─── QUIZ DATA (hardcoded per plan) ───
+
+  const DRILL_QUESTIONS = {
+    sam_patel: [
+      {
+        question: "What is Sam Patel's primary behavioral style?",
+        options: ['Analyzer', 'Supporter', 'Controller', 'Promoter'],
+        answer: 'Controller',
+      },
+      {
+        question: "How should you adapt your communication style to match Sam Patel's Controller profile?",
+        options: [
+          'Begin with friendly small talk to build personal rapport',
+          'Keep it brief, speak peer-to-peer, and skip the small talk',
+          'Conduct a long, feature-by-feature product presentation',
+          'Use high-pressure closing tactics early in the conversation'
+        ],
+        answer: 'Keep it brief, speak peer-to-peer, and skip the small talk',
+      },
+      {
+        question: "What is Sam Patel's primary operational bottleneck at QuickStop Market?",
+        options: [
+          'Delayed customer billing collections',
+          'Managing credit card merchant chargebacks',
+          'Long check-in lines at the front desk salon registry',
+          'Manual price updates and spreadsheet-based inventory counts'
+        ],
+        answer: 'Manual price updates and spreadsheet-based inventory counts',
+      },
+      {
+        question: "What recent event represents Sam Patel's highest urgency compliance risk?",
+        options: [
+          'A state tax compliance audit warning notice',
+          'An EBT compliance warning notice for age-verification register errors',
+          'A health department food safety warning notice',
+          'A credit card network data breach warning notice'
+        ],
+        answer: 'An EBT compliance warning notice for age-verification register errors',
+      },
+    ],
+    carla_reyes: [
+      {
+        question: "What is Carla Reyes' primary behavioral style?",
+        options: ['Controller', 'Doer', 'Supporter', 'Talker'],
+        answer: 'Supporter',
+      },
+      {
+        question: 'What is the correct Payroc product to recommend for Studio Collective Salon?',
+        options: ['Bodega AI', 'Roc Terminal+', 'Roc Services', 'Roc Giving'],
+        answer: 'Roc Terminal+',
+      },
+      {
+        question: "What is Carla's biggest underlying fear about changing the salon's checkout system?",
+        options: [
+          'Increased processing fees',
+          'Losing client data',
+          'Regulatory compliance issues',
+          'Losing her top stylists due to onboarding disruption',
+        ],
+        answer: 'Losing her top stylists due to onboarding disruption',
+      },
+      {
+        question: 'How many independent stylists rent booths at Studio Collective Salon?',
+        options: ['4', '8', '6', '10'],
+        answer: '6',
+      },
+    ],
+    mike_turner: [
+      {
+        question: "What is Mike Turner's primary behavioral style?",
+        options: ['Supporter', 'Doer', 'Controller', 'Talker'],
+        answer: 'Doer',
+      },
+      {
+        question: 'What is the correct Payroc product to recommend for Precision Plumbing & Drain?',
+        options: ['Bodega AI', 'Roc Terminal+', 'Roc Services', 'Roc Giving'],
+        answer: 'Roc Services',
+      },
+      {
+        question: 'What is the primary cash flow bottleneck that Precision Plumbing faces?',
+        options: [
+          'Manual price updates',
+          'Inconsistent donations',
+          'Checkout confusion',
+          'Delayed billing collections taking 2-3 weeks to clear',
+        ],
+        answer: 'Delayed billing collections taking 2-3 weeks to clear',
+      },
+      {
+        question: 'How many trucks and field technicians does Mike manage?',
+        options: [
+          '3 trucks and 5 technicians',
+          '6 trucks and 6 technicians',
+          '4 trucks and 4 technicians',
+          '8 trucks and 8 technicians',
+        ],
+        answer: '4 trucks and 4 technicians',
+      },
+    ],
+    david_miller: [
+      {
+        question: "What is Pastor David Miller's primary behavioral style?",
+        options: ['Controller', 'Doer', 'Talker-Supporter Hybrid', 'Supporter'],
+        answer: 'Talker-Supporter Hybrid',
+      },
+      {
+        question: 'What is the correct Payroc product/platform to recommend for the church?',
+        options: ['Bodega AI', 'Roc Giving', 'Roc Terminal+', 'Roc Services'],
+        answer: 'Roc Giving',
+      },
+      {
+        question: 'What specific fundraising goal is the church currently trying to achieve?',
+        options: [
+          'Building a new sanctuary',
+          'Funding a food pantry',
+          'Renovating the parking lot',
+          'Repairing the community basketball court for their youth basketball program',
+        ],
+        answer: 'Repairing the community basketball court for their youth basketball program',
+      },
+      {
+        question: 'What primary administrative burden is burning out church volunteers?',
+        options: [
+          'Scheduling services',
+          'Managing social media',
+          'Manual tracking of cash/checks and generating tax receipts',
+          'Coordinating transportation',
+        ],
+        answer: 'Manual tracking of cash/checks and generating tax receipts',
+      },
+    ],
+  };
+
+  // ─── PERSONA DISPLAY DATA ───
+
+  const PERSONA_DATA = {
+    sam_patel: {
+      displayName: 'Sam Patel',
+      initials: 'SP',
+      business: 'QuickStop Market : Independent Convenience Store',
+      subtitle: 'Recorded Discovery Interview • Owner & Operator, QuickStop Market',
+      location: 'Suburban Michigan',
+      style: 'Controller',
+      styleDesc: 'Analytical, efficient, highly skeptical',
+      product: 'Bodega AI',
+      segment: 'Convenience / Bodega',
+      videoUrl: '/handouts/sam_patel_briefing.mp4',
+      behavioralProfile: 'Sam Patel is a <strong>Controller</strong> (skeptical, direct, impatient). He values speed, efficiency, and profit margins. He has zero tolerance for small talk.',
+      productFocusGuideline: 'Pitch the software solution Bodega AI. Pitching standard CC terminals instead of Bodega AI is a failure.',
+      objectionFlow: [
+        { label: '1. Cushion', color: '#dc2626', quote: '"That\'s a fair concern."', desc: 'Validate his concern immediately without pushing back or arguing.' },
+        { label: '2. Probe', color: '#2563eb', quote: '"What worries you most: downtime or learning curve?"', desc: 'Clarify his underlying fear to target his specific concern.' },
+        { label: '3. Respond', color: '#16a34a', quote: 'Present Solid Math', desc: 'Reference exact cost recovery: saving $9,360/year in wasted manual labor.' },
+        { label: '4. Confirm', color: '#d97706', quote: '"Does that address your concern?"', desc: 'Check to confirm his objection is fully addressed before closing.' },
+      ],
+      transcript: 'Honestly? It’s just the constant firefighting. I’ve had the store for, what... eleven years now? And it feels like the back-office stuff just eats up my entire day. Like, pricing. It sounds simple, but we\'re constantly walking the aisles, checking tags, updating them by hand... it\'s a mess. And of course, we make mistakes. Then a customer gets to the register, the price doesn\'t match, they get annoyed... it\'s just a headache. And inventory is the same story. We’re still tracking everything on these giant spreadsheets. Half the time we do manual counts, we\'re either out of stock on what actually sells, or we\'re sitting on cases of stuff we can’t move. But really, the thing that’s keeping me up right now is... compliance. We actually got a warning letter recently about EBT and age verification. One of my cashiers made a mistake. If we lose our lottery or EBT license... I mean, that is a massive chunk of our foot traffic gone. I just... I don\'t have the time to sit down and fix the process, but I can\'t risk another audit either. It\'s just a grind.',
+      info: [
+        { label: 'Industry', value: 'Convenience Store' },
+        { label: 'Product Fit', value: 'Bodega AI' },
+        { label: 'Behavioral Style', value: 'Controller' },
+        { label: 'Risk Level', value: 'High Skepticism' },
+      ],
+      champ: {
+        challenges: {
+          title: 'Challenges',
+          body: 'Manual price updates drain hours every week. Spreadsheet inventory tracking leads to leakage. Credit card processing fees are eating into thin margins. Recent EBT compliance warning threatens his license.',
+          action: 'Ask about how he currently handles price changes and inventory counts. Follow up on compliance concerns.',
+        },
+        authority: {
+          title: 'Authority (Decision-Making)',
+          body: 'Sam is the sole owner and decision-maker. No board or partners to consult. Decisions are fast when he sees hard data, but he will not act on vague promises.',
+          action: 'Speak in terms of ROI, data, and measurable outcomes. Avoid fluff.',
+        },
+        money: {
+          title: 'Money & Budget',
+          body: 'Thin margins (2 to 5 percent on most items). Every dollar matters. Processing fees are a known pain point. He has been quoted cheaper rates before and is skeptical of savings claims.',
+          action: 'Lead with margin protection and cost avoidance, not just lower rates.',
+        },
+        prioritization: {
+          title: 'Prioritization & Timeline',
+          body: 'Sam is in survival mode: day-to-day operations consume him. He will not prioritize a new system unless the pain of the status quo is clearly worse. The EBT warning created urgency.',
+          action: 'Connect automation to time savings he can feel immediately. Use the compliance urgency.',
+        },
+      },
+      questions: [
+        'How do you currently handle price changes across your store?',
+        'Walk me through what inventory management looks like week-to-week.',
+        'How much time does your team spend on manual counts and restocking?',
+        'Tell me about the compliance situation: I heard there may have been a warning?',
+        'What would it mean for the business if you lost your EBT license?',
+      ],
+      objections: [
+        { trigger: "We've always done it this way.", response: 'Acknowledge the comfort of routine, then quantify the cost of manual work: "Totally fair. When you add up the hours on pricing alone, what does that look like each week?"' },
+        { trigger: 'I already got quoted cheaper rates.', response: 'Do not compete on rate. Pivot to total cost of ownership: "Rates are one piece. What about the shrink and labor cost from manual inventory?"' },
+        { trigger: "I don't have time for a new system.", response: 'Mirror his time pressure back: "That is exactly the problem we solve. The current system is what is stealing your time."' },
+      ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Sam Patel, Owner, QuickStop Market (11 years in business)',
+        dialogueGuide: 'Controller. Skeptical and direct. Conciseness is key. Dialogue Pace: maintain 50/50 balance, check in every 1-2 sentences. Avoid monologues.',
+        timeConstraint: '10 minutes (call must finish before the evening rush)',
+        productFocus: 'Bodega AI (Automation and Inventory Software)',
+        openingStatement: 'Thanks for jumping on, Sam. I know you have your evening rush starting in about ten minutes, so I will get straight to it. When we chatted last week, you mentioned you guys were dealing with some manual pricing errors, keeping track of inventory on spreadsheets, and worrying about EBT audits. Is that still accurate?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Manual Aisle Walks: Staff walks aisles checking prices and changing tags manually.',
+            feature: 'Centralized Pricing: Automates price updates and syncs pricing changes instantly to registers.',
+            impact: 'Labor Savings Math: Saves 6 hours per week. At $15/hour, this equals $180/week or $9,360/year saved in labor costs.',
+          },
+          {
+            need: 'Spreadsheet Inventory and Stockouts: Manual counts cause frequent out-of-stock items and supplier margin leakage.',
+            feature: 'Automated Inventory Tracking: Tracks stock levels in real time and automates reordering.',
+            impact: 'Financial Recovery Math: Protects store margins, reduces manual count labor, and prevents walk-away customer losses.',
+          },
+          {
+            need: 'Compliance and Audit Risks: Recent warnings regarding manual age verification and EBT administration.',
+            feature: 'Age and EBT Compliance Prompts: System forces register prompts for age check and blocks invalid EBT purchases.',
+            impact: 'License Safeguard: Protects the store EBT/lottery licenses, prevents regulatory audits, and avoids costly fines.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "Look, I just don't have the time to switch systems right now. I can't risk having my registers down during our busy hours.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'That is a totally fair concern. I know any downtime at the register directly impacts your business.' },
+          { step: 'Step 2 (Explore):', text: 'Just so I understand, what is the main concern there, are you worried about actual system downtime during the switch, or is it more about how long it will take your cashiers to learn it?' },
+          { step: 'Step 3 (Solve):', text: 'Explain how our onboarding team handles the heavy lifting overnight, keeping register downtime to under 15 minutes.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to scheduling the demo to show them the interface.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us grab 15 minutes to run through a quick demo so you can see it in action. Do you have some time Tuesday morning, or would Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standalone card terminals instead of Bodega AI.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
+    },
+    carla_reyes: {
+      displayName: 'Carla Reyes',
+      initials: 'CR',
+      business: 'Studio Collective Salon : Multi-booth Beauty Salon',
+      subtitle: 'Recorded Discovery Interview • Owner, Studio Collective Salon',
+      location: 'Denver, Colorado',
+      style: 'Supporter',
+      styleDesc: 'Relationship-driven, warm, collaborative, cautious of disruption',
+      product: 'Roc Terminal+',
+      segment: 'Beauty / Salon',
+      videoUrl: '/handouts/carla_reyes_briefing.mp4',
+      behavioralProfile: 'Carla Reyes is a <strong>Supporter</strong> (relationship-driven, warm, collaborative). She values team harmony and fears disruption. Reassurance is key.',
+      productFocusGuideline: 'Pitch the multi-merchant terminal solution Roc Terminal+. Pitching standard single-merchant terminals instead of Roc Terminal+ is a failure.',
+      objectionFlow: [
+        { label: '1. Cushion', color: '#dc2626', quote: '"I completely get that. Your team\'s comfort is the most important thing here."', desc: 'Validate her fear of disrupting her stylists.' },
+        { label: '2. Probe', color: '#2563eb', quote: '"Are they mostly worried about a complicated setup, or is it the daily learning curve?"', desc: 'Clarify the specific nature of the team\'s resistance.' },
+        { label: '3. Respond', color: '#16a34a', quote: 'Dedicated Hands-On Training', desc: 'Explain that we provide dedicated, hands-on training for each stylist so they feel comfortable before we go live.' },
+        { label: '4. Confirm', color: '#d97706', quote: 'Pivot to Demo', desc: 'Pivot back to the demo so they can see how straightforward the stylist interface is.' },
+      ],
+      transcript: 'We\u2019ve got six stylists renting booths here, and they\'re all independent, so they charge their own clients. But the checkout desk is just... chaos. One stylist uses Venmo, another wants cash, another has a personal card reader... it\'s a completely disjointed experience for clients. And when multiple clients finish their appointments at the same time, the reception area gets jammed and nobody knows who is paying who. Plus, at the end of every single day, I have to sit down and manually sort through all the receipts and transactions to calculate booth rent and payouts. It takes hours, and we still make accounting errors. I know we need a better system, but my stylists hate change. I\'m terrified that if I force a complicated payment terminal on them, they\u2019ll get frustrated and leave. I need something collaborative, but it has to be simple.',
+      info: [
+        { label: 'Industry', value: 'Beauty Salon' },
+        { label: 'Product Fit', value: 'Roc Terminal+' },
+        { label: 'Behavioral Style', value: 'Supporter' },
+        { label: 'Team Size', value: '6 Booth Renters' },
+      ],
+      champ: {
+        challenges: {
+          title: 'Challenges',
+          body: 'Checkout confusion at the shared reception desk. Disjointed client experience where some stylists accept Venmo, others cash. Manual reconciliation at the end of the day is tedious.',
+          action: 'Ask how checkout currently works when multiple stylists have clients finishing at the same time.',
+        },
+        authority: {
+          title: 'Authority (Decision-Making)',
+          body: 'Carla owns the salon but the stylists are independent renters. She needs their buy-in: any change that feels forced will cause pushback. Decisions are collaborative.',
+          action: 'Frame the solution as something that helps the team, not just Carla. Use inclusive language.',
+        },
+        money: {
+          title: 'Money & Budget',
+          body: 'Each stylist manages their own revenue through shared infrastructure. The current single-terminal setup means Carla absorbs reconciliation costs. Stylists want transparent payment tracking.',
+          action: 'Show how split payments give each stylist their own transparent revenue stream with no extra hardware.',
+        },
+        prioritization: {
+          title: 'Prioritization & Timeline',
+          body: 'Carla will not rush a decision. She needs to feel confident that her team is onboard. The biggest fear is losing top stylists to disruption.',
+          action: 'Propose a low-pressure trial or demo that stylists can experience before committing.',
+        },
+      },
+      questions: [
+        'How does the checkout process work when multiple stylists finish with clients at the same time?',
+        'What does end-of-day reconciliation look like for you and the stylists?',
+        'Have any stylists ever had issues with payment tracking or missing transactions?',
+        'If you could change one thing about how payments work in the salon, what would it be?',
+        'How do your stylists feel about trying new tools or technology?',
+      ],
+      objections: [
+        { trigger: "My stylists won't want to learn something new.", response: 'Validate the concern, then reframe: "I hear you. That is why this is designed to be simpler than what they do now, not more complex."' },
+        { trigger: "We've managed fine so far.", response: 'Agree and elevate: "You have built something great. This is about protecting that by reducing the friction points that could frustrate your team."' },
+        { trigger: "I need to talk to my stylists first.", response: 'Support the collaborative process: "Absolutely, I would expect nothing less. Would a quick demo for the team make that conversation easier?"' },
+      ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Carla Reyes, Owner, Studio Collective Salon (6 independent stylists renting booths)',
+        dialogueGuide: 'Supporter. Relationship-driven, warm, and collaborative. Reassurance is key. Dialogue Pace: maintain 50/50 balance, check in every 1-2 sentences. Avoid high pressure or complex jargon.',
+        timeConstraint: '10 minutes (brief discussion on checkout operations)',
+        productFocus: 'Roc Terminal+ (Multi-merchant split payment terminal)',
+        openingStatement: 'Hey Carla, thanks for taking the call. I know running a busy salon keeps you on your feet, so I will keep this quick. When we talked last week, you mentioned you guys were dealing with some checkout confusion at the front desk, a disjointed payment experience for clients, and a lot of manual reconciliation at the end of the day. Does that still sound like the main challenges?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Shared Reception Confusion: Desk gets chaotic with booth renters using multiple payment apps or personal readers.',
+            feature: 'Multi-Merchant Split Payments: Allows independent booth renters to accept payments on a single physical terminal.',
+            impact: 'Stress-Free Reception: Routes funds directly to individual stylist accounts, keeping business finances separate.',
+          },
+          {
+            need: 'Disjointed Client Experience: Clients pay stylists via cash or personal apps, slowing checkout and feeling unprofessional.',
+            feature: 'Unified Client Checkout: A high-end payment terminal interface accepting tap, chip, and mobile wallets in one spot.',
+            impact: 'Premium Brand Perception: Gives clients a sleek, professional checkout experience that matches the high quality of your salon.',
+          },
+          {
+            need: 'Manual End-of-Day Reconciliation: Spent hours sorting through payments to calculate booth rentals and stylist transactions.',
+            feature: 'Simplified Reporting: Tracks rental dues and individual transactions automatically in the back office.',
+            impact: 'Time Savings: Saves hours of bookkeeping every week and prevents stylist accounting errors.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "I'm just worried my stylists won't want to use it. They aren't very tech-savvy and hate when we change things on them.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I completely get that. Your team comfort is the most important thing here.' },
+          { step: 'Step 2 (Explore):', text: 'Just to make sure we address it right, are they mostly worried about a complicated setup process, or is it more about the daily learning curve of using the app?' },
+          { step: 'Step 3 (Solve):', text: 'Explain that we provide dedicated, hands-on training for each stylist so they feel comfortable before we go live.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to the demo so they can see how straightforward the stylist interface is.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us grab 15 minutes to do a quick demo and I will show you how simple it is for your stylists to track their own sales. Would Tuesday morning or Thursday afternoon work best for you?',
+        fails: [
+          'Pitching the wrong product: Single-merchant terminals instead of Roc Terminal+.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
+    },
+    mike_turner: {
+      displayName: 'Mike Turner',
+      initials: 'MT',
+      business: 'Precision Plumbing & Drain : Residential Plumbing',
+      subtitle: 'Recorded Discovery Interview • Owner, Precision Plumbing & Drain',
+      location: 'Columbus, Ohio',
+      style: 'Doer',
+      styleDesc: 'Fast-paced, direct, results-oriented, highly impatient',
+      product: 'Roc Services',
+      segment: 'Field Services / Plumbing',
+      videoUrl: '/handouts/mike_turner_briefing.mp4',
+      behavioralProfile: 'Mike Turner is a <strong>Doer</strong> (fast-paced, direct, results-oriented, highly impatient). He values speed and simplicity. Get to the point or he\'ll cut you off.',
+      productFocusGuideline: 'Pitch the software solution Roc Services. Pitching standalone credit card terminals instead of Roc Services is a failure.',
+      objectionFlow: [
+        { label: '1. Cushion', color: '#dc2626', quote: '"I hear you. If the field techs find it complicated, it\'s just going to sit there unused."', desc: 'Validate his practical concern about crew adoption.' },
+        { label: '2. Probe', color: '#2563eb', quote: '"Is it that the app has too many steps, or the time to get them set up on their phones?"', desc: 'Clarify whether the concern is complexity or onboarding time.' },
+        { label: '3. Respond', color: '#16a34a', quote: '1-Click Invoicing Interface', desc: 'Explain that the field tech interface is designed for 1-click invoicing and takes less than 5 minutes to learn.' },
+        { label: '4. Confirm', color: '#d97706', quote: 'Pivot to Mobile Demo', desc: 'Pivot back to the demo so they can see how simple the app looks on a mobile screen.' },
+      ],
+      transcript: 'Look, the plumbing side is fine. The headache is getting paid. Right now, my technicians are out in the field running three or four jobs a day. But they\'re plumbers, not salespeople. They walk away from jobs without collecting payment, or they take a paper check and it rolls around in the truck for a week. Then we write up paper invoices back at the office and mail them out. It takes two, sometimes three weeks for funds to clear. During the winter slow season, those cash flow gaps get really stressful. My office staff is constantly buried in manual invoicing and chasing down unpaid bills. I already use QuickBooks, but double-entry is killing our time. My guys aren\'t tech-savvy, so whatever app we use in the field has to be dead simple. Just tap three buttons and send the invoice.',
+      info: [
+        { label: 'Industry', value: 'Plumbing Services' },
+        { label: 'Product Fit', value: 'Roc Services' },
+        { label: 'Behavioral Style', value: 'Doer' },
+        { label: 'Fleet Size', value: '4 Trucks, 4 Techs' },
+      ],
+      champ: {
+        challenges: {
+          title: 'Challenges',
+          body: 'Technicians leave jobs without collecting payment. Paper invoices are sent days after job completion. Payments take 2 to 3 weeks to arrive. Office staff spend hours chasing unpaid invoices manually.',
+          action: 'Ask how techs currently handle billing when they finish a job in the field.',
+        },
+        authority: {
+          title: 'Authority (Decision-Making)',
+          body: 'Mike is the sole owner and makes all decisions quickly. He values directness: get to the point fast or he will cut you off. No committee, no approval chain.',
+          action: 'Be direct. Lead with the result, then explain how. Skip the small talk.',
+        },
+        money: {
+          title: 'Money & Budget',
+          body: 'Cash flow gaps create severe stress during winter slow season. Delayed invoicing means delayed revenue. Lost estimates to faster competitors cost real money.',
+          action: 'Quantify the cash flow impact: "If 4 techs run 3 jobs/day and each invoice is delayed 2 weeks..."',
+        },
+        prioritization: {
+          title: 'Prioritization & Timeline',
+          body: 'Mike knows operations are inefficient but hates dealing with new technology. He will prioritize a change only if it is dead simple for his crew and solves an immediate pain.',
+          action: 'Emphasize crew-friendly design: "Your guys tap 3 buttons on their phone and the invoice goes out."',
+        },
+      },
+      questions: [
+        'When a tech finishes a job, what happens with billing right now?',
+        'How long does it typically take from job completion to payment received?',
+        'How does your office handle the follow-up on unpaid invoices?',
+        'Have you lost any jobs recently because a competitor got an estimate out faster?',
+        'What does cash flow look like during the slow season with these delays?',
+      ],
+      objections: [
+        { trigger: "We've always done it this way.", response: 'Do not argue. Validate and redirect: "Makes sense. When you look at the 2-3 week delay on getting paid, what is that costing you over a quarter?"' },
+        { trigger: "My guys won't use it. They're plumbers, not computer guys.", response: 'Meet the objection head-on: "Exactly. This is built for field crews, not office workers. Three taps and the invoice is sent."' },
+        { trigger: 'I already use QuickBooks.', response: 'Do not compete. Complement: "QuickBooks is great for the back office. This gets the data to QuickBooks faster by capturing it in the field."' },
+      ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Mike Turner, Owner, Precision Plumbing & Drain (4 field technicians, 4 trucks)',
+        dialogueGuide: 'Doer. Highly practical, results-oriented, impatient, direct. Dialogue Pace: maintain 50/50 balance, conciseness is key. Focus immediately on cash flow and time savings.',
+        timeConstraint: '10 minutes (between calls on a job site)',
+        productFocus: 'Roc Services (Mobile Invoicing and Dispatch Software)',
+        openingStatement: 'Hey Mike, thanks for grabbing the phone. I know you are busy on a job site today, so I will get right to the point. When we spoke last week, you mentioned that technicians are collecting payments inconsistently in the field, paper invoices are dragging out your collection times, and you have got a backlog of manual invoicing in the office. Is that still what is going on?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Inconsistent Field Payments: Technicians walk away from jobs without collecting payment, or paper checks sit in trucks.',
+            feature: 'Mobile In-Field Processing: Allows field technicians to invoice and process card/ACH payments on-site via mobile app.',
+            impact: 'Zero Billing Lag: You collect payments immediately on job completion, preventing revenue leakage.',
+          },
+          {
+            need: 'Paper Invoice Delay: Writing and mailing paper invoices takes days, delaying payment clearances by weeks.',
+            feature: 'Mobile Invoice Generator: Generates and sends digital estimates and invoices to customers instantly on-site.',
+            impact: 'Accelerated Cash Flow: Gets funds cleared in minutes rather than weeks, supporting business during slow seasons.',
+          },
+          {
+            need: 'Office Bookkeeping Backlog: Office staff spends hours typing paper invoices and manually reconciling billing details.',
+            feature: 'QuickBooks Sync: Automatically syncs all generated field invoices and payments into accounting.',
+            impact: 'Admin Time Recovery: Eliminates double-entry and saves manual reconciliation and billing follow-up hours.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: "Look, my guys are plumbers, not tech guys. They're going to complain and refuse to use some complicated app.",
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I hear you. If the field techs find it complicated, it is just going to sit there unused.' },
+          { step: 'Step 2 (Explore):', text: 'What is the biggest concern there, is it that the app itself has too many steps, or is it the time it takes to get them set up on their phones?' },
+          { step: 'Step 3 (Solve):', text: 'Explain that the field tech interface is designed for 1-click invoicing and takes less than 5 minutes to learn.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to the demo so they can see how simple the app looks on a mobile screen.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us set up a quick 15-minute online walkthrough so you can see how simple the mobile screen is for your techs. Do you have some time Tuesday morning, or would Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standalone retail terminals instead of Roc Services.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
+    },
+    david_miller: {
+      displayName: 'Pastor David Miller',
+      initials: 'DM',
+      business: 'New Hope Community Church : Church & Nonprofit',
+      subtitle: 'Recorded Discovery Interview • Pastor, New Hope Community Church',
+      location: 'Western Pennsylvania',
+      style: 'Talker-Supporter Hybrid',
+      styleDesc: 'Warm, relational, deeply mission-focused',
+      product: 'Roc Giving',
+      segment: 'Church / Nonprofit',
+      videoUrl: '/handouts/david_miller_briefing.mp4',
+      behavioralProfile: 'Pastor David Miller is a <strong>Talker-Supporter Hybrid</strong> (warm, relational, deeply mission-focused). He values community, trust, and spiritual alignment.',
+      productFocusGuideline: 'Pitch the donor management platform Roc Giving. Pitching standard retail terminals instead of Roc Giving is a failure.',
+      objectionFlow: [
+        { label: '1. Cushion', color: '#dc2626', quote: '"I completely agree. Giving is a spiritual act, not a business transaction."', desc: 'Honor the spiritual and relational nature of giving.' },
+        { label: '2. Probe', color: '#2563eb', quote: '"Are you worried the digital page will look too commercial, or that older members will feel excluded?"', desc: 'Clarify whether the concern is about aesthetics or inclusion.' },
+        { label: '3. Respond', color: '#16a34a', quote: 'Custom Church-Branded Giving Page', desc: 'Show how the giving page is customized with church imagery and photos of the court. Traditional check-giving remains fully supported.' },
+        { label: '4. Confirm', color: '#d97706', quote: 'Pivot to Custom Mockup', desc: 'Pivot back to showing them a mockup of their custom basketball court giving page.' },
+      ],
+      transcript: 'We have about 350 active members, and their generosity is wonderful. But weekly giving is so inconsistent. If a family misses a Sunday service because of travel or weather, our donations drop significantly. Right now, we collect everything via traditional envelopes, checks, and cash. It means our volunteers spend hours after service counting money and manually writing out tax receipts. They\'re burning out, and I hate to see that. We\'re currently fundraising to repair our community basketball court for the youth program, but tracking the campaign progress on paper envelopes is so slow. Younger families keep asking for digital options. I want to make giving easier for everyone, but it\u2019s critical that it doesn\'t feel commercial or cold. Giving is a relational, spiritual act for us.',
+      info: [
+        { label: 'Organization', value: 'Church & Nonprofit' },
+        { label: 'Product Fit', value: 'Roc Giving' },
+        { label: 'Behavioral Style', value: 'Talker-Supporter Hybrid' },
+        { label: 'Congregation', value: '~350 Active Members' },
+      ],
+      champ: {
+        challenges: {
+          title: 'Challenges',
+          body: 'Donations are inconsistent: heavily reliant on Sunday collections. Manual tracking of cash and checks is time-consuming. Volunteers are burning out generating handwritten tax receipts. Younger families want digital giving options.',
+          action: 'Ask about how the church currently collects and tracks donations week-to-week.',
+        },
+        authority: {
+          title: 'Authority (Decision-Making)',
+          body: 'Pastor David leads the church but values community input. Major decisions involve the church board. He needs to feel personally aligned with the mission before advocating.',
+          action: 'Connect the solution to the church mission and community impact. Make him a champion.',
+        },
+        money: {
+          title: 'Money & Budget',
+          body: 'The church operates on tight budgets funded by donations. The basketball court fundraiser is the current priority. Processing fees are a concern but secondary to engagement.',
+          action: 'Frame costs as an investment in the basketball court project. Show how digital giving increases total donations.',
+        },
+        prioritization: {
+          title: 'Prioritization & Timeline',
+          body: 'The basketball court repair is the immediate priority. Volunteer burnout is a growing concern. Pastor David will move when he believes the solution genuinely serves his community.',
+          action: 'Tie everything to the basketball court timeline: "What if you could fund the court project by Q4?"',
+        },
+      },
+      questions: [
+        'How does the church currently collect donations on a typical Sunday?',
+        'What does the process look like after service for counting and recording donations?',
+        'Have younger families mentioned wanting other ways to give?',
+        'How is the basketball court fundraiser going? Are you on track?',
+        'How many volunteer hours go into donation tracking and receipts each week?',
+      ],
+      objections: [
+        { trigger: 'We already have ways to collect donations.', response: 'Honor the tradition: "Your congregation generosity is clear. This is about making it easier for everyone to give in the way that is most comfortable for them."' },
+        { trigger: "We don't want giving to feel transactional.", response: 'Align with the mission: "100 percent. This is about deepening engagement, not processing payments. Think of it as extending the giving experience beyond Sunday."' },
+        { trigger: "We're not very tech-savvy.", response: 'Remove the burden: "Your volunteers won not need to be. The system handles tracking and receipts automatically. It actually reduces the tech burden on your team."' },
+      ],
+      stage1: {
+        title: 'Stage 1: The Hook (First 2 Mins)',
+        profile: 'Pastor David Miller, New Hope Community Church (350 active members)',
+        dialogueGuide: 'Talker-Supporter Hybrid. Warm, relational, mission-focused, community-oriented. Dialogue Pace: maintain 50/50 balance. Focus on trust, stories, and community impact.',
+        timeConstraint: '10 minutes (relaxed but respectful of church programs)',
+        productFocus: 'Roc Giving (Donor Management and Mobile Campaigns)',
+        openingStatement: 'Hi Pastor David, thanks for chatting today. I have been following your basketball court project and would love to hear how it is coming along. I will keep this brief, but when we spoke last week, you mentioned that giving is inconsistent when members miss a service, your volunteers are burning out tracking checks manually, and it is hard to get younger givers excited about the court project. Is that still what you are seeing?',
+      },
+      stage2: {
+        title: 'Stage 2: Discovery and ROI Grid (Middle 6 Mins)',
+        grid: [
+          {
+            need: 'Inconsistent Weekly Giving: Weekly giving drops off whenever members are traveling or cannot make Sunday service.',
+            feature: 'Recurring Online Donations: Set-and-forget digital giving options that members can configure on your website or mobile portal.',
+            impact: 'Consistent Church Funding: Provides the church with steady, predictable monthly support to run community outreach programs.',
+          },
+          {
+            need: 'Court Campaign Momentum: Traditional envelopes and paper checks make it hard to track fundraising progress dynamically.',
+            feature: 'Text-to-Give and Mobile Campaigns: Simple Text-to-Give keywords and mobile campaign pages built specifically for community projects.',
+            impact: 'Accelerated Project Completion: Keeps donors engaged and excited on the spot, with visible real-time campaign tracking.',
+          },
+          {
+            need: 'Volunteer Administrative Burnout: Volunteers spend hours counting cash, sorting checks, and manually writing out tax receipts.',
+            feature: 'Automated Contribution Tracking: Secure donor management software that logs donations and generates tax statements with one click.',
+            impact: 'Ministry-First Operations: Frees up volunteer hours from administrative paperwork, letting them focus on community service.',
+          }
+        ],
+      },
+      stage3: {
+        title: 'Stage 3: Friction and Close (Last 2 Mins)',
+        expectedObjection: 'We really care about keeping our church community personal. I do not want giving to feel commercial or like a cold business transaction.',
+        dialoguePath: [
+          { step: 'Step 1 (Cushion):', text: 'I completely agree. Giving is a spiritual act, not a business transaction.' },
+          { step: 'Step 2 (Explore):', text: 'What is the main concern there, are you worried the digital giving page will look too commercial, or is it more about making sure older members do not feel excluded?' },
+          { step: 'Step 3 (Solve):', text: 'Show how the giving page is customized with church imagery and photos of the court, keeping it relational, while traditional check-giving remains fully supported.' },
+          { step: 'Step 4 (Commit):', text: 'Pivot back to showing them a mockup of their custom page.' },
+        ],
+        targetCommitment: 'Secure a scheduled 15-minute demo.',
+        closingStatement: 'Let us take 15 minutes next week to look at a simple mockup of what your custom basketball court giving page could look like. Would Tuesday morning or Thursday afternoon work better?',
+        fails: [
+          'Pitching the wrong product: Standard credit card terminals instead of Roc Giving.',
+          'Treating the appointment as a cold call: Forgetting to reference the previous conversation.',
+          'Arguing or pushing back defensively when the customer raises objections.',
+        ],
+      },
+    },
+  };
+
+  // ─── CHAMP EXPLORER CONTENT (per-persona, per-pillar) ───
+
+  const CHAMP_EXPLORER_CONTENT = {
+    sam_patel: {
+      challenges: {
+        pillarFocus: 'Identify core operational bottlenecks and compliance risks.',
+        sectionLabel: "Sam Patel's Challenges",
+        items: [
+          { title: 'Manual Aisle Walks', desc: 'Staff checks and changes store price tags by hand, wasting hours of daily labor.' },
+          { title: 'Inventory Discrepancies & Stockouts', desc: 'Uses basic spreadsheets for inventory, leading to frequent stockouts and revenue leakage.' },
+          { title: 'EBT Warning Letter & Compliance Risks', desc: "QuickStop received a compliance warning letter for register check errors. Sam's highest fear is losing his cash-flow lottery and EBT licenses." },
+          { title: 'Missing Tobacco Rebates', desc: 'QuickStop currently misses out on valuable manufacturer tobacco rebates because the store has no scan data reporting program.' },
+        ],
+        discoveryStrategy: 'Ask targeted discovery questions to confirm how much daily time and money these errors cost the store.',
+      },
+      authority: {
+        pillarFocus: 'Establish who holds final decision and buying power.',
+        sectionLabel: "Sam Patel's Profile",
+        items: [
+          { title: 'Sole Owner & Decision-Maker', desc: 'Sam Patel is the sole owner and decision-maker of QuickStop Market (11 years in business). There are no other stakeholders.' },
+          { title: 'Controller Persona Style', desc: 'Highly experienced local merchant who is direct, skeptical, impatient, and has zero interest in small talk. He will test you and call you out if you treat him like a cold lead.' },
+        ],
+        discoveryStrategy: 'Speak peer-to-peer. Keep dialogue conciseness high (maintain 50/50 balance) and respect his tight schedule. Skip the pitch; focus on confirmation.',
+      },
+      money: {
+        pillarFocus: 'Uncover financial constraints, margins, and cost implications.',
+        sectionLabel: "Sam Patel's Constraints",
+        items: [
+          { title: 'Thin Profit Margins', desc: 'QuickStop operates on thin 2-5% profit margins, making cost control critical. Wasted labor is his largest cash drain.' },
+          { title: 'Wasted Labor Math', desc: 'Pays 2 employees $15/hour who waste ~6 hours/week each on manual updates (Calculation: 2 × $15 × 6 = $180/week, or $9,360/year in wasted labor).' },
+          { title: 'Extreme Fee Sensitivity', desc: 'Highly sensitive to credit card rates and skeptical of standard processing rate-saving pitches.' },
+        ],
+        discoveryStrategy: 'Lead with operational cost recovery and margin protection math rather than a simple processing rate pitch.',
+      },
+      prioritization: {
+        pillarFocus: 'Assess timeline and urgency of solving these problems.',
+        sectionLabel: "Sam Patel's Urgency",
+        items: [
+          { title: 'Consumed by Daily Operations', desc: 'Sam is overwhelmed by daily operations and will not prioritize any system changes unless compliance warnings force him.' },
+          { title: 'EBT License Risk', desc: "Highest underlying fear is losing QuickStop's primary cash-flow licenses (EBT and lottery) due to manual register errors." },
+          { title: '10-Minute Call Limit', desc: 'Sam is giving you exactly 10 minutes before his evening rush forces him to end the call. You must remain concise and on point.' },
+        ],
+        discoveryStrategy: 'Leverage the EBT audit warning and age verification risks to build immediate timeline urgency.',
+      },
+    },
+    carla_reyes: {
+      challenges: {
+        pillarFocus: 'Identify checkout bottlenecks and daily reconciliation pain.',
+        sectionLabel: "Carla Reyes' Challenges",
+        items: [
+          { title: 'Shared Reception Chaos', desc: "Desk gets chaotic with booth renters using multiple payment apps (Venmo, cash, personal card readers). Clients don't know who to pay." },
+          { title: 'Disjointed Client Experience', desc: 'Multiple clients finishing appointments at the same time jam the reception area with no clear checkout process.' },
+          { title: 'Manual End-of-Day Reconciliation', desc: 'Carla spends hours after close manually sorting receipts and transactions to calculate booth rent and payouts. Accounting errors are frequent.' },
+        ],
+        discoveryStrategy: 'Ask how checkout currently works when multiple stylists have clients finishing at the same time.',
+      },
+      authority: {
+        pillarFocus: 'Understand collaborative decision-making dynamics.',
+        sectionLabel: "Carla Reyes' Profile",
+        items: [
+          { title: 'Salon Owner (Not Sole Decision-Maker)', desc: 'Carla owns the salon but the 6 stylists are independent booth renters. She cannot force tools on them.' },
+          { title: 'Collaborative Decision Process', desc: 'Any change that feels forced will cause pushback. Decisions must feel team-driven, not top-down.' },
+          { title: 'Biggest Fear: Losing Stylists', desc: "Carla's primary concern is that a complicated new system will frustrate her top stylists enough to leave." },
+        ],
+        discoveryStrategy: 'Frame the solution as something that helps the team, not just Carla. Use inclusive language.',
+      },
+      money: {
+        pillarFocus: 'Uncover financial structure and cost pain points.',
+        sectionLabel: "Carla Reyes' Constraints",
+        items: [
+          { title: 'Reconciliation Absorbs Owner Time', desc: 'Carla personally absorbs the administrative cost of sorting through payments daily — hours of unpaid bookkeeping.' },
+          { title: 'Stylists Want Transparent Tracking', desc: "Independent stylists want clear, real-time visibility into their own payments without relying on Carla's manual reports." },
+          { title: 'No Centralized Revenue Reporting', desc: 'No single system tracks booth rent, tips, and individual stylist transactions in one place.' },
+        ],
+        discoveryStrategy: 'Show how split payments give each stylist their own transparent revenue stream with no extra hardware.',
+      },
+      prioritization: {
+        pillarFocus: 'Assess readiness for change and team alignment.',
+        sectionLabel: "Carla Reyes' Timeline",
+        items: [
+          { title: 'Will Not Rush a Decision', desc: 'Carla is cautious and relationship-driven. She needs to feel confident her team is onboard before committing.' },
+          { title: 'Fear of Losing Top Stylists', desc: 'The biggest blocker is the risk that a complicated onboarding process frustrates her best stylists.' },
+          { title: 'Needs Low-Pressure Trial', desc: 'A demo or trial that stylists can experience before committing is the key to moving forward.' },
+        ],
+        discoveryStrategy: 'Propose a low-pressure trial or demo that stylists can experience before committing.',
+      },
+    },
+    mike_turner: {
+      challenges: {
+        pillarFocus: 'Identify field billing gaps and office processing bottlenecks.',
+        sectionLabel: "Mike Turner's Challenges",
+        items: [
+          { title: 'Inconsistent Field Payments', desc: 'Technicians walk away from jobs without collecting payment, or paper checks sit in trucks for days.' },
+          { title: 'Paper Invoice Delays', desc: 'Writing and mailing paper invoices takes days after job completion. Payment clearance takes 2–3 weeks.' },
+          { title: 'Office Bookkeeping Backlog', desc: 'Office staff spends hours typing paper invoices into QuickBooks manually. Double-entry is killing productivity.' },
+        ],
+        discoveryStrategy: 'Ask how techs currently handle billing when they finish a job in the field.',
+      },
+      authority: {
+        pillarFocus: 'Establish direct decision-making authority.',
+        sectionLabel: "Mike Turner's Profile",
+        items: [
+          { title: 'Sole Owner & Fast Decision-Maker', desc: 'Mike is the sole owner and makes all decisions quickly. No committee, no approval chain.' },
+          { title: 'Doer Persona (Direct & Impatient)', desc: 'Values directness: get to the point fast or he will cut you off. Zero tolerance for fluff or small talk.' },
+        ],
+        discoveryStrategy: 'Be direct. Lead with the result, then explain how. Skip the small talk.',
+      },
+      money: {
+        pillarFocus: 'Uncover cash flow stress and revenue leakage.',
+        sectionLabel: "Mike Turner's Constraints",
+        items: [
+          { title: 'Winter Cash Flow Gaps', desc: 'Delayed invoicing creates severe cash flow stress during the slow winter season. Revenue is lumpy and unpredictable.' },
+          { title: 'Lost Estimates to Faster Competitors', desc: 'Other plumbing companies send quotes faster because they use digital tools. Mike loses jobs to speed.' },
+          { title: '2–3 Week Collection Delay', desc: 'The gap from job completion to payment received is 2–3 weeks, creating constant working capital pressure.' },
+        ],
+        discoveryStrategy: 'Quantify the cash flow impact: "If 4 techs run 3 jobs/day and each invoice is delayed 2 weeks..."',
+      },
+      prioritization: {
+        pillarFocus: 'Assess willingness to adopt new tools.',
+        sectionLabel: "Mike Turner's Timeline",
+        items: [
+          { title: 'Knows Operations Are Inefficient', desc: 'Mike is fully aware the current process is broken but has been living with it out of habit.' },
+          { title: 'Hates Dealing With New Technology', desc: "His resistance isn't about cost — it's about complexity. He won't adopt anything his crew can't learn in minutes." },
+          { title: 'Dead Simple or Nothing', desc: 'Will only prioritize a change if it is dead simple for his crew and solves an immediate pain they feel daily.' },
+        ],
+        discoveryStrategy: 'Emphasize crew-friendly design: "Your guys tap 3 buttons on their phone and the invoice goes out."',
+      },
+    },
+    david_miller: {
+      challenges: {
+        pillarFocus: 'Identify giving inconsistencies and volunteer burnout.',
+        sectionLabel: "David Miller's Challenges",
+        items: [
+          { title: 'Inconsistent Weekly Giving', desc: 'Donations drop significantly whenever families miss a Sunday service due to travel or weather. No recurring giving option.' },
+          { title: 'Manual Cash & Check Tracking', desc: 'All donations are collected via envelopes, checks, and cash. Tracking is entirely manual and error-prone.' },
+          { title: 'Volunteer Administrative Burnout', desc: "Volunteers spend hours after service counting money and manually writing tax receipts. They're burning out." },
+          { title: 'Younger Families Want Digital Options', desc: 'Younger members keep asking for digital giving but the church has no online or mobile giving platform.' },
+        ],
+        discoveryStrategy: 'Ask about how the church currently collects and tracks donations week-to-week.',
+      },
+      authority: {
+        pillarFocus: 'Understand community-driven decision process.',
+        sectionLabel: "David Miller's Profile",
+        items: [
+          { title: 'Pastor Leads But Values Community Input', desc: 'Pastor David leads the church but major decisions involve the church board and congregation feedback.' },
+          { title: 'Mission-Aligned Decision-Making', desc: "He needs to feel personally aligned with the mission of any new tool before he'll advocate for it to the board." },
+          { title: 'Champion Strategy', desc: 'The goal is to make Pastor David a champion who brings the solution to his board with conviction.' },
+        ],
+        discoveryStrategy: 'Connect the solution to the church mission and community impact. Make him a champion.',
+      },
+      money: {
+        pillarFocus: 'Uncover budget constraints and fundraising dynamics.',
+        sectionLabel: "David Miller's Constraints",
+        items: [
+          { title: 'Tight Budgets Funded by Donations', desc: 'The church operates entirely on member donations. Every dollar must serve the mission.' },
+          { title: 'Basketball Court Fundraiser is Priority', desc: 'The immediate fundraising goal is repairing the community basketball court for the youth program.' },
+          { title: 'Processing Fees Secondary to Engagement', desc: 'While processing fees matter, increasing total donations through better engagement is the primary value proposition.' },
+        ],
+        discoveryStrategy: 'Frame costs as an investment in the basketball court project. Show how digital giving increases total donations.',
+      },
+      prioritization: {
+        pillarFocus: 'Assess timeline urgency and mission alignment.',
+        sectionLabel: "David Miller's Timeline",
+        items: [
+          { title: 'Basketball Court Repair is Immediate', desc: "The court project has a specific timeline and is the congregation's top priority." },
+          { title: 'Volunteer Burnout is Growing', desc: "This isn't just an inconvenience — dedicated volunteers are starting to step back from service." },
+          { title: 'Will Move When Solution Serves Community', desc: "Pastor David will act when he believes the solution genuinely serves his community's spiritual and practical needs." },
+        ],
+        discoveryStrategy: 'Tie everything to the basketball court timeline: "What if you could fund the court project by Q4?"',
+      },
+    },
+  };
+
+  window.module4BriefingData = {
+    DRILL_QUESTIONS,
+    PERSONA_DATA,
+    CHAMP_EXPLORER_CONTENT
+  };
+})();
