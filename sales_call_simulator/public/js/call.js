@@ -588,23 +588,38 @@ const callManager = {
       return;
     }
 
-    // Generic content for all scenarios (not persona-specific)
-    var keyConcepts = [
-      'This is call number two. The buyer already told you their problems. Prove you were listening.',
-      'Start by confirming what they shared last time before you present anything.',
-      'Connect every product feature to a specific problem the buyer told you about.',
-      'Use their words, not yours. If they said "checkout is a mess," say "checkout" not "point of sale optimization."',
-      'Ask questions. The buyer should be talking more than you are.',
-      'Earn the next step. Propose a specific follow-up and offer two times.'
-    ];
-    var commonMistakes = [
-      'Treating this like a cold call or starting with a generic pitch',
-      'Talking about features the buyer never mentioned needing',
-      'Dropping the price before the buyer understands what they are getting',
-      'Ignoring or rushing past objections instead of addressing them directly',
-      'Ending the call without asking for a clear next step',
-      'Doing the math for the buyer instead of letting them see the numbers themselves'
-    ];
+    // Use scenario-specific coaching notes when available, fall back to generic content
+    var coachingNotes = scenario && scenario.coaching_notes;
+
+    var keyConcepts = (
+      coachingNotes &&
+      Array.isArray(coachingNotes.key_concepts) &&
+      coachingNotes.key_concepts.length > 0
+    )
+      ? coachingNotes.key_concepts
+      : [
+          'This is call number two. The buyer already told you their problems. Prove you were listening.',
+          'Start by confirming what they shared last time before you present anything.',
+          'Connect every product feature to a specific problem the buyer told you about.',
+          'Use their words, not yours. If they said "checkout is a mess," say "checkout" not "point of sale optimization."',
+          'Ask questions. The buyer should be talking more than you are.',
+          'Earn the next step. Propose a specific follow-up and offer two times.'
+        ];
+
+    var commonMistakes = (
+      coachingNotes &&
+      Array.isArray(coachingNotes.common_mistakes) &&
+      coachingNotes.common_mistakes.length > 0
+    )
+      ? coachingNotes.common_mistakes
+      : [
+          'Treating this like a cold call or starting with a generic pitch',
+          'Talking about features the buyer never mentioned needing',
+          'Dropping the price before the buyer understands what they are getting',
+          'Ignoring or rushing past objections instead of addressing them directly',
+          'Ending the call without asking for a clear next step',
+          'Doing the math for the buyer instead of letting them see the numbers themselves'
+        ];
 
     let html = '';
 
