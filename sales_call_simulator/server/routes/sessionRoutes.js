@@ -331,32 +331,48 @@ router.get('/continuity', requireAuth, async (req, res) => {
       return sendError(res, req, 400, 'Invalid personaId');
     }
 
-    // Retrieve latest passing Module 4 session's summary (final_score >= 80, pass)
+    // Retrieve newest completed Module 4 session (no score gate)
     const result = await db.query(
-      `SELECT s.relationship_summary, s.relationship_summary_json, sc.final_score
+      `SELECT s.relationship_summary, s.relationship_summary_json
        FROM simulation_sessions s
-       INNER JOIN session_scores sc ON sc.session_id = s.id
        WHERE s.external_user_id = $1
          AND s.module_id = 'module4'
          AND s.persona_id = $2
          AND s.status = 'completed'
-         AND s.relationship_summary IS NOT NULL
-         AND s.relationship_summary != ''
-         AND sc.final_score >= 80
-         AND sc.overall_verdict = 'pass'
        ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
        LIMIT 1`,
       [externalUserId, personaId]
     );
 
-    if (result.rows.length === 0) {
-      return sendError(res, req, 404, 'No passing Module 4 summary found for this persona.');
-    }
+    // Use database summary when available, otherwise fall back to persona default
+    let payload;
 
-    const payload = {
-      relationship_summary: result.rows[0].relationship_summary,
-      relationship_summary_json: result.rows[0].relationship_summary_json,
-    };
+    if (result.rows.length > 0) {
+      const row = result.rows[0];
+      const summaryText = row.relationship_summary && row.relationship_summary.trim();
+
+      if (summaryText) {
+        // Valid database text; validate JSON is a usable object
+        const jsonIsValid = row.relationship_summary_json
+          && typeof row.relationship_summary_json === 'object'
+          && !Array.isArray(row.relationship_summary_json);
+
+        payload = {
+          relationship_summary: summaryText,
+          relationship_summary_json: jsonIsValid
+            ? row.relationship_summary_json
+            : (getFallbackSummary(personaId)?.relationship_summary_json || null),
+        };
+      } else {
+        // Completed session exists but summary is missing or blank
+        const fallback = getFallbackSummary(personaId);
+        payload = fallback || { relationship_summary: null, relationship_summary_json: null };
+      }
+    } else {
+      // No prior Module 4 session exists
+      const fallback = getFallbackSummary(personaId);
+      payload = fallback || { relationship_summary: null, relationship_summary_json: null };
+    }
 
     return sendSuccess(res, payload);
   } catch (err) {
