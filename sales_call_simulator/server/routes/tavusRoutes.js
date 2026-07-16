@@ -110,30 +110,6 @@ router.post('/conversations', requireAuth, async (req, res) => {
     let props = cfg.properties || {};
     let reqAuth = cfg.require_auth !== undefined ? cfg.require_auth : null;
 
-    // Handle Module 5 continuity (retrieve and append relationship summary)
-    if (session.module_id === 'module5' && session.persona_id) {
-      const summaryResult = await db.query(
-        `SELECT s.relationship_summary FROM simulation_sessions s
-         INNER JOIN session_scores sc ON sc.session_id = s.id
-         WHERE s.external_user_id = $1
-           AND s.module_id = 'module4'
-           AND s.persona_id = $2
-           AND s.status = 'completed'
-           AND s.relationship_summary IS NOT NULL
-           AND sc.final_score >= 80
-           AND sc.overall_verdict = 'pass'
-         ORDER BY s.completed_at DESC NULLS LAST, s.created_at DESC
-         LIMIT 1`,
-        [session.external_user_id, session.persona_id]
-      );
-
-      if (summaryResult.rows.length > 0 && summaryResult.rows[0].relationship_summary) {
-        const summaryText = summaryResult.rows[0].relationship_summary;
-        context += `\n\n[CONTINUITY CONTEXT - PRIOR MEETING NOTES]:\nYou are continuing a conversation from a prior call. The following facts were established during Module 4. Do not contradict them and acknowledge them if referenced by the representative:\n${summaryText}\n[END PRIOR MEETING NOTES]`;
-        logger.info('Continuity summary injected server-side', { sessionId });
-      }
-    }
-
     if (!personaId) {
       return sendError(res, req, 400, 'personaId resolved from scenario config is empty');
     }
