@@ -992,6 +992,16 @@ function loadCurriculum(scenarioId) {
       logger.warn(`[PostCall] Make the Sale source material not found at expected path`);
     }
 
+    // Module 5 scenarios use the Close the Sale source material (LAW)
+    if (scenarioId && scenarioId.startsWith('module5')) {
+      const closeTheSalePath = path.join(__dirname, '..', '..', 'docs', 'source_material', 'close_the_sale.md');
+      if (fs.existsSync(closeTheSalePath)) {
+        logger.info(`[PostCall] Loaded Close the Sale source material for ${scenarioId}`);
+        return fs.readFileSync(closeTheSalePath, 'utf8');
+      }
+      logger.warn(`[PostCall] Close the Sale source material not found at expected path`);
+    }
+
     // Legacy fallback: check curriculum directory
     const curriculumDir = path.join(__dirname, '..', 'curriculum');
     const filePath = path.join(curriculumDir, scenarioId + '.md');
@@ -1029,8 +1039,9 @@ Auto-Fail Triggers: ${(scorecard.automatic_fails_triggered || []).length > 0 ? s
       .join('\n');
   }
 
-  // Detect if this is a module4 scenario for curriculum-specific coaching
+  // Detect if this is a module4 or module5 scenario for curriculum-specific coaching
   const isModule4 = scenarioId && scenarioId.startsWith('module4');
+  const isModule5 = scenarioId && scenarioId.startsWith('module5');
   const frameworkReferences = isModule4
     ? `Your coaching analysis must directly reference the Make the Sale source material (provided below). This source material is LAW.
 - Reference specific frameworks: RDCT (Repeat-Describe-Convert-Tell), CPRC (Cushion-Probe-Respond-Confirm), Feel-Felt-Found.
@@ -1039,11 +1050,21 @@ Auto-Fail Triggers: ${(scorecard.automatic_fails_triggered || []).length > 0 ? s
 - Reference the difference between price, cost, and value.
 - Reference Step 1 (Repeat) for needs confirmation.
 - Grade on APPLICATION of techniques, not definitions.`
-    : `Your coaching analysis must directly reference the curriculum source material:
+    : (isModule5
+      ? `Your coaching analysis must directly reference the Close the Sale source material (provided below). This source material is LAW.
+- Reference the Close Action Guides: trial closing questions, listening and reinforcing responses, recognizing buying signals, and asking for a closing commitment.
+- Reference the When to Ask for the Close triggers: customer acknowledges solutions fill needs, concerns have been answered, positive trial close responses received.
+- Reference the Direct Call to Action for direct closing questions with clear expectations.
+- Reference If-Then intent questions to test commitment and uncover hidden blockers.
+- Reference incremental closes as smaller commitments that lead to the buying decision.
+- Reference behavioral style differences (Talkers: emotional/spontaneous, Doers: quick/confident, Controllers: deliberate/logical, Supporters: slow/studied/safe).
+- When evaluating concern handling, assess whether the rep acknowledged the concern, clarified what was preventing the decision, responded with relevant value, and confirmed the concern was resolved.
+- Grade on APPLICATION of techniques, not definitions.`
+      : `Your coaching analysis must directly reference the curriculum source material:
 - Reference specific frameworks (BANT, CHAMP) when relevant.
 - Reference the sales funnel stages (Suspect, Lead, Prospect) when relevant.
 - Reference the successful outcome criteria from the curriculum.
-- Reference customer-focused vs product-focused selling distinctions.`;
+- Reference customer-focused vs product-focused selling distinctions.`);
 
   return {
     system: `You are an expert sales coach providing detailed, constructive feedback on a sales call simulation. You have access to the training curriculum and the scorecard results.
